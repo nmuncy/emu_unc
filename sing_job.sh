@@ -2,7 +2,9 @@
 
 #SBATCH --qos pq_madlab
 #SBATCH --account iacc_madlab
+#SBATCH -p IB_44C_512G
 #SBATCH --nodes 1
+#SBATCH --ntasks 1
 #SBATCH --cpus-per-task 16
 #SBATCH --mem 16000
 #SBATCH --job-name nate_sing
