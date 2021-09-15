@@ -5,7 +5,7 @@
 #SBATCH -p IB_44C_512G
 #SBATCH --nodes 1
 #SBATCH --ntasks 1
-#SBATCH --cpus-per-task 16
+#SBATCH --cpus-per-task 32
 #SBATCH --mem 16000
 #SBATCH --job-name nate_sing
 
@@ -14,16 +14,17 @@ proj_dir=/scratch/madlab/test_sing
 dset_dir=${proj_dir}/dset
 deriv_dir=${proj_dir}/derivatives
 
-label=4009
-work_dir=${deriv_dir}/sub-${label}/tmp_work
+# label=4009
+# work_dir=${deriv_dir}/sub-${label}/tmp_work
+work_dir=${deriv_dir}/tmp_work
 mkdir -p $work_dir
 
+# --participant-label $label \
 export SINGULARITYENV_TEMPLATEFLOW_HOME=/home/data/madlab/singularity-images/templateflow
 cd /
 singularity run --cleanenv ${sing_dir}/nipreps_fmriprep_20.2.3.simg \
   $dset_dir $deriv_dir \
   participant \
-  --participant-label $label \
   --work-dir $work_dir \
   --skull-strip-template MNIPediatricAsym:cohort-5 \
   --output-spaces MNIPediatricAsym:cohort-5:res-1.8 \
