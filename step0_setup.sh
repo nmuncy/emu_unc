@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO ranem anat files, copy new event files
+
 # orient to existing data
 source_dir=/home/data/madlab/McMakin_EMUR01
 source_dset=${source_dir}/dset
