@@ -9,6 +9,10 @@
 #SBATCH --mem 16000
 #SBATCH --job-name nm_fmriprep
 
+
+module load singularity-3.8.2
+
+
 # receive args
 label=$1
 sing_img=$2
@@ -20,20 +24,15 @@ deriv_dir=${proj_dir}/derivatives
 work_dir=${deriv_dir}/tmp_work/sub-${label}
 mkdir -p $work_dir
 
-# print for testing
-echo $label
-echo $sing_img
-echo $proj_dir
-echo $deriv_dir
-
-# refernce template fow, avoid root issues
-#   TODO export could be put in to .bashrc
+# reference template fow, fs, avoid root issues
 export SINGULARITYENV_TEMPLATEFLOW_HOME=/home/data/madlab/singularity-images/templateflow
+export FS_LICENSE=~/bin/licenses/fs_license.txt
 cd /
 
 # do job
 singularity run --cleanenv $sing_img \
-  $dset_dir $deriv_dir \
+  $dset_dir \
+  $deriv_dir \
   participant \
   --participant-label $label \
   --work-dir $work_dir \

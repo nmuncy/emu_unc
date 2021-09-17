@@ -11,7 +11,6 @@ subj_all=(`ls $dset_dir | grep "sub-*"`)
 # Make a list of 8 subjects who don't have fMRIprep
 #   output in deriv_dir
 max_num=9
-unset subj_list
 for subj in ${subj_all[@]}; do
     check_file=${deriv_dir}/fmriprep/${subj}.html
     if [ ! -f $check_file ]; then
@@ -27,9 +26,13 @@ time=`date '+%Y_%m_%d-%H_%M'`
 out_dir=${deriv_dir}/Slurm_out/fmriprep_${time}
 mkdir -p $out_dir
 
-for subj in ${subj_list[0]}; do
+for subj in ${subj_list[@]}; do
     sbatch \
         -e ${out_dir}/err_${subj}.txt \
         -o ${out_dir}/out_${subj}.txt \
-        step1_fmriprep.sh ${subj#*-} $sing_img $proj_dir
+        step1_fmriprep.sh \
+            ${subj#*-} \
+            $sing_img \
+            $proj_dir
+    sleep 1
 done
