@@ -14,10 +14,11 @@ mkdir -p $proj_deriv $proj_dset
 # extras vars for ease
 sess=ses-S2
 
-# get bids helper files
+# get bids helper files - added rest for simplicity's sake
 cp ${source_dset}/dataset_description.json $proj_dset
 cp ${source_dset}/participants.tsv $proj_dset
 cp ${source_dset}/task-test_bold.json $proj_dset
+cp ${source_dset}/task-rest_bold.json $proj_dset
 
 # only pull data when pre-processed DWI exists
 subj_list=(`ls $source_dwi | grep "sub-*"`)
@@ -32,7 +33,7 @@ for subj in ${subj_list[@]}; do
     events_list=(`ls beh_data/pre_covid/task_files/${subj}/${sess}/*tsv`)
 
     # files to be copied, avoid events
-    func_list=(`ls ${source_dset}/${subj}/${sess}/func/${subj}_${sess}_task-test_run-*{json,nii.gz}`)
+    func_list=(`ls ${source_dset}/${subj}/${sess}/func/${subj}_${sess}_task-*_run-*{json,nii.gz}`)
     fmap_list=(`ls ${source_dset}/${subj}/${sess}/fmap/${subj}_${sess}_acq-func_dir-*_run-?_epi.*`)
 
     # don't repeat work
