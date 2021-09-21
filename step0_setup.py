@@ -85,7 +85,7 @@ def main():
         source_anat = os.path.join(source_dset, subj, "ses-S1", "anat")
         for h_suff in ["nii.gz", "json"]:
             copy_dict["anat"]["input"].append(
-                os.path.join(source_anat, f"{subj}_ses-S1_run-1_T1w.{h_suff}")
+                os.path.join(source_anat, f"{subj}_ses-S1_run-2_T1w.{h_suff}")
             )
             copy_dict["anat"]["output"].append(
                 os.path.join(subj_anat, f"{subj}_{sess}_T1w.{h_suff}")
