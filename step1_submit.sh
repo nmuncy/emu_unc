@@ -11,6 +11,7 @@ subj_all=(`ls $dset_dir | grep "sub-*"`)
 # Make a list of 8 subjects who don't have fMRIprep
 #   output in deriv_dir
 max_num=9
+unset subj_list
 for subj in ${subj_all[@]}; do
     check_file=${deriv_dir}/fmriprep/${subj}.html
     if [ ! -f $check_file ]; then
