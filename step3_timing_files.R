@@ -56,11 +56,12 @@ for(run in 1:length(tsv_list)){
   if(length(ind_nan) == 0){
     row_out <- "*"
   }else{
-    row_out <- paste(
-      round(df_run[ind_nan,]$onset, 1),
-      df_run[ind_nan,]$duration,
-      sep = ":"
-    )
+    # row_out <- paste(
+    #   round(df_run[ind_nan,]$onset, 1),
+    #   df_run[ind_nan,]$duration,
+    #   sep = ":"
+    # )
+    row_out <- round(df_run[ind_nan,]$onset, 1)
   }
   out_file <- paste0(write_dir, "/", "tf_", task, "_NR.txt")
   cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
@@ -80,11 +81,12 @@ for(run in 1:length(tsv_list)){
         if(length(ind_beh) == 0){
           row_out <- "*"
         }else{
-          row_out <- paste(
-            round(df_run[ind_beh,]$onset, 1),
-            df_run[ind_beh,]$duration,
-            sep = ":"
-          )
+          # row_out <- paste(
+          #   round(df_run[ind_beh,]$onset, 1),
+          #   df_run[ind_beh,]$duration,
+          #   sep = ":"
+          # )
+          row_out <- round(df_run[ind_beh,]$onset, 1)
         }
         cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
       }
