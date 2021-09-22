@@ -1,10 +1,12 @@
 # %%
 import os
+import glob
 import subprocess
 import time
 import fnmatch
 import math
 import shutil
+from argparse import ArgumentParser
 
 
 # %%
@@ -19,9 +21,8 @@ def _copyfile_patched(src, dst, length=16 * 1024 * 1024):
 
 
 # %%
-# Submit jobs to slurm, wait for job to finish
 def func_sbatch(command, wall_hours, mem_gig, num_proc, h_str, work_dir):
-
+    """ Submit jobs to slurm, wait for job to finish """
     full_name = f"{work_dir}/sbatch_writeOut_{h_str}"
     sbatch_job = f"""
         sbatch \
@@ -54,11 +55,8 @@ def func_sbatch(command, wall_hours, mem_gig, num_proc, h_str, work_dir):
 
 
 # %%
-
-
-# %%
 def copy_data(prep_dir, work_dir, subj, sess, task, num_runs):
-
+    """ get relevant fmriprep files, rename """
     # set vars, dict
     tpl_ref = "space-MNIPediatricAsym_cohort-5_res-2"
     anat_str = f"{subj}_{sess}_{tpl_ref}"
@@ -270,19 +268,40 @@ def scale_epi(work_dir, subj_num, task):
             func_sbatch(h_cmd, 1, 1, 1, f"{subj_num}scale", work_dir)
 
 
+def get_args():
+    parser = ArgumentParser("Receive Bash args from wrapper")
+    parser.add_argument("h_subj", help="Subject ID")
+    parser.add_argument("h_sess", help="Session")
+    parser.add_argument("h_task", help="Task String")
+    parser.add_argument("h_num", help="Number of Runs")
+    parser.add_argument("h_prep", help="/path/to/derivatives/fmriprep")
+    parser.add_argument("h_afni", help="/path/to/derivatives/afni")
+    return parser
+
+
 # %%
 def main():
 
-    # For testing
-    proj_dir = "/scratch/madlab/emu_UNC"
-    prep_dir = os.path.join(proj_dir, "derivatives/old_fmriprep")
-    afni_dir = os.path.join(proj_dir, "derivatives/afni")
+    # # For testing
+    # proj_dir = "/scratch/madlab/emu_UNC"
+    # prep_dir = os.path.join(proj_dir, "derivatives/fmriprep")
+    # afni_dir = os.path.join(proj_dir, "derivatives/afni")
 
-    subj = "sub-4020"
-    sess = "ses-S2"
-    task = "test"
-    num_runs = 3
+    # subj = "sub-4020"
+    # sess = "ses-S2"
+    # task = "test"
+    # num_runs = 3
 
+    """ get passed arguments """
+    args = get_args().parse_args()
+    subj = args.h_subj
+    sess = args.h_sess
+    task = args.h_task
+    num_runs = int(args.h_num)
+    prep_dir = args.h_prep
+    afni_dir = args.h_afni
+
+    """ setup afni directory """
     work_dir = os.path.join(afni_dir, subj, sess)
     if not os.path.exists(work_dir):
         os.makedirs(work_dir)
@@ -307,6 +326,11 @@ def main():
     # scale data
     if not os.path.exists(os.path.join(work_dir, f"run-1_{task}_scale+tlrc.HEAD")):
         scale_epi(work_dir, subj_num, task)
+
+    # clean
+    if os.path.exists(os.path.join(work_dir, f"run-1_{task}_scale+tlrc.HEAD")):
+        for tmp_file in glob.glob(f"{work_dir}/tmp*"):
+            os.remove(tmp_file)
 
 
 if __name__ == "__main__":
