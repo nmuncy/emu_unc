@@ -1,0 +1,93 @@
+library("stringr")
+
+
+### Set Up ----
+#
+# Receive wrapped variables, set lists, and make switch.
+
+args <- commandArgs()
+proj_dir <- args[6]
+subj <- args[7]
+sess <- args[8]
+task <- args[9]
+afni_dir <- args[10]
+
+# # For testing
+# proj_dir <- "~/Desktop"
+# subj <- "sub-4005"
+# sess <- "ses-S2"
+# task <- "test"
+# afni_dir <- "~/Desktop"
+
+source_dir <- paste(proj_dir, "dset", subj, sess, "func", sep = "/")
+tsv_list <- list.files(source_dir, pattern = "\\.tsv$", full.names = T)
+
+val_list <- c("neg", "neu", "pos")
+sim_list <- c("targ", "lure", "foil")
+
+switch_behavior <- function(h_type) {
+  beh_type <- switch(
+    h_type,
+    "targ" = c("targ_ht", "targ_ms"),
+    "lure" = c("lure_cr", "lure_fa"),
+    "foil" = c("foil_cr", "foil_fa")
+  )
+  return(beh_type)
+}
+
+
+### Make timing files -----
+#
+# Iterate through each tsv, build run rows for 
+# each behavior.
+#
+# Lack of behavior yields "*" written to row.
+#
+# Onset married with duration.
+
+for(run in 1:length(tsv_list)){
+  
+  # determine whether to append, read in data
+  h_append <- ifelse(run == 1, F, T)
+  df_run <- read.delim(tsv_list[run], sep = "\t", header = T)
+  
+  # deal with non responses
+  ind_nan <- which(df_run$trial_type == "NaN")
+  if(length(ind_nan) == 0){
+    row_out <- "*"
+  }else{
+    row_out <- paste(
+      round(df_run[ind_nan,]$onset, 1), 
+      df_run[ind_nan,]$duration, 
+      sep = ":"
+    )
+  }
+  out_file <- paste0(afni_dir, "/", "tf_", task, "_NR.txt")
+  cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
+  
+  # each valence x stimulus type x beahvior
+  for(val in val_list){
+    for(stim in stim_list){
+      beh_list <- switch_behavior(stim)
+      for(beh in beh_list){
+        
+        # set string, find behavior
+        h_str <- str_replace(beh, "[_]", "")
+        out_file <- paste0(afni_dir, "/", "tf_", task, "_", val, h_str, ".txt")
+        ind_beh <- which(df_run$trial_type == paste(val, beh, sep = "_"))
+        
+        # marry, write
+        if(length(ind_beh) == 0){
+          row_out <- "*"
+        }else{
+          row_out <- paste(
+            round(df_run[ind_beh,]$onset, 1), 
+            df_run[ind_beh,]$duration, 
+            sep = ":"
+          )
+        }
+        cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
+      }
+    }
+  }
+}
