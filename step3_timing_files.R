@@ -35,6 +35,31 @@ switch_behavior <- function(h_type) {
   return(beh_type)
 }
 
+switch_string <- function(h_str) {
+  out_str <- switch(
+    h_str,
+    "neg_targ_ht" = "negTH",
+    "neg_targ_ms" = "negTM",
+    "neg_lure_cr" = "negLC",
+    "neg_lure_fa" = "negLF",
+    "neg_foil_cr" = "negFC",
+    "neg_foil_fa" = "negFF",
+    "neu_targ_ht" = "neuTH",
+    "neu_targ_ms" = "neuTM",
+    "neu_lure_cr" = "neuLC",
+    "neu_lure_fa" = "neuLF",
+    "neu_foil_cr" = "neuFC",
+    "neu_foil_fa" = "neuFF",
+    "pos_targ_ht" = "posTH",
+    "pos_targ_ms" = "posTM",
+    "pos_lure_cr" = "posLC",
+    "pos_lure_fa" = "posLF",
+    "pos_foil_cr" = "posFC",
+    "pos_foil_fa" = "posFF",
+  )
+  return(out_str)
+}
+
 
 ### Make timing files -----
 #
@@ -72,9 +97,7 @@ for(run in 1:length(tsv_list)){
       beh_list <- switch_behavior(stim)
       for(beh in beh_list){
 
-        # set string, find behavior
-        h_str <- str_replace(beh, "[_]", "")
-        out_file <- paste0(write_dir, "/", "tf_", task, "_", val, h_str, ".txt")
+        # find behavior
         ind_beh <- which(df_run$trial_type == paste(val, beh, sep = "_"))
 
         # marry, write
@@ -88,6 +111,10 @@ for(run in 1:length(tsv_list)){
           # )
           row_out <- round(df_run[ind_beh,]$onset, 1)
         }
+        # h_str <- str_replace(beh, "[_]", "")
+        # out_file <- paste0(write_dir, "/", "tf_", task, "_", val, h_str, ".txt")
+        h_str <- switch_string(paste(val, beh, sep = "_"))
+        out_file <- paste0(write_dir, "/", "tf_", task, "_", h_str, ".txt")
         cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
       }
     }
