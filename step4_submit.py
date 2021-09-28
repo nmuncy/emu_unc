@@ -41,7 +41,7 @@ def main():
         return
 
     # submit jobs
-    for subj in subj_list:
+    for subj in subj_list[:10]:
 
         h_out = os.path.join(out_dir, f"out_{subj}.txt")
         h_err = os.path.join(out_dir, f"err_{subj}.txt")
