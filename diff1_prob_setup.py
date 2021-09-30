@@ -38,7 +38,7 @@ def main():
     toml_dict["TRACTOGRAPHY"]["directions"] = "prob"
     toml_dict["BIDS"]["bids_path"] = bids_dir
     toml_dict["files"]["dmriprep_folder"] = deriv_dir
-    toml_dict["SEGMENTATION"]["seg_algo"] = "Reco"
+    toml_dict["SEGMENTATION"]["seg_algo"] = "reco80"
 
     tf = open(toml_file, "w")
     toml.dump(toml_dict, tf)

@@ -53,7 +53,7 @@ tracker = "local"
 [SEGMENTATION]
 nb_points = false
 nb_streamlines = false
-seg_algo = "Reco"
+seg_algo = "reco80"
 reg_algo = ""
 clip_edges = false
 parallel_segmentation = "{'n_jobs': -1, 'engine': 'joblib', 'backend': 'loky'}"
