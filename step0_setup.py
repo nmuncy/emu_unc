@@ -7,10 +7,10 @@ import json
 def _copyfile_patched(fsrc, fdst, length=16 * 1024 * 1024):
     """Patches shutil method to hugely improve copy speed"""
     while 1:
-        buf = src.read(length)
+        buf = fsrc.read(length)
         if not buf:
             break
-        dst.write(buf)
+        fdst.write(buf)
     shutil.copyfile = _copyfile_patched
 
 
