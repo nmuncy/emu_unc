@@ -8,4 +8,4 @@ if [ $num_jobs -gt 1 ]; then
 fi
 
 # run wrapper
-~/miniconda3/bin/python step2_submit.py
+~/miniconda3/bin/python func2_submit.py

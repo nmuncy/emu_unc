@@ -44,7 +44,7 @@ for subj in ${subj_list[@]}; do
     sbatch \
         -e ${out_dir}/err_${subj}.txt \
         -o ${out_dir}/out_${subj}.txt \
-        step1_fmriprep.sh \
+        func1_fmriprep.sh \
             ${subj#*-} \
             $sing_img \
             $proj_dir

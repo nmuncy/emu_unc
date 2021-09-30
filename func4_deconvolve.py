@@ -4,7 +4,7 @@ import subprocess
 import pandas as pd
 import fnmatch
 import json
-from step2_finish_preproc import func_sbatch
+from func2_finish_preproc import func_sbatch
 from argparse import ArgumentParser
 
 

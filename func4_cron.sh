@@ -7,5 +7,8 @@ if [ $num_jobs -gt 1 ]; then
     exit 0
 fi
 
-# run wrapper
-source step1_submit.sh
+# update timing files
+#source func3_submit.sh
+
+# start decon script
+~/miniconda3/bin/python func4_submit.py

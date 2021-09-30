@@ -12,5 +12,5 @@ for subj in ${subj_list[@]}; do
     echo -e "\t Starting R script for $subj ..."
     write_dir=${afni_dir}/${subj}/${sess}/timing_files
     mkdir -p $write_dir
-    Rscript step3_timing_files.R $proj_dir $subj $sess $task $write_dir
+    Rscript func3_timing_files.R $proj_dir $subj $sess $task $write_dir
 done
