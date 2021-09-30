@@ -72,7 +72,7 @@ def main():
                 -o {h_out} -e {h_err} \
                 --account iacc_madlab \
                 --qos pq_madlab \
-                --wrap="~/miniconda3/bin/python {code_dir}/step2_finish_preproc.py \
+                --wrap="~/miniconda3/bin/python {code_dir}/func2_finish_preproc.py \
                     {subj} \
                     {sess} \
                     {task} \
