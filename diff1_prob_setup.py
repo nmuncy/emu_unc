@@ -20,6 +20,8 @@ def main():
     deriv_dir = str(sys.argv[2])
 
     # append data_description with new field
+    #   Note - every dataset_description.json in proj/bids_dir needs
+    #   to have PipelineDescription field
     json_file = os.path.join(deriv_dir, "dataset_description.json")
     new_field = {"PipelineDescription": {"Name": "dwi_preproc"}}
 
@@ -38,7 +40,7 @@ def main():
     toml_dict["TRACTOGRAPHY"]["directions"] = "prob"
     toml_dict["BIDS"]["bids_path"] = bids_dir
     toml_dict["files"]["dmriprep_folder"] = deriv_dir
-    toml_dict["SEGMENTATION"]["seg_algo"] = "reco80"
+    toml_dict["SEGMENTATION"]["seg_algo"] = "afq"
 
     tf = open(toml_file, "w")
     toml.dump(toml_dict, tf)
