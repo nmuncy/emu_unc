@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# pyAFQ requires ipywidgets
+
 proj_dir=/scratch/madlab/emu_UNC
 diff_dir=${proj_dir}/derivatives/dwi_preproc
 
