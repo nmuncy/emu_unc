@@ -1,6 +1,3 @@
-[metadata]
-title = "AFQ prob analysis"
-
 [BIDS]
 bids_path = "/scratch/madlab/emu_UNC"
 bids_filters = "{'suffix': 'dwi'}"
