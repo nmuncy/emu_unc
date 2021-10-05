@@ -44,7 +44,9 @@ def main():
     ] = "{'n_jobs': -1, 'engine': 'joblib', 'backend': 'loky'}"
     toml_dict["TRACTOGRAPHY"]["directions"] = "prob"
     toml_dict["SEGMENTATION"]["seg_algo"] = "AFQ"
-    # toml_dict["SEGMENTATION"]["endpoint_info"] = None
+    toml_dict["SEGMENTATION"][
+        "parallel_segmentation"
+    ] = "{'n_jobs': -1, 'engine': 'joblib', 'backend': 'loky'}"
     toml_dict["files"]["dmriprep_folder"] = deriv_dir
     tf = open(toml_file, "w")
     toml.dump(toml_dict, tf)
