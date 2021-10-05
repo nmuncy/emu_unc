@@ -37,11 +37,14 @@ def main():
     # edit config.toml
     toml_file = "config_prob.toml"
     toml_dict = toml.load(toml_file)
-    toml_dict["TRACTOGRAPHY"]["directions"] = "prob"
     toml_dict["BIDS"]["bids_path"] = bids_dir
+    toml_dict["BUNDLES"]["scalars"] = ["dti_fa"]
+    toml_dict["COMPUTE"][
+        "parallel_params"
+    ] = "{'n_jobs': -1, 'engine': 'joblib', 'backend': 'loky'}"
+    toml_dict["TRACTOGRAPHY"]["directions"] = "prob"
+    toml_dict["SEGMENTATION"]["seg_algo"] = "AFQ"
     toml_dict["files"]["dmriprep_folder"] = deriv_dir
-    toml_dict["SEGMENTATION"]["seg_algo"] = "afq"
-
     tf = open(toml_file, "w")
     toml.dump(toml_dict, tf)
     tf.close()

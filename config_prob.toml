@@ -25,10 +25,10 @@ profile_weights = "gauss"
 
 [BUNDLES]
 bundle_info = ""
-scalars = [ "dti_fa", "dti_md",]
+scalars = [ "dti_fa",]
 
 [COMPUTE]
-parallel_params = "{'engine': 'serial'}"
+parallel_params = "{'n_jobs': -1, 'engine': 'joblib', 'backend': 'loky'}"
 
 [VIZ]
 virtual_frame_buffer = false
@@ -54,7 +54,7 @@ tracker = "local"
 [SEGMENTATION]
 nb_points = false
 nb_streamlines = false
-seg_algo = "afq"
+seg_algo = "AFQ"
 reg_algo = ""
 clip_edges = false
 parallel_segmentation = "{'n_jobs': -1, 'engine': 'joblib', 'backend': 'loky'}"
