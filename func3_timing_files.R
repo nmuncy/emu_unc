@@ -18,7 +18,7 @@ library("stringr")
 # Usage:
 #
 #   Rscript func3_timing_files.R \
-#     proj_dir subj sess task write_dir
+#     proj_dir subj sess task
 #
 # Example Usage:
 #
@@ -26,8 +26,7 @@ library("stringr")
 #     /scratch/madlab/emu_UNC \
 #     sub-4005 \
 #     ses-S2 \
-#     test \
-#     /scratch/madlab/emu_UNC/derivatives/afni/sub-4005/ses-S2/timing_files
+#     test 
 
 
 # Set Up -----
@@ -46,15 +45,16 @@ proj_dir <- args[6]
 subj <- args[7]
 sess <- args[8]
 task <- args[9]
-write_dir <- args[10]
 
 # # For testing
 # proj_dir <- "~/Desktop"
 # subj <- "sub-4005"
 # sess <- "ses-S2"
 # task <- "test"
-# write_dir <- "~/Desktop"
 
+write_dir <- paste0(
+  proj_dir, "derivatives/afni", subj, sess, "timing_files", sep = "/"
+)
 source_dir <- paste(proj_dir, "dset", subj, sess, "func", sep = "/")
 tsv_list <- list.files(source_dir, pattern = "\\.tsv$", full.names = T)
 

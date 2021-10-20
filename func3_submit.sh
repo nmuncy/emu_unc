@@ -14,7 +14,6 @@ function Usage {
         2: subj -> 7: subj
         3: sess -> 8: sess
         4: task -> 9: task
-        5: write_dir -> 10: write_dir
 
     Notes:
 
@@ -103,5 +102,5 @@ for subj in ${subj_list[@]}; do
     echo -e "\t Starting R script for $subj ..."
     write_dir=${afni_dir}/${subj}/${sess}/timing_files
     mkdir -p $write_dir
-    Rscript func3_timing_files.R $proj_dir $subj $sess $task $write_dir
+    Rscript func3_timing_files.R $proj_dir $subj $sess $task
 done
