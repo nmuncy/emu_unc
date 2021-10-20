@@ -449,7 +449,7 @@ def main():
 
     # get passed arguments
     args = get_args().parse_args()
-    subj = args.pars_id
+    subj = args.part_id
     sess = args.sess_str
     task = args.task_str
     num_runs = args.num_runs
