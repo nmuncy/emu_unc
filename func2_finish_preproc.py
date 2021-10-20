@@ -28,17 +28,7 @@ import fnmatch
 import math
 import shutil
 from argparse import ArgumentParser
-
-
-# %%
-def _copyfile_patched(src, dst, length=16 * 1024 * 1024):
-    """Patches shutil method to improve copyfile speed"""
-    while 1:
-        buf = src.read(length)
-        if not buf:
-            break
-        dst.write(buf)
-    shutil.copyfile = _copyfile_patched
+from func0_setup import _copyfile_patched
 
 
 # %%
