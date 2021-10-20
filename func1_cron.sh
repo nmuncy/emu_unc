@@ -14,7 +14,7 @@ if [ $num_jobs -gt 1 ]; then
 fi
 
 # run wrapper
-source func1_submit.sh \
+./func1_submit.sh \
     -f ~/bin/licenses/fs_license.txt \
     -i /home/nmuncy/bin/singularities/nipreps_fmriprep_20.2.3.simg \
     -p /scratch/madlab/emu_UNC \
