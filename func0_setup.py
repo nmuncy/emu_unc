@@ -1,7 +1,32 @@
+"""Copy data from stored location to working location.
+
+Our lab stores data in one location (/home/data/madlab/...), and
+processes said data in another (/scratch/madlab/..), so copy data
+into scratch to do analyses.
+
+Written very lazily, with everything happening in main(). Definitely
+needs refactoring.
+
+Notes
+-----
+Only pulls data from single session, and assumes T1 files exist
+in ses-S1.
+
+Examples
+--------
+func0_setup.py \
+    -d /home/data/madlab/McMakin_EMUR01 \
+    -p /scratch/madlab/emu_UNC \
+    -s ses-S2
+"""
+
 import os
 import shutil
 import fnmatch
 import json
+import pathlib
+from argparse import ArgumentParser
+import sys
 
 
 def _copyfile_patched(fsrc, fdst, length=16 * 1024 * 1024):
@@ -14,16 +39,50 @@ def _copyfile_patched(fsrc, fdst, length=16 * 1024 * 1024):
     shutil.copyfile = _copyfile_patched
 
 
+def get_args():
+    """Get and parse arguments"""
+    parser = ArgumentParser("Receive bash CLI args")
+    requiredNamed = parser.add_argument_group("required named arguments")
+    requiredNamed.add_argument(
+        "-d",
+        "--data-dir",
+        help="location of data source (/home/data/madlab/McMakin_EMUR01)",
+        type=str,
+        required=True,
+    )
+    requiredNamed.add_argument(
+        "-p",
+        "--project-dir",
+        help="location of project directory (/scratch/madlab/emu_UNC)",
+        type=str,
+        required=True,
+    )
+    requiredNamed.add_argument(
+        "-s", "--sess-str", help="BIDS ses-string (ses-S2)", type=str, required=True,
+    )
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    return parser
+
+
 def main():
+    """Copy data for source to project directory"""
+    # TODO refactor
+    # set up
+    code_dir = pathlib.Path().resolve()
+    args = get_args().parse_args()
+    sess = args.sess_str
 
     # set paths for source data
-    code_dir = "/home/nmuncy/compute/emu_unc"
-    source_dir = "/home/data/madlab/McMakin_EMUR01"
+    source_dir = args.data_dir
     source_dset = os.path.join(source_dir, "dset")
     source_deriv_dwi = os.path.join(source_dir, "derivatives/dwi_preproc")
 
     # set paths for data destination, make proj dir
-    proj_dir = "/scratch/madlab/emu_UNC"
+    proj_dir = args.project_dir
     proj_dset = os.path.join(proj_dir, "dset")
     proj_deriv = os.path.join(proj_dir, "derivatives")
     for h_dir in [proj_dset, proj_deriv]:
@@ -44,10 +103,7 @@ def main():
     subj_list = [x for x in os.listdir(source_deriv_dwi) if fnmatch.fnmatch(x, "sub-*")]
     subj_list.sort()
 
-    # specify session
-    sess = "ses-S2"
-
-    # work for e/subject
+    # work on each subject
     for subj in subj_list:
 
         print(f"\n Copying data for {subj} ...")
@@ -61,12 +117,12 @@ def main():
             if not os.path.exists(h_dir):
                 os.makedirs(h_dir)
 
-        # start copy dict
+        # start dictionary of what needs to be copied
         copy_dict = {}
         for hold in ["dwi", "anat", "func", "events", "fmap"]:
             copy_dict[hold] = {"input": [], "output": []}
 
-        """ get dwi - bval exists in different location"""
+        # get dwi - bval exists in different location
         source_dwi = os.path.join(source_deriv_dwi, subj, sess, "dwi")
 
         for h_suff in ["nii.gz", "bvec"]:
@@ -91,7 +147,7 @@ def main():
         if os.path.exists(copy_dict["dwi"]["output"][0]):
             continue
 
-        """ get t1 - gathered in S1 so rename"""
+        # get t1 - gathered in S1 so rename
         source_anat = os.path.join(source_dset, subj, "ses-S1", "anat")
         for h_suff in ["nii.gz", "json"]:
             copy_dict["anat"]["input"].append(

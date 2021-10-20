@@ -1,24 +1,60 @@
 library("stringr")
 
 
-### Set Up -----
+# Notes ----
 #
-# Receive wrapped variables, set lists, and make switch.
+# This script will make AFNI-styled timing files from
+# dset/func events.tsv files. Output files will be written
+# to project_dir/derivatives/afni/subj/sess/timing_files.
+#
+# Output file named tf_<task>_<behavior>.txt. Non-responses
+# are titled tf_<task>_NR.txt. If a certain timing file contains
+# only asterisks (no behaviors of that type occurred), it will
+# be removed.
+#
+# Currently only onset is written, but merely commented out.
+# Perhaps this could be toggled in the future.
+#
+# Usage:
+#
+#   Rscript func3_timing_files.R \
+#     proj_dir subj sess task
+#
+# Example Usage:
+#
+#   Rscript func3_timing_files.R \
+#     /scratch/madlab/emu_UNC \
+#     sub-4005 \
+#     ses-S2 \
+#     test 
+
+
+# Set Up -----
+#
+# Receive wrapped variables, set lists, and make switches.
+#
+# Possible valences are neg, neu, and pos. Possible stimulus
+# similarities are targ, lure, foil. So, 3 * 3 * 2 + 1 timing
+# files will be written (valence * similarity * in/correct + NR).
+#
+# A unique behavior string will be made for each via switch_string
+# for tf_<task>_<behavior>.txt.
 
 args <- commandArgs()
 proj_dir <- args[6]
 subj <- args[7]
 sess <- args[8]
 task <- args[9]
-write_dir <- args[10]
 
 # # For testing
 # proj_dir <- "~/Desktop"
 # subj <- "sub-4005"
 # sess <- "ses-S2"
 # task <- "test"
-# write_dir <- "~/Desktop"
 
+write_dir <- paste0(
+  proj_dir, "derivatives/afni", subj, sess, "timing_files", sep = "/"
+)
 source_dir <- paste(proj_dir, "dset", subj, sess, "func", sep = "/")
 tsv_list <- list.files(source_dir, pattern = "\\.tsv$", full.names = T)
 
@@ -61,13 +97,10 @@ switch_string <- function(h_str) {
 }
 
 
-### Make timing files -----
+# Make timing files -----
 #
 # Iterate through each tsv, build run rows for
-# each behavior.
-#
-# Lack of behavior yields "*" written to row.
-#
+# each behavior. Lack of behavior yields "*" written to row.
 # Onset married with duration.
 
 for(run in 1:length(tsv_list)){
@@ -122,9 +155,15 @@ for(run in 1:length(tsv_list)){
 }
 
 
-### Remove empty timing files -----
-tf_list <- list.files(write_dir, pattern = "\\.txt$", full.names = T)
+# Remove empty timing files -----
+#
+# Remove files containing only asterisks, since 
+# AFNI will have a cow with those. Technically,
+# I actually check to make sure there is more than
+# one unique value in the first column. Surely this
+# will always work.
 
+tf_list <- list.files(write_dir, pattern = "\\.txt$", full.names = T)
 for(h_tf in tf_list){
   h_check <- read.delim(h_tf, header = F)
   if(length(unique(h_check$V1)) == 1){
