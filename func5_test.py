@@ -1,3 +1,15 @@
+"""Conduct Group-level Analyses.
+
+Desc.
+
+Examples
+--------
+
+Notes
+-----
+
+"""
+
 # %%
 import os
 import json
@@ -11,9 +23,56 @@ from func2_finish_preproc import func_sbatch
 
 # %%
 def make_gmInt_mask(
-    subj_list, deriv_dir, sess, phase, tplflow_dir, tplflow_str, frac_value, group_dir
+    subj_list,
+    deriv_dir,
+    sess,
+    phase,
+    tplflow_dir,
+    tplflow_str,
+    group_dir,
+    frac_value=0.8,
 ):
-    """ Make a gray matter * group intersection mask """
+    """Make a gray matter * group intersection mask.
+
+    Create a group intersection mask by determining where meaningful data
+    exists in both functional and structural data across the entire project.
+    Then restrict this mask by multipying it by a gray matter mask. This
+    helps reduce the number of voxels to run statistics and simulations on.
+
+    Parameters
+    ----------
+    subj_list : list
+        list of subjects to include in group intersection mask
+    deriv_dir : str
+        /path/to/BIDS/derivatives/afni
+    sess : str
+        BIDS session string (ses-S1)
+    phase : str
+        aspect of experiment being analysed (study, test)
+    tplflow_dir : str
+        /path/to/templateflow/atlas_dir
+    tplflow_str : str
+        atlas file string (tpl-MNIPediatricAsym_cohort-5_res-1)
+        used to find T1 and GM files
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    frac_value = float [default=0.8]
+        proportion of participants that must have data in a voxel for
+        the voxel to be tested at the group-level.
+
+    Notes
+    -----
+    tplflow_dir needs to contain tissue class segmentation
+        masks (label-GM_probseg)
+
+    Output written to group_dir
+
+    MRI output : structural
+        Group_intersect_mean.nii.gz
+        Group_intersect_mask.nii.gz
+        Group_GM_intersect_mask.nii.gz
+        Group_GM_intersect_mask+tlrc
+    """
 
     # set ref file for resampling
     ref_file = os.path.join(deriv_dir, subj_list[1], sess, f"run-1_{phase}_scale+tlrc")
@@ -82,8 +141,25 @@ def make_gmInt_mask(
 
 # %%
 def get_subbrick(subj_file, beh):
-    """ Find sub-brick of beh """
+    """Find sub-brick of a behavior.
 
+    As every participant may not have every behavior (targMS),
+    deconvolvution occured with available behaviors and so
+    do not have a consistant sub-brick assignment. This will find
+    the sub-brick associated with the desired behavior (beh).
+
+    Parameters
+    ----------
+    subj_file : str
+        deconvolved subject file (test_decon_stats_REML+tlrc)
+    beh : str
+        behavior string (lureCR)
+
+    Returns
+    -------
+    h_out : str
+        string of sub-brick integer
+    """
     h_cmd = f"""
         module load afni-20.2.06
         3dinfo \
@@ -100,7 +176,20 @@ def get_subbrick(subj_file, beh):
 
 # %%
 def get_pars(df_group, subj):
-    """ Determine subj pars group tertile"""
+    """Determine subject PARS6 group tertile.
+
+    Parameters
+    ----------
+    df_group : pandas.DataFrame
+        summary emuR01 dataframe with PARS6 scores
+    subj : str
+        BIDS subject
+
+    Returns
+    -------
+    subj_pars_group : str
+        subject Low, Med, High grouping
+    """
 
     subj_num = int(subj.split("-")[-1])
     idx_subj = df_group.index[df_group["emu_study_id"] == subj_num]
@@ -118,7 +207,29 @@ def get_pars(df_group, subj):
 
 # %%
 def make_seed(seed_name, coord_list, group_dir, ref_file):
-    """ Make seed from supplied coordinate """
+    """Make seed from supplied coordinates.
+
+    Make a ROI seed of size=1voxel from a set of coordinates.
+    Used to test if a subject has EPI data at the desired
+    coordinate (account for subject-specific fallout).
+
+    Parameters
+    ----------
+    seed_name : str
+        name of seed ROI (LHC)
+    coord_list : str
+        coordinates (-25 7 48)
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    ref_file : str
+        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/run-1_scale+tlrc
+        used for writing header
+
+    Notes
+    -----
+    MRI output : structural
+        group_dir/Check_<seed_name>.nii.gz
+    """
 
     h_cmd = f"""
         module load afni-20.2.06
@@ -136,7 +247,24 @@ def make_seed(seed_name, coord_list, group_dir, ref_file):
 
 # %%
 def check_coord(coord_dict, group_dir, subj_int_mask):
-    """ Return True if meaninful data exists at all checked coordinates """
+    """Return True if meaningful data exists at all checked coordinates.
+
+    Parameters
+    ----------
+    coord_dict : dict
+        dictionary of {roi: coordinates}
+        e.g. {"LAmg": "-24 -5 -29"}
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    subj_int_mask : str
+        subject intersection mask
+        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/mask_epi_anat+tlrc
+
+    Returns
+    -------
+    out_status : bool
+        True if mask value == 1.0 at seed location
+    """
 
     for seed in coord_dict:
         mask = os.path.join(group_dir, f"Check_{seed}.nii.gz")
@@ -171,7 +299,41 @@ def group_analysis(
     df_group,
     coord_dict,
 ):
+    """Conduct group-level analyses.
 
+    Write a 3dMVM command by building the dataTable of subjects who
+    have data at pre-specified coordinates.
+
+    Parameters
+    ----------
+    beh_list = list
+        list of behaviors to test
+    glt_dict = dict
+        dictionary of post-hoc t-tests
+    subj_list = list
+        list of subjects to potentially include
+    sess = str
+        BIDS session string
+    phase : str
+        aspect of experiment being analysed (study, test)
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    deriv_dir : str
+        /path/to/BIDS/derivatives/afni
+    df_group : pandas.DataFrame
+        summary emuR01 dataframe with PARS6 scores
+    coord_dict : dict
+        dictionary of {roi: coordinates}
+        e.g. {"LAmg": "-24 -5 -29"}
+
+    Notes
+    -----
+    MRI output : functional
+        group_dir/MVM_<phase>+tlrc
+    """
+
+    # create data_table of subjects who have data at coordinates
+    # and have the behaviors of interest
     data_table = []
     for subj in subj_list:
         subj_file = os.path.join(
@@ -184,7 +346,10 @@ def group_analysis(
         if not data_exists:
             continue
 
+        # determine group
         subj_pars_group = get_pars(df_group, subj)
+
+        # find behavior sub-brick, write subject row
         for beh in beh_list:
             subj_brick = get_subbrick(subj_file, beh)
             if subj_brick:
@@ -193,17 +358,19 @@ def group_analysis(
                 data_table.append(beh)
                 data_table.append(f"""'{subj_file}[{int(subj_brick)}]'""")
 
+    # set up post-hoc tests
     glt_list = []
     for count, test in enumerate(glt_dict):
         glt_list.append(f"-gltLabel {count + 1} {test}")
         glt_list.append(f"-gltCode {count + 1}")
         glt_list.append(f"'WSVARS: 1*{glt_dict[test][0]} -1*{glt_dict[test][1]}'")
 
+    # write command, run
     h_cmd = f"""
         cd {group_dir}
 
         3dMVM \
-            -prefix MVM \
+            -prefix MVM_{phase} \
             -jobs 10 \
             -mask Group_GM_intersect_mask+tlrc \
             -bsVars PARS6 \
@@ -219,6 +386,25 @@ def group_analysis(
 
 # %%
 def model_noise(subj, subj_file, group_dir, acf_file):
+    """Model noise.
+
+    Parameters
+    ----------
+    subj : str
+        BIDS subject string
+    subj_file : str
+        deconvolution residual of a subject
+        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/<phase>_decon_errts_REML+tlrc
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    acf_file : str
+        output acf txt to append (group_dir/ACF_subj_all.txt)
+
+    Notes
+    -----
+    Parameter estimations are captured in acf_file.
+    """
+
     h_cmd = f"""
         cd {group_dir}
 
@@ -232,12 +418,34 @@ def model_noise(subj, subj_file, group_dir, acf_file):
 
 # %%
 def run_montecarlo(group_dir, acf_file, mc_file):
+    """Conduct monte carlo simulations.
 
+    Incorporate noise estimations in MC simulations. Restrict
+    simulations to group gray matter * intersection mask.
+
+    Parameters
+    ----------
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    acf_file : str
+        output of model_noise (group_dir/ACF_subj_all.txt)
+        used to sum across 3 parameters
+    mc_file : str
+        captures simulation output/recommendations
+        group_dir/MC_thresholds.txt
+
+    Notes
+    -----
+    3dClustSim output are captured in group_dir/mc_file.
+    """
+
+    # average relevant parameter estimations of 3dFWHMx
     df_acf = pd.read_csv(acf_file, sep=" ", header=None)
     df_acf = df_acf.dropna(axis=1)
     df_acf = df_acf.loc[(df_acf != 0).any(axis=1)]
     mean_list = list(df_acf.mean())
 
+    # conduct MC simulations
     h_cmd = f"""
         cd {group_dir}
 
