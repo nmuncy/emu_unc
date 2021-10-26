@@ -605,27 +605,33 @@ def main():
                 df_group,
             )
 
-    # get subj acf estimates
-    acf_file = os.path.join(group_dir, "ACF_subj_all.txt")
-    if not os.path.exists(acf_file):
-        open(acf_file, "a").close()
+    # get noise estimations, thresholding for each MVM. Only use
+    # subjects included in the actual MVM (rather than all subjects).
+    for mvm_title in mvm_dict:
 
-    acf_size = os.path.getsize(acf_file)
-    if acf_size == 0:
-        for subj in subj_list:
-            subj_file = os.path.join(
-                deriv_dir, subj, sess, f"{task}_decon_errts_REML+tlrc"
-            )
-            model_noise(subj, subj_file, group_dir, acf_file)
+        decon_file = mvm_dict[mvm_title]["decon_file"]
+        with open(os.path.join(group_dir, f"subj_{mvm_title}.json")) as jf:
+            subj_dict = json.load(jf)
 
-    # do clust simulations
-    mc_file = os.path.join(group_dir, "MC_thresholds.txt")
-    if not os.path.exists(mc_file):
-        open(mc_file, "a").close()
+        # get subj acf estimates, if ACF file is new
+        acf_file = os.path.join(group_dir, f"ACF_{mvm_title}.txt")
+        if not os.path.exists(acf_file):
+            open(acf_file, "a").close()
+        acf_size = os.path.getsize(acf_file)
+        if acf_size == 0:
+            for subj in subj_dict.keys():
+                subj_file = os.path.join(deriv_dir, subj, sess, decon_file).replace(
+                    "stats", "errts"
+                )
+                model_noise(subj, subj_file, group_dir, acf_file)
 
-    mc_size = os.path.getsize(mc_file)
-    if mc_size == 0:
-        run_montecarlo(group_dir, acf_file, mc_file)
+        # do cluster simulations, if it is empty
+        mc_file = os.path.join(group_dir, f"MC_{mvm_title}_thresholds.txt")
+        if not os.path.exists(mc_file):
+            open(mc_file, "a").close()
+        mc_size = os.path.getsize(mc_file)
+        if mc_size == 0:
+            run_montecarlo(group_dir, acf_file, mc_file)
 
 
 if __name__ == "__main__":
