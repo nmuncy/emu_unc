@@ -13,6 +13,8 @@
         "coord_check": {
             "LAmg": "-24 -5 -29",
             "RAmg": "22 -3 -29"
-        }
+        },
+        "task": "test",
+        "session": "ses-S2"
     }
 }

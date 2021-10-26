@@ -4,6 +4,11 @@ Desc.
 
 Examples
 --------
+func5_test.py \\
+    -p /scratch/madlab/emu_UNC \\
+    -t /home/data/madlab/singularity-images/templateflow/tpl-MNIPediatricAsym/cohort-5 \\
+    -s tpl-MNIPediatricAsym_cohort-5_res-1 \\
+    -m mvm_plan.json
 
 Notes
 -----
@@ -15,10 +20,10 @@ import os
 import json
 import fnmatch
 import subprocess
-import pathlib
+import sys
 import pandas as pd
 import numpy as np
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from func2_finish_preproc import func_sbatch
 
 
@@ -27,7 +32,7 @@ def make_gmInt_mask(
     subj_list,
     deriv_dir,
     sess,
-    phase,
+    task,
     tplflow_dir,
     tplflow_str,
     group_dir,
@@ -48,7 +53,7 @@ def make_gmInt_mask(
         /path/to/BIDS/derivatives/afni
     sess : str
         BIDS session string (ses-S1)
-    phase : str
+    task : str
         aspect of experiment being analysed (study, test)
     tplflow_dir : str
         /path/to/templateflow/atlas_dir
@@ -76,7 +81,7 @@ def make_gmInt_mask(
     """
 
     # set ref file for resampling
-    ref_file = os.path.join(deriv_dir, subj_list[1], sess, f"run-1_{phase}_scale+tlrc")
+    ref_file = os.path.join(deriv_dir, subj_list[1], sess, f"run-1_{task}_scale+tlrc")
 
     # make group intersection mask
     if not os.path.exists(os.path.join(group_dir, "Group_intersect_mask.nii.gz")):
@@ -153,13 +158,14 @@ def get_subbrick(subj_file, beh_list):
     ----------
     subj_file : str
         deconvolved subject file (test_decon_stats_REML+tlrc)
-    # beh : str
-    #     behavior string (lureCR)
+    beh_list : list
+        list of behaviors (lureCR, lureFA) to identify in sub-brick info
 
     Returns
     -------
-    # h_out : str
-    #     string of sub-brick integer
+    subbrick_dict : dict
+        dictionary of subbrick mappings to behaviors
+        e.g. {"negLF": "9"}
     """
 
     subbrick_dict = {}
@@ -303,7 +309,6 @@ def group_analysis(
     mvm_dict,
     subj_list,
     sess,
-    phase,
     group_dir,
     deriv_dir,
     df_group,
@@ -315,15 +320,15 @@ def group_analysis(
 
     Parameters
     ----------
-    # beh_list = list
-    #     list of behaviors to test
-    # glt_dict = dict
-    #     dictionary of post-hoc t-tests
-    subj_list = list
+    mvm_dict : dict
+        dictionary of planned MVM info, contains
+        output file name, list of behaviors, planned
+        post-hoc comparisons, and coordinates to check
+    subj_list : list
         list of subjects to potentially include
-    sess = str
+    sess : str
         BIDS session string
-    phase : str
+    task : str
         aspect of experiment being analysed (study, test)
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
@@ -331,14 +336,14 @@ def group_analysis(
         /path/to/BIDS/derivatives/afni
     df_group : pandas.DataFrame
         summary emuR01 dataframe with PARS6 scores
-    # coord_dict : dict
-    #     dictionary of {roi: coordinates}
-    #     e.g. {"LAmg": "-24 -5 -29"}
 
     Notes
     -----
     MRI output : functional
-        group_dir/MVM_<phase>+tlrc
+        group_dir/MVM_<mvm_title>+tlrc
+    MRI output : files
+        group_dir/MVM_<mvm_title>.sh
+        group_dir/subj_<mvm_title>.json
     """
 
     # create data_table of subjects who have data at coordinates
@@ -409,11 +414,14 @@ def group_analysis(
     # execute scripts
     mvm_list = [x for x in os.listdir(group_dir) if fnmatch.fnmatch(x, "MVM_*.sh")]
     for mvm_script in mvm_list:
-        h_cmd = f"""
-            cd {group_dir}
-            source {mvm_script}
-        """
-        func_sbatch(h_cmd, 2, 6, 10, "cMVM", group_dir)
+        if not os.path.exists(
+            os.path.join(group_dir, f"""{mvm_script.split(".")[0]}+tlrc.HEAD""")
+        ):
+            h_cmd = f"""
+                cd {group_dir}
+                source {mvm_script}
+            """
+            func_sbatch(h_cmd, 2, 6, 10, "cMVM", group_dir)
 
 
 # %%
@@ -426,7 +434,7 @@ def model_noise(subj, subj_file, group_dir, acf_file):
         BIDS subject string
     subj_file : str
         deconvolution residual of a subject
-        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/<phase>_decon_errts_REML+tlrc
+        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/<task>_decon_errts_REML+tlrc
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
     acf_file : str
@@ -488,18 +496,46 @@ def run_montecarlo(group_dir, acf_file, mc_file):
             -acf {mean_list[0]} {mean_list[1]} {mean_list[2]} \
             > {mc_file}
     """
-    func_sbatch(h_cmd, 6, 4, 10, "mc", group_dir)
+    func_sbatch(h_cmd, 6, 4, 10, "mcAFNI", group_dir)
 
 
 # %%
 def get_args():
-    parser = ArgumentParser("Receive Bash args from wrapper")
-    parser.add_argument("sess", help="Session")
-    parser.add_argument("phase", help="Phase")
-    parser.add_argument(
-        "tplflow_dir", help="Location of fMRIprep output-spaces template"
+    """Get and parse arguments"""
+    parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
+    requiredNamed = parser.add_argument_group("required named arguments")
+    requiredNamed.add_argument(
+        "-p",
+        "--proj-dir",
+        help="Location of project directory",
+        type=str,
+        required=True,
     )
-    parser.add_argument("parent_dir", help="Location of Project Directory")
+    requiredNamed.add_argument(
+        "-t",
+        "--template-dir",
+        help="Location of template used in fMRIprep",
+        type=str,
+        required=True,
+    )
+    requiredNamed.add_argument(
+        "-s",
+        "--template-str",
+        help="fMRIprep template name",
+        type=str,
+        required=True,
+    )
+    requiredNamed.add_argument(
+        "-m",
+        "--mvm-plan",
+        help="Location of MVM configuration.json",
+        type=int,
+        required=True,
+    )
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     return parser
 
@@ -507,75 +543,67 @@ def get_args():
 # %%
 def main():
 
-    # TODO update for multiple MVMs
+    # get args
+    args = get_args().parse_args()
+    proj_dir = args.proj_dir
+    tplflow_dir = args.template_dir
+    tplflow_str = args.template_str
+    mvm_plan = args.mvm_plan
 
-    # for testing
-    parent_dir = "/scratch/madlab/emu_UNC"
-    tplflow_dir = "/home/data/madlab/singularity-images/templateflow/tpl-MNIPediatricAsym/cohort-5"
-    tplflow_str = "tpl-MNIPediatricAsym_cohort-5_res-1"
-    phase = "test"
-    sess = "ses-S2"
+    # # for testing
+    # proj_dir = "/scratch/madlab/emu_UNC"
+    # tplflow_dir = "/home/data/madlab/singularity-images/templateflow/tpl-MNIPediatricAsym/cohort-5"
+    # tplflow_str = "tpl-MNIPediatricAsym_cohort-5_res-1"
+    # mvm_plan = "/home/nmuncy/compute/emu_unc/mvm_plan.json"
 
-    # # get args
-    # args = get_args().parse_args()
-    # sess = args.sess
-    # phase = args.phase
-    # tplflow_dir = args.tplflow_dir
-    # parent_dir = args.parent_dir
-
-    code_dir = pathlib.Path().resolve()
-
-    #
-    deriv_dir = os.path.join(parent_dir, "derivatives/afni")
+    # setup
+    deriv_dir = os.path.join(proj_dir, "derivatives/afni")
     group_dir = os.path.join(deriv_dir, "analyses")
     if not os.path.exists(group_dir):
         os.makedirs(group_dir)
     subj_list = [x for x in os.listdir(deriv_dir) if fnmatch.fnmatch(x, "sub-*")]
     subj_list.sort()
 
-    with open(os.path.join(code_dir, "mvm_plan.json")) as json_file:
+    # read in mvm plan
+    with open(mvm_plan) as json_file:
         mvm_dict = json.load(json_file)
+    sess = mvm_dict["session"]
+    task = mvm_dict["task"]
 
-    """ make group gray matter intersect mask """
+    # make group gray matter intersect mask
     if not os.path.exists(os.path.join(group_dir, "Group_GM_intersect_mask+tlrc.HEAD")):
-        frac_value = 0.8
         make_gmInt_mask(
             subj_list,
             deriv_dir,
             sess,
-            phase,
+            task,
             tplflow_dir,
             tplflow_str,
-            frac_value,
             group_dir,
         )
 
-    """ run MVM """
+    # write, run MVMs
     if not os.path.exists(os.path.join(group_dir, "MVM+tlrc.HEAD")):
 
         # TODO pull this csv from SharePoint
         df_sum = pd.read_csv("emuR01_summary_latest.csv")
         df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
+        group_analysis(mvm_dict, subj_list, sess, group_dir, deriv_dir, df_group)
 
-        # coord_dict = {"LAmg": "-24 -5 -29", "RAmg": "22 -3 -29"}
-        # group_analysis(beh_dict, glt_dict, subj_list, sess, phase, group_dir, deriv_dir)
-
-    """ get subj acf estimates """
-    # define, start file
+    # get subj acf estimates
     acf_file = os.path.join(group_dir, "ACF_subj_all.txt")
     if not os.path.exists(acf_file):
         open(acf_file, "a").close()
 
-    # if file is empty, run model_noise for e/subj
     acf_size = os.path.getsize(acf_file)
     if acf_size == 0:
         for subj in subj_list:
             subj_file = os.path.join(
-                deriv_dir, subj, sess, f"{phase}_single_errts_REML+tlrc"
+                deriv_dir, subj, sess, f"{task}_decon_errts_REML+tlrc"
             )
             model_noise(subj, subj_file, group_dir, acf_file)
 
-    """ do clust simulations """
+    # do clust simulations
     mc_file = os.path.join(group_dir, "MC_thresholds.txt")
     if not os.path.exists(mc_file):
         open(mc_file, "a").close()
