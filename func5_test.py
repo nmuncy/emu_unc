@@ -306,7 +306,11 @@ def check_coord(coord_dict, group_dir, subj_int_mask, subj):
 
 # %%
 def group_analysis(
-    mvm_dict,
+    mvm_title,
+    beh_list,
+    glt_dict,
+    coord_dict,
+    decon_file,
     subj_list,
     sess,
     group_dir,
@@ -320,10 +324,16 @@ def group_analysis(
 
     Parameters
     ----------
-    mvm_dict : dict
-        dictionary of planned MVM info, contains
-        output file name, list of behaviors, planned
-        post-hoc comparisons, and coordinates to check
+    mvm_title : str
+        output file string, key of mvm_config.json (negL_neuL)
+    beh_list : list
+        list of behaviors to find and model (['negLF', 'negLF'])
+    glt_dict : dict
+        planned post-hoc comparisons
+        {gltLabel : gltCode}
+    coord_dict : dict
+        voxel ROIs to check for data
+        {'LAmg': '-24 -5 -29'}
     subj_list : list
         list of subjects to potentially include
     sess : str
@@ -346,82 +356,68 @@ def group_analysis(
         group_dir/subj_<mvm_title>.json
     """
 
-    # create data_table of subjects who have data at coordinates
-    # and have the behaviors of interest
-    for mvm_title in mvm_dict:
+    data_table = []
+    mvm_subj_dict = {}
+    for subj in subj_list:
 
-        # get planned info
-        beh_list = mvm_dict[mvm_title]["behaviors"]
-        glt_dict = mvm_dict[mvm_title]["post-hoc"]
-        coord_dict = mvm_dict[mvm_title]["coord_check"]
-        decon_file = mvm_dict[mvm_title]["decon_file"]
+        # check that data exists at desired coords
+        subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
+        data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
+        if not data_exists:
+            continue
 
-        data_table = []
-        mvm_subj_dict = {}
-        for subj in subj_list:
+        # determine group
+        subj_pars_group = get_pars(df_group, subj)
 
-            # check that data exists at desired coords
-            subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
-            data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
-            if not data_exists:
-                continue
+        # find behavior sub-brick, write subject row if subject
+        # has all behaviors
+        subj_file = os.path.join(deriv_dir, subj, sess, decon_file)
+        beh_dict = get_subbrick(subj_file, beh_list)
+        if len(beh_dict.keys()) != len(beh_list):
+            continue
+        else:
+            mvm_subj_dict[subj] = beh_dict
+            for beh in beh_dict:
+                data_table.append(subj)
+                data_table.append(subj_pars_group)
+                data_table.append(beh)
+                data_table.append(f"""'{subj_file}[{beh_dict[beh]}]'""")
 
-            # determine group
-            subj_pars_group = get_pars(df_group, subj)
+    # write out subjects included in mvm
+    with open(os.path.join(group_dir, f"subj_{mvm_title}.json"), "w") as jf:
+        json.dump(mvm_subj_dict, jf)
 
-            # find behavior sub-brick, write subject row if subject
-            # has all behaviors
-            subj_file = os.path.join(deriv_dir, subj, sess, decon_file)
-            beh_dict = get_subbrick(subj_file, beh_list)
-            if len(beh_dict.keys()) != len(beh_list):
-                continue
-            else:
-                mvm_subj_dict[subj] = beh_dict
-                for beh in beh_dict:
-                    data_table.append(subj)
-                    data_table.append(subj_pars_group)
-                    data_table.append(beh)
-                    data_table.append(f"""'{subj_file}[{beh_dict[beh]}]'""")
+    # set up post-hoc tests
+    glt_list = []
+    for count, test in enumerate(glt_dict):
+        glt_list.append(f"-gltLabel {count + 1} {test}")
+        glt_list.append(f"-gltCode {count + 1} {glt_dict[test]}")
 
-        # write out subjects included in mvm
-        with open(os.path.join(group_dir, f"subj_{mvm_title}.json"), "w") as jf:
-            json.dump(mvm_subj_dict, jf)
+    # write command for review
+    h_cmd = f"""
+        3dMVM \\
+            -prefix MVM_{mvm_title} \\
+            -jobs 10 \\
+            -mask Group_GM_intersect_mask+tlrc \\
+            -bsVars PARS6 \\
+            -wsVars 'WSVARS' \\
+            -num_glt {len(glt_dict.keys())} \\
+            {" ".join(glt_list)} \\
+            -dataTable \\
+            Subj PARS6 WSVARS InputFile \\
+            {" ".join(data_table)}
+    """
+    mvm_script = os.path.join(group_dir, f"MVM_{mvm_title}.sh")
+    with open(mvm_script, "w") as ms:
+        ms.write(h_cmd)
 
-        # set up post-hoc tests
-        glt_list = []
-        for count, test in enumerate(glt_dict):
-            glt_list.append(f"-gltLabel {count + 1} {test}")
-            glt_list.append(f"-gltCode {count + 1} {glt_dict[test]}")
-
-        # write command for review
+    # execute script
+    if not os.path.exists(os.path.join(group_dir, f"MVM_{mvm_title}+tlrc.HEAD")):
         h_cmd = f"""
-            3dMVM \\
-                -prefix MVM_{mvm_title} \\
-                -jobs 10 \\
-                -mask Group_GM_intersect_mask+tlrc \\
-                -bsVars PARS6 \\
-                -wsVars 'WSVARS' \\
-                -num_glt {len(glt_dict.keys())} \\
-                {" ".join(glt_list)} \\
-                -dataTable \\
-                Subj PARS6 WSVARS InputFile \\
-                {" ".join(data_table)}
+            cd {group_dir}
+            source {mvm_script}
         """
-        mvm_script = os.path.join(group_dir, f"MVM_{mvm_title}.sh")
-        with open(mvm_script, "w") as ms:
-            ms.write(h_cmd)
-
-    # execute scripts
-    mvm_list = [x for x in os.listdir(group_dir) if fnmatch.fnmatch(x, "MVM_*.sh")]
-    for mvm_script in mvm_list:
-        if not os.path.exists(
-            os.path.join(group_dir, f"""{mvm_script.split(".")[0]}+tlrc.HEAD""")
-        ):
-            h_cmd = f"""
-                cd {group_dir}
-                source {mvm_script}
-            """
-            func_sbatch(h_cmd, 2, 6, 10, "cMVM", group_dir)
+        func_sbatch(h_cmd, 2, 6, 10, "cMVM", group_dir)
 
 
 # %%
@@ -582,13 +578,32 @@ def main():
             group_dir,
         )
 
-    # write, run MVMs
-    if not os.path.exists(os.path.join(group_dir, "MVM+tlrc.HEAD")):
+    # get demographic info
+    # TODO pull this csv from SharePoint
+    df_sum = pd.read_csv("emuR01_summary_latest.csv")
+    df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
 
-        # TODO pull this csv from SharePoint
-        df_sum = pd.read_csv("emuR01_summary_latest.csv")
-        df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
-        group_analysis(mvm_dict, subj_list, sess, group_dir, deriv_dir, df_group)
+    # write, run MVMs
+    for mvm_title in mvm_dict:
+
+        beh_list = mvm_dict[mvm_title]["behaviors"]
+        glt_dict = mvm_dict[mvm_title]["post-hoc"]
+        coord_dict = mvm_dict[mvm_title]["coord_check"]
+        decon_file = mvm_dict[mvm_title]["decon_file"]
+
+        if not os.path.exists(os.path.join(group_dir, "MVM+tlrc.HEAD")):
+            group_analysis(
+                mvm_title,
+                beh_list,
+                glt_dict,
+                coord_dict,
+                decon_file,
+                subj_list,
+                sess,
+                group_dir,
+                deriv_dir,
+                df_group,
+            )
 
     # get subj acf estimates
     acf_file = os.path.join(group_dir, "ACF_subj_all.txt")
