@@ -1,0 +1,18 @@
+{
+    "negL_neuL": {
+        "decon_file": "test_decon_stats_REML+tlrc",
+        "behaviors": [
+            "negLF",
+            "negLC",
+            "neuLF",
+            "neuLC"
+        ],
+        "post-hoc": {
+            "parsH-L.negLF-neuLF": "PARS6 : 1*High -1*Low WSVARS : 1*negLF -1*neuLF"
+        },
+        "coord_check": {
+            "LAmg": "-24 -5 -29",
+            "RAmg": "22 -3 -29"
+        }
+    }
+}

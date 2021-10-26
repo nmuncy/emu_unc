@@ -15,6 +15,7 @@ import os
 import json
 import fnmatch
 import subprocess
+import pathlib
 import pandas as pd
 import numpy as np
 from argparse import ArgumentParser
@@ -140,7 +141,7 @@ def make_gmInt_mask(
 
 
 # %%
-def get_subbrick(subj_file, beh):
+def get_subbrick(subj_file, beh_list):
     """Find sub-brick of a behavior.
 
     As every participant may not have every behavior (targMS),
@@ -152,26 +153,33 @@ def get_subbrick(subj_file, beh):
     ----------
     subj_file : str
         deconvolved subject file (test_decon_stats_REML+tlrc)
-    beh : str
-        behavior string (lureCR)
+    # beh : str
+    #     behavior string (lureCR)
 
     Returns
     -------
-    h_out : str
-        string of sub-brick integer
+    # h_out : str
+    #     string of sub-brick integer
     """
-    h_cmd = f"""
-        module load afni-20.2.06
-        3dinfo \
-            -subbrick_info {subj_file} |
-            grep "{beh}#0_Coef" |
-            awk '{{print $4}}' |
-            sed 's/\#//'
-    """
-    h_brick = subprocess.Popen(h_cmd, shell=True, stdout=subprocess.PIPE)
-    h_brick.wait()
-    h_out = h_brick.communicate()[0]
-    return h_out.decode("utf-8").replace("\n", "")
+
+    subbrick_dict = {}
+    for beh in beh_list:
+        h_cmd = f"""
+            module load afni-20.2.06
+            3dinfo \
+                -subbrick_info {subj_file} |
+                grep "{beh}#0_Coef" |
+                awk '{{print $4}}' |
+                sed 's/\#//'
+        """
+        h_brick = subprocess.Popen(h_cmd, shell=True, stdout=subprocess.PIPE)
+        h_brick.wait()
+        h_out = h_brick.communicate()[0]
+        subbrick = h_out.decode("utf-8").replace("\n", "")
+        if subbrick:
+            subbrick_dict[beh] = subbrick
+
+    return subbrick_dict
 
 
 # %%
@@ -246,7 +254,7 @@ def make_seed(seed_name, coord_list, group_dir, ref_file):
 
 
 # %%
-def check_coord(coord_dict, group_dir, subj_int_mask):
+def check_coord(coord_dict, group_dir, subj_int_mask, subj):
     """Return True if meaningful data exists at all checked coordinates.
 
     Parameters
@@ -259,6 +267,8 @@ def check_coord(coord_dict, group_dir, subj_int_mask):
     subj_int_mask : str
         subject intersection mask
         /path/to/BIDS/derivatives/afni/sub-1234/ses-A/mask_epi_anat+tlrc
+    subj : str
+        BIDS subject string
 
     Returns
     -------
@@ -268,6 +278,7 @@ def check_coord(coord_dict, group_dir, subj_int_mask):
 
     for seed in coord_dict:
         mask = os.path.join(group_dir, f"Check_{seed}.nii.gz")
+        print(f"Checking {subj} for data in {seed} ...")
         if not os.path.exists(mask):
             make_seed(seed, coord_dict[seed], group_dir, subj_int_mask)
         h_cmd = f"""
@@ -289,15 +300,13 @@ def check_coord(coord_dict, group_dir, subj_int_mask):
 
 # %%
 def group_analysis(
-    beh_list,
-    glt_dict,
+    mvm_dict,
     subj_list,
     sess,
     phase,
     group_dir,
     deriv_dir,
     df_group,
-    coord_dict,
 ):
     """Conduct group-level analyses.
 
@@ -306,10 +315,10 @@ def group_analysis(
 
     Parameters
     ----------
-    beh_list = list
-        list of behaviors to test
-    glt_dict = dict
-        dictionary of post-hoc t-tests
+    # beh_list = list
+    #     list of behaviors to test
+    # glt_dict = dict
+    #     dictionary of post-hoc t-tests
     subj_list = list
         list of subjects to potentially include
     sess = str
@@ -322,9 +331,9 @@ def group_analysis(
         /path/to/BIDS/derivatives/afni
     df_group : pandas.DataFrame
         summary emuR01 dataframe with PARS6 scores
-    coord_dict : dict
-        dictionary of {roi: coordinates}
-        e.g. {"LAmg": "-24 -5 -29"}
+    # coord_dict : dict
+    #     dictionary of {roi: coordinates}
+    #     e.g. {"LAmg": "-24 -5 -29"}
 
     Notes
     -----
@@ -334,54 +343,77 @@ def group_analysis(
 
     # create data_table of subjects who have data at coordinates
     # and have the behaviors of interest
-    data_table = []
-    for subj in subj_list:
-        subj_file = os.path.join(
-            deriv_dir, subj, sess, f"{phase}_decon_stats_REML+tlrc"
-        )
+    for mvm_title in mvm_dict:
 
-        # check that data exists at desired coords
-        subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
-        data_exists = check_coord(coord_dict, group_dir, subj_int_mask)
-        if not data_exists:
-            continue
+        # get planned info
+        beh_list = mvm_dict[mvm_title]["behaviors"]
+        glt_dict = mvm_dict[mvm_title]["post-hoc"]
+        coord_dict = mvm_dict[mvm_title]["coord_check"]
+        decon_file = mvm_dict[mvm_title]["decon_file"]
 
-        # determine group
-        subj_pars_group = get_pars(df_group, subj)
+        data_table = []
+        mvm_subj_dict = {}
+        for subj in subj_list:
 
-        # find behavior sub-brick, write subject row
-        for beh in beh_list:
-            subj_brick = get_subbrick(subj_file, beh)
-            if subj_brick:
-                data_table.append(subj)
-                data_table.append(subj_pars_group)
-                data_table.append(beh)
-                data_table.append(f"""'{subj_file}[{int(subj_brick)}]'""")
+            # check that data exists at desired coords
+            subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
+            data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
+            if not data_exists:
+                continue
 
-    # set up post-hoc tests
-    glt_list = []
-    for count, test in enumerate(glt_dict):
-        glt_list.append(f"-gltLabel {count + 1} {test}")
-        glt_list.append(f"-gltCode {count + 1}")
-        glt_list.append(f"'WSVARS: 1*{glt_dict[test][0]} -1*{glt_dict[test][1]}'")
+            # determine group
+            subj_pars_group = get_pars(df_group, subj)
 
-    # write command, run
-    h_cmd = f"""
-        cd {group_dir}
+            # find behavior sub-brick, write subject row if subject
+            # has all behaviors
+            subj_file = os.path.join(deriv_dir, subj, sess, decon_file)
+            beh_dict = get_subbrick(subj_file, beh_list)
+            if len(beh_dict.keys()) != len(beh_list):
+                continue
+            else:
+                mvm_subj_dict[subj] = beh_dict
+                for beh in beh_dict:
+                    data_table.append(subj)
+                    data_table.append(subj_pars_group)
+                    data_table.append(beh)
+                    data_table.append(f"""'{subj_file}[{beh_dict[beh]}]'""")
 
-        3dMVM \
-            -prefix MVM_{phase} \
-            -jobs 10 \
-            -mask Group_GM_intersect_mask+tlrc \
-            -bsVars PARS6 \
-            -wsVars 'WSVARS' \
-            -num_glt {len(list(glt_dict.keys()))} \
-            {" ".join(glt_list)} \
-            -dataTable \
-            Subj PARS6 WSVARS InputFile \
-            {" ".join(data_table)}
-    """
-    func_sbatch(h_cmd, 2, 6, 10, "cMVM", group_dir)
+        # write out subjects included in mvm
+        with open(os.path.join(group_dir, f"subj_{mvm_title}.json"), "w") as jf:
+            json.dump(mvm_subj_dict, jf)
+
+        # set up post-hoc tests
+        glt_list = []
+        for count, test in enumerate(glt_dict):
+            glt_list.append(f"-gltLabel {count + 1} {test}")
+            glt_list.append(f"-gltCode {count + 1} {glt_dict[test]}")
+
+        # write command for review
+        h_cmd = f"""
+            3dMVM \\
+                -prefix MVM_{mvm_title} \\
+                -jobs 10 \\
+                -mask Group_GM_intersect_mask+tlrc \\
+                -bsVars PARS6 \\
+                -wsVars 'WSVARS' \\
+                -num_glt {len(glt_dict.keys())} \\
+                {" ".join(glt_list)} \\
+                -dataTable \\
+                Subj PARS6 WSVARS InputFile \\
+                {" ".join(data_table)}
+        """
+        mvm_script = os.path.join(group_dir, f"MVM_{mvm_title}.sh")
+        with open(mvm_script, "w") as ms:
+            ms.write(h_cmd)
+
+    # execute scripts
+    mvm_list = [x for x in os.listdir(group_dir) if fnmatch.fnmatch(x, "MVM_*.sh")]
+    for mvm_script in mvm_list:
+        h_cmd = f"""
+            cd {group_dir}
+            source {mvm_script}
+        """
+        func_sbatch(h_cmd, 2, 6, 10, "cMVM", group_dir)
 
 
 # %%
@@ -491,6 +523,8 @@ def main():
     # tplflow_dir = args.tplflow_dir
     # parent_dir = args.parent_dir
 
+    code_dir = pathlib.Path().resolve()
+
     #
     deriv_dir = os.path.join(parent_dir, "derivatives/afni")
     group_dir = os.path.join(deriv_dir, "analyses")
@@ -499,11 +533,8 @@ def main():
     subj_list = [x for x in os.listdir(deriv_dir) if fnmatch.fnmatch(x, "sub-*")]
     subj_list.sort()
 
-    # with open(os.path.join(group_dir, "beh_dict.json")) as json_file:
-    #     beh_dict = json.load(json_file)
-
-    # with open(os.path.join(group_dir, "glt_dict.json")) as json_file:
-    #     glt_dict = json.load(json_file)
+    with open(os.path.join(code_dir, "mvm_plan.json")) as json_file:
+        mvm_dict = json.load(json_file)
 
     """ make group gray matter intersect mask """
     if not os.path.exists(os.path.join(group_dir, "Group_GM_intersect_mask+tlrc.HEAD")):
@@ -521,17 +552,12 @@ def main():
 
     """ run MVM """
     if not os.path.exists(os.path.join(group_dir, "MVM+tlrc.HEAD")):
-        beh_list = ["negLF", "negLC", "neuLF", "neuLC"]
-        glt_dict = {
-            "negLC-negLF": ["negLC", "negLF"],
-            "negLF-neuLF": ["negLF", "neuLF"],
-        }
 
         # TODO pull this csv from SharePoint
         df_sum = pd.read_csv("emuR01_summary_latest.csv")
         df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
 
-        coord_dict = {"LAmg": "-24 -5 -29", "RAmg": "22 -3 -29"}
+        # coord_dict = {"LAmg": "-24 -5 -29", "RAmg": "22 -3 -29"}
         # group_analysis(beh_dict, glt_dict, subj_list, sess, phase, group_dir, deriv_dir)
 
     """ get subj acf estimates """
