@@ -146,7 +146,7 @@ def make_gmInt_mask(
 
 
 # %%
-def get_subbrick(subj_file, beh_list):
+def get_subbrick(subj_decon_file, beh_list):
     """Find sub-brick of a behavior.
 
     As every participant may not have every behavior (targMS),
@@ -156,7 +156,7 @@ def get_subbrick(subj_file, beh_list):
 
     Parameters
     ----------
-    subj_file : str
+    subj_decon_file : str
         deconvolved subject file (test_decon_stats_REML+tlrc)
     beh_list : list
         list of behaviors (lureCR, lureFA) to identify in sub-brick info
@@ -173,7 +173,7 @@ def get_subbrick(subj_file, beh_list):
         h_cmd = f"""
             module load afni-20.2.06
             3dinfo \
-                -subbrick_info {subj_file} |
+                -subbrick_info {subj_decon_file} |
                 grep "{beh}#0_Coef" |
                 awk '{{print $4}}' |
                 sed 's/\#//'
@@ -305,6 +305,39 @@ def check_coord(coord_dict, group_dir, subj_int_mask, subj):
 
 
 # %%
+def check_subj(
+    subj_list_all,
+    sess,
+    group_dir,
+    deriv_dir,
+    coord_dict,
+    decon_file,
+    beh_list,
+    subj_int_mask,
+    subj_decon_file,
+):
+    mvm_subj_dict = {}
+    for subj in subj_list_all:
+
+        # find subjects with data at coord locations - slow
+        subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
+        data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
+        if not data_exists:
+            continue
+
+        # find behavior sub-brick, write subject row if subject
+        # has all behaviors
+        subj_decon_file = os.path.join(deriv_dir, subj, sess, decon_file)
+        beh_dict = get_subbrick(subj_decon_file, beh_list)
+        if len(beh_dict.keys()) != len(beh_list):
+            continue
+
+        mvm_subj_dict[subj] = beh_dict
+
+    return mvm_subj_dict
+
+
+# %%
 def group_analysis(
     mvm_title,
     beh_list,
@@ -360,28 +393,28 @@ def group_analysis(
     mvm_subj_dict = {}
     for subj in subj_list:
 
-        # check that data exists at desired coords
-        subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
-        data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
-        if not data_exists:
-            continue
+        # # check that data exists at desired coords
+        # subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
+        # data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
+        # if not data_exists:
+        #     continue
 
         # determine group
         subj_pars_group = get_pars(df_group, subj)
 
         # find behavior sub-brick, write subject row if subject
         # has all behaviors
-        subj_file = os.path.join(deriv_dir, subj, sess, decon_file)
-        beh_dict = get_subbrick(subj_file, beh_list)
-        if len(beh_dict.keys()) != len(beh_list):
-            continue
-        else:
-            mvm_subj_dict[subj] = beh_dict
-            for beh in beh_dict:
-                data_table.append(subj)
-                data_table.append(subj_pars_group)
-                data_table.append(beh)
-                data_table.append(f"""'{subj_file}[{beh_dict[beh]}]'""")
+        # subj_file = os.path.join(deriv_dir, subj, sess, decon_file)
+        # beh_dict = get_subbrick(subj_file, beh_list)
+        # if len(beh_dict.keys()) != len(beh_list):
+        #     continue
+        # else:
+        #     mvm_subj_dict[subj] = beh_dict
+        # for beh in beh_dict:
+        #     data_table.append(subj)
+        #     data_table.append(subj_pars_group)
+        #     data_table.append(beh)
+        #     data_table.append(f"""'{subj_file}[{beh_dict[beh]}]'""")
 
     # write out subjects included in mvm
     with open(os.path.join(group_dir, f"subj_{mvm_title}.json"), "w") as jf:
@@ -525,7 +558,7 @@ def get_args():
         "-m",
         "--mvm-plan",
         help="Location of MVM configuration.json",
-        type=int,
+        type=str,
         required=True,
     )
 
@@ -557,14 +590,34 @@ def main():
     group_dir = os.path.join(deriv_dir, "analyses")
     if not os.path.exists(group_dir):
         os.makedirs(group_dir)
-    subj_list = [x for x in os.listdir(deriv_dir) if fnmatch.fnmatch(x, "sub-*")]
-    subj_list.sort()
+    subj_list_all = [x for x in os.listdir(deriv_dir) if fnmatch.fnmatch(x, "sub-*")]
+    subj_list_all.sort()
+
+    # get demographic info
+    # TODO pull this csv from SharePoint
+    df_sum = pd.read_csv("emuR01_summary_latest.csv")
+    df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
 
     # read in mvm plan
     with open(mvm_plan) as json_file:
         mvm_dict = json.load(json_file)
-    sess = mvm_dict["session"]
-    task = mvm_dict["task"]
+
+    for mvm_title in mvm_dict:
+
+        beh_list = mvm_dict[mvm_title]["behaviors"]
+        glt_dict = mvm_dict[mvm_title]["post-hoc"]
+        coord_dict = mvm_dict[mvm_title]["coord_check"]
+        decon_file = mvm_dict[mvm_title]["decon_file"]
+        sess = mvm_dict[mvm_title]["session"]
+        task = mvm_dict[mvm_title]["task"]
+
+        # determine who to include in the mvm
+        mvm_subj_json = os.path.join(group_dir, f"subj_{mvm_title}.json")
+        # mvm_subj_dict =
+
+        # write out subjects included in mvm
+        with open(mvm_subj_json, "w") as jf:
+            json.dump(mvm_subj_dict, jf)
 
     # make group gray matter intersect mask
     if not os.path.exists(os.path.join(group_dir, "Group_GM_intersect_mask+tlrc.HEAD")):
@@ -577,11 +630,6 @@ def main():
             tplflow_str,
             group_dir,
         )
-
-    # get demographic info
-    # TODO pull this csv from SharePoint
-    df_sum = pd.read_csv("emuR01_summary_latest.csv")
-    df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
 
     # write, run MVMs
     for mvm_title in mvm_dict:
