@@ -1,6 +1,11 @@
 """Conduct Group-level Analyses.
 
-Desc.
+This script will check each subject for whether they have EPI data
+in the desired coordinates and all required behaviors, make a group
+gray matter instersection mask from these subjects, and use said
+mask for 3dMVM, 3dFWHMx, and 3dClustSim. Only participants
+included in the 3dMVM are tested by 3dFWHMx. Planning for 3dMVM
+occurs in a JSON file (see below) and referenced via the -m option.
 
 Examples
 --------
@@ -12,15 +17,28 @@ func5_test.py \\
 
 Notes
 -----
-Json file for -m option should contain the following fields for
-each planned MVM:
-    decon_file
-    behaviors
-    post-hoc
-    coord_check
-    task
-    session
-
+Json file for -m option should have the following format (where "negL_neuL"
+becomes the MVM title):
+{
+    "negL_neuL": {
+        "decon_file": "test_decon_stats_REML+tlrc",
+        "behaviors": [
+            "negLF",
+            "negLC",
+            "neuLF",
+            "neuLC"
+        ],
+        "post-hoc": {
+            "parsH-L.negLF-neuLF": "PARS6 : 1*High -1*Low WSVARS : 1*negLF -1*neuLF"
+        },
+        "coord_check": {
+            "LAmg": "-24 -5 -29",
+            "RAmg": "22 -3 -29"
+        },
+        "task": "test",
+        "session": "ses-S2"
+    }
+}
 """
 
 # %%
@@ -46,7 +64,7 @@ def make_group_mask(
     tplflow_str,
     group_dir,
     mvm_title,
-    frac_value=1,
+    frac_value=1.0,
 ):
     """Make a gray matter * group intersection mask.
 
@@ -62,19 +80,21 @@ def make_group_mask(
     deriv_dir : str
         /path/to/BIDS/derivatives/afni
     sess : str
-        BIDS session string (ses-S1)
+        BIDS session string ("ses-S1")
     task : str
-        aspect of experiment being analysed (study, test)
+        aspect of experiment being analysed ("test")
     tplflow_dir : str
         /path/to/templateflow/atlas_dir
     tplflow_str : str
-        atlas file string (tpl-MNIPediatricAsym_cohort-5_res-1)
+        atlas file string ("tpl-MNIPediatricAsym_cohort-5_res-1")
         used to find T1 and GM files
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
-    # frac_value = float [default=0.8]
-    #     proportion of participants that must have data in a voxel for
-    #     the voxel to be tested at the group-level.
+    mvm_title : str
+        title string from mvm_dict ("negL_neuL")
+    frac_value = float [default=1.0]
+        proportion of participants that must have data in a voxel for
+        the voxel to be tested at the group-level
 
     Notes
     -----
@@ -84,10 +104,10 @@ def make_group_mask(
     Output written to group_dir
 
     MRI output : structural
-        # Group_intersect_mean.nii.gz
-        # Group_intersect_mask.nii.gz
-        # Group_GM_intersect_mask.nii.gz
-        # Group_GM_intersect_mask+tlrc
+        <mvm_title>_intersect_mean.nii.gz
+        <mvm_title>_intersect_mask.nii.gz
+        <mvm_title>_mask.nii.gz
+        <mvm_title>_mask+tlrc
     """
 
     # set ref file for resampling
@@ -98,12 +118,14 @@ def make_group_mask(
         os.path.join(group_dir, f"{mvm_title}_intersect_mask.nii.gz")
     ):
 
+        # make list of all subjects that have mask_epi_anat
         mask_list = []
         for subj in subj_list:
             mask_file = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
             if os.path.exists(f"{mask_file}.HEAD"):
                 mask_list.append(mask_file)
 
+        # concat mask_epi_anat masks
         h_cmd = f"""
             module load afni-20.2.06
             cd {group_dir}
@@ -169,9 +191,9 @@ def get_subbrick(subj_decon_file, beh_list):
     Parameters
     ----------
     subj_decon_file : str
-        deconvolved subject file (test_decon_stats_REML+tlrc)
+        deconvolved subject file (<task>_decon_stats_REML+tlrc)
     beh_list : list
-        list of behaviors (lureCR, lureFA) to identify in sub-brick info
+        list of behaviors ("lureLF") to identify in sub-brick info
 
     Returns
     -------
@@ -242,13 +264,13 @@ def make_seed(seed_name, coord_list, group_dir, ref_file):
     Parameters
     ----------
     seed_name : str
-        name of seed ROI (LHC)
+        name of seed ROI ("LAmg")
     coord_list : str
-        coordinates (-25 7 48)
+        coordinates ("-24 -5 -29")
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
     ref_file : str
-        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/run-1_scale+tlrc
+        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/run-1_<task>_scale+tlrc
         used for writing header
 
     Notes
@@ -275,6 +297,8 @@ def make_seed(seed_name, coord_list, group_dir, ref_file):
 def check_coord(coord_dict, group_dir, subj_int_mask, subj):
     """Return True if meaningful data exists at all checked coordinates.
 
+    Submits make_seed if ROI seed not detected in group_dir.
+
     Parameters
     ----------
     coord_dict : dict
@@ -295,10 +319,14 @@ def check_coord(coord_dict, group_dir, subj_int_mask, subj):
     """
 
     for seed in coord_dict:
+
+        # orient to seed ROI
         mask = os.path.join(group_dir, f"Check_{seed}.nii.gz")
         print(f"Checking {subj} for data in {seed} ...")
         if not os.path.exists(mask):
             make_seed(seed, coord_dict[seed], group_dir, subj_int_mask)
+
+        # check seed ROI
         h_cmd = f"""
             module load afni-20.2.06
             3dROIstats \
@@ -311,8 +339,12 @@ def check_coord(coord_dict, group_dir, subj_int_mask, subj):
         h_check.wait()
         vox_value = h_check.communicate()[0]
         out_status = True if float(vox_value.decode("utf-*")) == 1.0 else False
+
+        # kill if no data in a seed
         if not out_status:
             return out_status
+
+    # report
     return out_status
 
 
@@ -327,6 +359,38 @@ def check_subj(
     beh_list,
     mvm_subj_json,
 ):
+    """Check if subject has required data.
+
+    Check if data exists at coordinate locations and if the subject
+    had all required behaviors for the MVM. Wraps check_coord,
+    get_subbrick.
+
+    Parameters
+    ----------
+    subj_list_all : list
+        list of all subjects found in deriv_dir
+    sess : str
+        BIDS session string
+    group_dir : str
+        /path/to/BIDS/derivatives/afni/analyses
+    deriv_dir : str
+        /path/to/BIDS/derivatives/afni
+    coord_dict : dict
+        dictionary of {roi: coordinates}
+        e.g. {"LAmg": "-24 -5 -29"}
+    decon_file : str
+        deconvolved file (<task>_decon_stats_REML+tlrc)
+    beh_list : list
+        list of behaviors (lureCR, lureFA) to identify in sub-brick info
+    mvm_subj_json : str
+        location of output file (group_dir/subj_<mvm_title>.json)
+
+    Notes
+    -----
+    Writes a dictionary to mvm_subj_json, of format:
+        {subject: {behavior: number}}
+        e.g. {'sub-4063': {'negLF': '9', 'negLC': '7'}}
+    """
     mvm_subj_dict = {}
     for subj in subj_list_all:
 
@@ -361,27 +425,23 @@ def group_analysis(
     Parameters
     ----------
     mvm_title : str
-        output file string, key of mvm_config.json (negL_neuL)
-    beh_list : list
-        list of behaviors to find and model (['negLF', 'negLF'])
+        output file string, key of mvm_config.json ("negL_neuL")
+    mvm_subj_dict : dict
+        dictionary of subjects and behavior : sub-brick
+        e.g. {'sub-4063': {'negLF': '9', 'negLC': '7'}}
+    df_group : pandas.DataFrame
+        summary emuR01 dataframe with PARS6 scores
+    decon_file : str
+        deconvolved file (<task>_decon_stats_REML+tlrc)
+    deriv_dir : str
+        /path/to/BIDS/derivatives/afni
+    sess : str
+        BIDS session string
     glt_dict : dict
         planned post-hoc comparisons
         {gltLabel : gltCode}
-    coord_dict : dict
-        voxel ROIs to check for data
-        {'LAmg': '-24 -5 -29'}
-    subj_list : list
-        list of subjects to potentially include
-    sess : str
-        BIDS session string
-    task : str
-        aspect of experiment being analysed (study, test)
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
-    deriv_dir : str
-        /path/to/BIDS/derivatives/afni
-    df_group : pandas.DataFrame
-        summary emuR01 dataframe with PARS6 scores
 
     Notes
     -----
@@ -389,7 +449,6 @@ def group_analysis(
         group_dir/MVM_<mvm_title>+tlrc
     MRI output : files
         group_dir/MVM_<mvm_title>.sh
-        group_dir/subj_<mvm_title>.json
     """
 
     # write dataTable input
@@ -441,23 +500,37 @@ def group_analysis(
 def model_noise(
     mvm_subj_dict, mvm_title, sess, decon_file, deriv_dir, group_dir, acf_file
 ):
-    """Model noise.
+    """Model noise for each subject.
+
+    Submits an sbatch job for each subject to model noise, 3dFWHMx takes
+    approximately 15 minutes per subject. Stdout/err are captured in subject
+    derivatives location. Waits 15s between each submission to avoid
+    overwhelming scheduling node, give some jobs time to finish before
+    submitting new ones.
 
     Parameters
     ----------
-    subj : str
-        BIDS subject string
-    subj_file : str
-        deconvolution residual of a subject
-        /path/to/BIDS/derivatives/afni/sub-1234/ses-A/<task>_decon_errts_REML+tlrc
+    mvm_subj_dict : dict
+        dictionary of subjects and behavior : sub-brick
+        e.g. {'sub-4063': {'negLF': '9', 'negLC': '7'}}
+    mvm_title : str
+        output file string, key of mvm_config.json (negL_neuL)
+    sess : str
+        BIDS session string
+    decon_file : str
+        deconvolved file (<task>_decon_stats_REML+tlrc)
+    deriv_dir : str
+        /path/to/BIDS/derivatives/afni
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
     acf_file : str
-        output acf txt to append (group_dir/ACF_subj_all.txt)
+        output acf txt to append (group_dir/ACF_<mvm_title>.txt)
 
     Notes
     -----
     Parameter estimations are captured in acf_file.
+    Deconvolved residual file is located by switching "stats"
+    for "errts" in decon_file.
     """
 
     for subj in mvm_subj_dict.keys():
@@ -488,7 +561,7 @@ def model_noise(
         )
         job_id = sbatch_response.communicate()[0]
         print(job_id.decode("utf-8"))
-        time.sleep(10)
+        time.sleep(15)
 
 
 # %%
@@ -503,11 +576,13 @@ def run_montecarlo(group_dir, acf_file, mc_file, mvm_title):
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
     acf_file : str
-        output of model_noise (group_dir/ACF_subj_all.txt)
+        output of model_noise (group_dir/ACF_<mvm_title>.txt)
         used to sum across 3 parameters
     mc_file : str
         captures simulation output/recommendations
-        group_dir/MC_thresholds.txt
+        group_dir/MC_<mvm_title>.txt
+    mvm_title : str
+        output file string, key of mvm_config.json ("negL_neuL")
 
     Notes
     -----
@@ -669,9 +744,9 @@ def main():
     # Separated from above loop for trouble shooting, checking.
     for mvm_title in mvm_dict:
 
+        # get relevant info
         decon_file = mvm_dict[mvm_title]["decon_file"]
         sess = mvm_dict[mvm_title]["session"]
-
         with open(os.path.join(group_dir, f"subj_{mvm_title}.json")) as jf:
             mvm_subj_dict = json.load(jf)
 
@@ -700,14 +775,15 @@ def main():
             out_lines = sq_check.communicate()[0]
             b_decode = out_lines.decode("utf-8")
 
-            if b_decode.count("\n") == 1:
+            # test if newlines exist aside from header, parent job
+            if b_decode.count("\n") == 2:
                 break_status = True
             else:
                 while_count += 1
                 print(f"Waiting for all 3dFWHMx jobs to finish : {while_count}")
                 time.sleep(3)
 
-        # do cluster simulations, if it is empty
+        # do cluster simulations
         mc_file = os.path.join(group_dir, f"MC_{mvm_title}_thresholds.txt")
         if not os.path.exists(mc_file):
             open(mc_file, "a").close()
