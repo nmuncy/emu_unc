@@ -12,6 +12,14 @@ func5_test.py \\
 
 Notes
 -----
+Json file for -m option should contain the following fields for
+each planned MVM:
+    decon_file
+    behaviors
+    post-hoc
+    coord_check
+    task
+    session
 
 """
 
@@ -21,6 +29,7 @@ import json
 import fnmatch
 import subprocess
 import sys
+import time
 import pandas as pd
 import numpy as np
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -28,7 +37,7 @@ from func2_finish_preproc import func_sbatch
 
 
 # %%
-def make_gmInt_mask(
+def make_group_mask(
     subj_list,
     deriv_dir,
     sess,
@@ -36,7 +45,8 @@ def make_gmInt_mask(
     tplflow_dir,
     tplflow_str,
     group_dir,
-    frac_value=0.8,
+    mvm_title,
+    frac_value=1,
 ):
     """Make a gray matter * group intersection mask.
 
@@ -62,9 +72,9 @@ def make_gmInt_mask(
         used to find T1 and GM files
     group_dir : str
         /path/to/BIDS/derivatives/afni/analyses
-    frac_value = float [default=0.8]
-        proportion of participants that must have data in a voxel for
-        the voxel to be tested at the group-level.
+    # frac_value = float [default=0.8]
+    #     proportion of participants that must have data in a voxel for
+    #     the voxel to be tested at the group-level.
 
     Notes
     -----
@@ -74,17 +84,19 @@ def make_gmInt_mask(
     Output written to group_dir
 
     MRI output : structural
-        Group_intersect_mean.nii.gz
-        Group_intersect_mask.nii.gz
-        Group_GM_intersect_mask.nii.gz
-        Group_GM_intersect_mask+tlrc
+        # Group_intersect_mean.nii.gz
+        # Group_intersect_mask.nii.gz
+        # Group_GM_intersect_mask.nii.gz
+        # Group_GM_intersect_mask+tlrc
     """
 
     # set ref file for resampling
     ref_file = os.path.join(deriv_dir, subj_list[1], sess, f"run-1_{task}_scale+tlrc")
 
     # make group intersection mask
-    if not os.path.exists(os.path.join(group_dir, "Group_intersect_mask.nii.gz")):
+    if not os.path.exists(
+        os.path.join(group_dir, f"{mvm_title}_intersect_mask.nii.gz")
+    ):
 
         mask_list = []
         for subj in subj_list:
@@ -97,17 +109,17 @@ def make_gmInt_mask(
             cd {group_dir}
 
             cp {tplflow_dir}/{tplflow_str}_T1w.nii.gz .
-            3dMean -prefix Group_intersect_mean.nii.gz {" ".join(mask_list)}
+            3dMean -prefix {mvm_title}_intersect_mean.nii.gz {" ".join(mask_list)}
             3dmask_tool \
                 -input {" ".join(mask_list)} \
                 -frac {frac_value} \
-                -prefix Group_intersect_mask.nii.gz
+                -prefix {mvm_title}_intersect_mask.nii.gz
         """
         h_mask = subprocess.Popen(h_cmd, shell=True, stdout=subprocess.PIPE)
         h_mask.wait()
 
     # make GM intersection mask
-    if not os.path.exists(os.path.join(group_dir, "Group_GM_intersect_mask+tlrc.HEAD")):
+    if not os.path.exists(os.path.join(group_dir, f"{mvm_title}_mask+tlrc.HEAD")):
         h_cmd = f"""
             module load afni-20.2.06
             module load c3d-1.0.0-gcc-8.2.0
@@ -125,19 +137,19 @@ def make_gmInt_mask(
                 -prefix tmp_GM_mask.nii.gz
 
             c3d \
-                tmp_GM_mask.nii.gz Group_intersect_mask.nii.gz \
+                tmp_GM_mask.nii.gz {mvm_title}_intersect_mask.nii.gz \
                 -multiply \
                 -o tmp_GM_intersect_prob_mask.nii.gz
 
             c3d \
                 tmp_GM_intersect_prob_mask.nii.gz \
                 -thresh 0.1 1 1 0 \
-                -o Group_GM_intersect_mask.nii.gz
+                -o {mvm_title}_mask.nii.gz
 
-            3dcopy Group_GM_intersect_mask.nii.gz Group_GM_intersect_mask+tlrc
-            3drefit -space MNI Group_GM_intersect_mask+tlrc
+            3dcopy {mvm_title}_mask.nii.gz {mvm_title}_mask+tlrc
+            3drefit -space MNI {mvm_title}_mask+tlrc
 
-            if [ -f Group_GM_intersect_mask+tlrc.HEAD ]; then
+            if [ -f {mvm_title}_mask+tlrc.HEAD ]; then
                 rm tmp_*
             fi
         """
@@ -313,8 +325,7 @@ def check_subj(
     coord_dict,
     decon_file,
     beh_list,
-    subj_int_mask,
-    subj_decon_file,
+    mvm_subj_json,
 ):
     mvm_subj_dict = {}
     for subj in subj_list_all:
@@ -334,21 +345,13 @@ def check_subj(
 
         mvm_subj_dict[subj] = beh_dict
 
-    return mvm_subj_dict
+    with open(mvm_subj_json, "w") as jf:
+        json.dump(mvm_subj_dict, jf)
 
 
 # %%
 def group_analysis(
-    mvm_title,
-    beh_list,
-    glt_dict,
-    coord_dict,
-    decon_file,
-    subj_list,
-    sess,
-    group_dir,
-    deriv_dir,
-    df_group,
+    mvm_title, mvm_subj_dict, df_group, decon_file, deriv_dir, sess, glt_dict, group_dir
 ):
     """Conduct group-level analyses.
 
@@ -389,36 +392,17 @@ def group_analysis(
         group_dir/subj_<mvm_title>.json
     """
 
+    # write dataTable input
     data_table = []
-    mvm_subj_dict = {}
-    for subj in subj_list:
-
-        # # check that data exists at desired coords
-        # subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
-        # data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
-        # if not data_exists:
-        #     continue
-
-        # determine group
+    for subj in mvm_subj_dict:
         subj_pars_group = get_pars(df_group, subj)
-
-        # find behavior sub-brick, write subject row if subject
-        # has all behaviors
-        # subj_file = os.path.join(deriv_dir, subj, sess, decon_file)
-        # beh_dict = get_subbrick(subj_file, beh_list)
-        # if len(beh_dict.keys()) != len(beh_list):
-        #     continue
-        # else:
-        #     mvm_subj_dict[subj] = beh_dict
-        # for beh in beh_dict:
-        #     data_table.append(subj)
-        #     data_table.append(subj_pars_group)
-        #     data_table.append(beh)
-        #     data_table.append(f"""'{subj_file}[{beh_dict[beh]}]'""")
-
-    # write out subjects included in mvm
-    with open(os.path.join(group_dir, f"subj_{mvm_title}.json"), "w") as jf:
-        json.dump(mvm_subj_dict, jf)
+        subj_decon_file = os.path.join(deriv_dir, subj, sess, decon_file)
+        beh_dict = mvm_subj_dict[subj]
+        for beh in beh_dict:
+            data_table.append(subj)
+            data_table.append(subj_pars_group)
+            data_table.append(beh)
+            data_table.append(f"""'{subj_decon_file}[{beh_dict[beh]}]'""")
 
     # set up post-hoc tests
     glt_list = []
@@ -431,7 +415,7 @@ def group_analysis(
         3dMVM \\
             -prefix MVM_{mvm_title} \\
             -jobs 10 \\
-            -mask Group_GM_intersect_mask+tlrc \\
+            -mask {mvm_title}_mask+tlrc \\
             -bsVars PARS6 \\
             -wsVars 'WSVARS' \\
             -num_glt {len(glt_dict.keys())} \\
@@ -454,7 +438,9 @@ def group_analysis(
 
 
 # %%
-def model_noise(subj, subj_file, group_dir, acf_file):
+def model_noise(
+    mvm_subj_dict, mvm_title, sess, decon_file, deriv_dir, group_dir, acf_file
+):
     """Model noise.
 
     Parameters
@@ -474,19 +460,39 @@ def model_noise(subj, subj_file, group_dir, acf_file):
     Parameter estimations are captured in acf_file.
     """
 
-    h_cmd = f"""
-        cd {group_dir}
+    for subj in mvm_subj_dict.keys():
 
-        3dFWHMx \
-            -mask Group_GM_intersect_mask+tlrc \
-            -input {subj_file} \
-            -acf >> {acf_file}
-    """
-    func_sbatch(h_cmd, 2, 4, 1, f"a{subj.split('-')[-1]}", group_dir)
+        subj_dir = os.path.join(deriv_dir, subj, sess)
+        subj_errts_file = os.path.join(subj_dir, decon_file).replace("stats", "errts")
+        stderr = os.path.join(subj_dir, "sbatch_3dFWHMx.err")
+        stdout = os.path.join(subj_dir, "sbatch_3dFWHMx.out")
+        job_name = f"""acf{subj.split("-")[-1]}"""
+
+        sbatch_job = f"""
+            sbatch \
+            -J {job_name} -t 01:00:00 --mem=4000 --ntasks-per-node=1 \
+            -p IB_44C_512G -o {stdout} -e {stderr} \
+            --account iacc_madlab --qos pq_madlab \
+            --wrap="module load afni-20.2.06
+                cd {group_dir}
+                3dFWHMx \
+                    -mask {mvm_title}_mask+tlrc \
+                    -input {subj_errts_file} \
+                    -acf >> {acf_file}
+            "
+        """
+
+        print(f"Submitting 3dFWHMx for {subj} ...")
+        sbatch_response = subprocess.Popen(
+            sbatch_job, shell=True, stdout=subprocess.PIPE
+        )
+        job_id = sbatch_response.communicate()[0]
+        print(job_id.decode("utf-8"))
+        time.sleep(10)
 
 
 # %%
-def run_montecarlo(group_dir, acf_file, mc_file):
+def run_montecarlo(group_dir, acf_file, mc_file, mvm_title):
     """Conduct monte carlo simulations.
 
     Incorporate noise estimations in MC simulations. Restrict
@@ -513,13 +519,13 @@ def run_montecarlo(group_dir, acf_file, mc_file):
     df_acf = df_acf.dropna(axis=1)
     df_acf = df_acf.loc[(df_acf != 0).any(axis=1)]
     mean_list = list(df_acf.mean())
+    mean_list = [round(x, 6) for x in mean_list]
 
     # conduct MC simulations
     h_cmd = f"""
         cd {group_dir}
-
         3dClustSim \
-            -mask Group_GM_intersect_mask+tlrc \
+            -mask {mvm_title}_mask+tlrc \
             -LOTS \
             -iter 10000 \
             -acf {mean_list[0]} {mean_list[1]} {mean_list[2]} \
@@ -595,13 +601,14 @@ def main():
 
     # get demographic info
     # TODO pull this csv from SharePoint
-    df_sum = pd.read_csv("emuR01_summary_latest.csv")
-    df_group = df_sum[["emu_study_id", "pinf_random", "pars_6"]]
+    df_summary = pd.read_csv("emuR01_summary_latest.csv")
+    df_group = df_summary[["emu_study_id", "pinf_random", "pars_6"]]
 
     # read in mvm plan
     with open(mvm_plan) as json_file:
         mvm_dict = json.load(json_file)
 
+    # keep work separate for each planned MVM
     for mvm_title in mvm_dict:
 
         beh_list = mvm_dict[mvm_title]["behaviors"]
@@ -611,75 +618,101 @@ def main():
         sess = mvm_dict[mvm_title]["session"]
         task = mvm_dict[mvm_title]["task"]
 
-        # determine who to include in the mvm
+        # Determine who to include in the mvm and behavior sub-bricks,
+        # avoid repeating by writing/reading json.
         mvm_subj_json = os.path.join(group_dir, f"subj_{mvm_title}.json")
-        # mvm_subj_dict =
-
-        # write out subjects included in mvm
-        with open(mvm_subj_json, "w") as jf:
-            json.dump(mvm_subj_dict, jf)
-
-    # make group gray matter intersect mask
-    if not os.path.exists(os.path.join(group_dir, "Group_GM_intersect_mask+tlrc.HEAD")):
-        make_gmInt_mask(
-            subj_list,
-            deriv_dir,
-            sess,
-            task,
-            tplflow_dir,
-            tplflow_str,
-            group_dir,
-        )
-
-    # write, run MVMs
-    for mvm_title in mvm_dict:
-
-        beh_list = mvm_dict[mvm_title]["behaviors"]
-        glt_dict = mvm_dict[mvm_title]["post-hoc"]
-        coord_dict = mvm_dict[mvm_title]["coord_check"]
-        decon_file = mvm_dict[mvm_title]["decon_file"]
-
-        if not os.path.exists(os.path.join(group_dir, "MVM+tlrc.HEAD")):
-            group_analysis(
-                mvm_title,
-                beh_list,
-                glt_dict,
-                coord_dict,
-                decon_file,
-                subj_list,
+        if not os.path.isfile(mvm_subj_json):
+            open(mvm_subj_json, "a").close()
+        if os.path.getsize(mvm_subj_json) == 0:
+            check_subj(
+                subj_list_all,
                 sess,
                 group_dir,
                 deriv_dir,
-                df_group,
+                coord_dict,
+                decon_file,
+                beh_list,
+                mvm_subj_json,
+            )
+        with open(mvm_subj_json) as jf:
+            mvm_subj_dict = json.load(jf)
+
+        # make group gray matter intersect mask
+        if not os.path.exists(os.path.join(group_dir, f"{mvm_title}_mask+tlrc.HEAD")):
+            subj_list = list(mvm_subj_dict.keys())
+            make_group_mask(
+                subj_list,
+                deriv_dir,
+                sess,
+                task,
+                tplflow_dir,
+                tplflow_str,
+                group_dir,
+                mvm_title,
             )
 
-    # get noise estimations, thresholding for each MVM. Only use
+        # write, run MVMs
+        if not os.path.exists(os.path.join(group_dir, f"MVM_{mvm_title}+tlrc.HEAD")):
+            group_analysis(
+                mvm_title,
+                mvm_subj_dict,
+                df_group,
+                decon_file,
+                deriv_dir,
+                sess,
+                glt_dict,
+                group_dir,
+            )
+
+    # Get noise estimations, thresholding for each MVM. Only use
     # subjects included in the actual MVM (rather than all subjects).
+    # Separated from above loop for trouble shooting, checking.
     for mvm_title in mvm_dict:
 
         decon_file = mvm_dict[mvm_title]["decon_file"]
+        sess = mvm_dict[mvm_title]["session"]
+
         with open(os.path.join(group_dir, f"subj_{mvm_title}.json")) as jf:
-            subj_dict = json.load(jf)
+            mvm_subj_dict = json.load(jf)
 
         # get subj acf estimates, if ACF file is new
         acf_file = os.path.join(group_dir, f"ACF_{mvm_title}.txt")
         if not os.path.exists(acf_file):
             open(acf_file, "a").close()
-        acf_size = os.path.getsize(acf_file)
-        if acf_size == 0:
-            for subj in subj_dict.keys():
-                subj_file = os.path.join(deriv_dir, subj, sess, decon_file).replace(
-                    "stats", "errts"
-                )
-                model_noise(subj, subj_file, group_dir, acf_file)
+        if os.path.getsize(acf_file) == 0:
+            model_noise(
+                mvm_subj_dict,
+                mvm_title,
+                sess,
+                decon_file,
+                deriv_dir,
+                group_dir,
+                acf_file,
+            )
+
+        # wait for 3dFWHMx (all) jobs to finish
+        while_count = 0
+        break_status = False
+        while not break_status:
+
+            check_cmd = "squeue -u $(whoami)"
+            sq_check = subprocess.Popen(check_cmd, shell=True, stdout=subprocess.PIPE)
+            out_lines = sq_check.communicate()[0]
+            b_decode = out_lines.decode("utf-8")
+
+            if b_decode.count("\n") == 1:
+                break_status = True
+            else:
+                while_count += 1
+                print(f"Waiting for all 3dFWHMx jobs to finish : {while_count}")
+                time.sleep(3)
 
         # do cluster simulations, if it is empty
         mc_file = os.path.join(group_dir, f"MC_{mvm_title}_thresholds.txt")
         if not os.path.exists(mc_file):
             open(mc_file, "a").close()
-        mc_size = os.path.getsize(mc_file)
-        if mc_size == 0:
-            run_montecarlo(group_dir, acf_file, mc_file)
+        if os.path.getsize(mc_file) == 0:
+            run_montecarlo(group_dir, acf_file, mc_file, mvm_title)
 
 
 if __name__ == "__main__":
