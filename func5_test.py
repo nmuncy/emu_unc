@@ -64,7 +64,7 @@ def make_group_mask(
     tplflow_str,
     group_dir,
     mvm_title,
-    frac_value=1.0,
+    frac_value=0.8,
 ):
     """Make a gray matter * group intersection mask.
 
@@ -92,7 +92,7 @@ def make_group_mask(
         /path/to/BIDS/derivatives/afni/analyses
     mvm_title : str
         title string from mvm_dict ("negL_neuL")
-    frac_value = float [default=1.0]
+    frac_value = float [default=0.8]
         proportion of participants that must have data in a voxel for
         the voxel to be tested at the group-level
 
