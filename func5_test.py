@@ -358,6 +358,7 @@ def check_subj(
     decon_file,
     beh_list,
     mvm_subj_json,
+    mvm_subj_excl,
 ):
     """Check if subject has required data.
 
@@ -384,6 +385,11 @@ def check_subj(
         list of behaviors (lureCR, lureFA) to identify in sub-brick info
     mvm_subj_json : str
         location of output file (group_dir/subj_<mvm_title>.json)
+        subjects who passed checks will be written to this file
+    mvm_subj_excl : str
+        location of output file (group_dir/excl_<mvm_title>.json)
+        excluded participants (those who did not pass checks) will
+        be written to this file
 
     Notes
     -----
@@ -392,12 +398,14 @@ def check_subj(
         e.g. {'sub-4063': {'negLF': '9', 'negLC': '7'}}
     """
     mvm_subj_dict = {}
+    mvm_subj_excl = {}
     for subj in subj_list_all:
 
         # find subjects with data at coord locations - slow
         subj_int_mask = os.path.join(deriv_dir, subj, sess, "mask_epi_anat+tlrc")
         data_exists = check_coord(coord_dict, group_dir, subj_int_mask, subj)
         if not data_exists:
+            mvm_subj_excl[subj] = "Coord check fail"
             continue
 
         # find behavior sub-brick, write subject row if subject
@@ -405,12 +413,16 @@ def check_subj(
         subj_decon_file = os.path.join(deriv_dir, subj, sess, decon_file)
         beh_dict = get_subbrick(subj_decon_file, beh_list)
         if len(beh_dict.keys()) != len(beh_list):
+            mvm_subj_excl[subj] = beh_dict
             continue
 
         mvm_subj_dict[subj] = beh_dict
 
     with open(mvm_subj_json, "w") as jf:
         json.dump(mvm_subj_dict, jf)
+
+    with open(mvm_subj_excl, "w") as jf:
+        json.dump(mvm_subj_excl, jf)
 
 
 # %%
@@ -695,6 +707,7 @@ def main():
 
         # Determine who to include in the mvm and behavior sub-bricks,
         # avoid repeating by writing/reading json.
+        mvm_subj_excl = os.path.join(group_dir, f"excl_{mvm_title}.json")
         mvm_subj_json = os.path.join(group_dir, f"subj_{mvm_title}.json")
         if not os.path.isfile(mvm_subj_json):
             open(mvm_subj_json, "a").close()
@@ -708,6 +721,7 @@ def main():
                 decon_file,
                 beh_list,
                 mvm_subj_json,
+                mvm_subj_excl,
             )
         with open(mvm_subj_json) as jf:
             mvm_subj_dict = json.load(jf)
