@@ -58,7 +58,11 @@ def get_args():
         required=True,
     )
     requiredNamed.add_argument(
-        "-s", "--sess-str", help="BIDS ses-string (ses-S2)", type=str, required=True,
+        "-s",
+        "--sess-str",
+        help="BIDS ses-string (ses-S2)",
+        type=str,
+        required=True,
     )
 
     if len(sys.argv) == 1:
