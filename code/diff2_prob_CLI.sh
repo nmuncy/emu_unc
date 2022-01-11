@@ -21,7 +21,6 @@ if [ ! -d ${HOME}/AFQ_data ]; then
     cp -r /home/data/madlab/atlases/AFQ_data $HOME
 fi
 
-config_file=$1
-
 # Submit pyAFQ
+config_file=$1
 pyAFQ $config_file --notrack

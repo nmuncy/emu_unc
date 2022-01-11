@@ -149,6 +149,7 @@ work_dir=${proc_dir}/derivatives/$diff_dir
 # Get json
 mkdir -p $work_dir
 cp $json_file $proc_dir
+cp $json_file $work_dir
 
 # Copy, BIDs format pre-processed dwi data
 unset subj_list
