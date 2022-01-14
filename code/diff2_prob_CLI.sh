@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=10
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=24gb   # memory per CPU core
-#SBATCH -J "afqP"   # job name
+#SBATCH -J "afqR"   # job name
 #SBATCH -p IB_44C_512G   # partition name
 #SBATCH --account iacc_madlab  # account
 #SBATCH --qos pq_madlab
