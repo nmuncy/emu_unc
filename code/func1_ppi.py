@@ -99,10 +99,10 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, out_dir)
 
 
 # %%
-def clean_data(subj_dir, decon_str):
+def clean_data(subj, subj_data, subj_out, decon_str):
 
     # get TR
-    h_cmd = f"3dinfo -tr {subj_dir}/*_run-1_*_desc-scaled_bold.nii.gz"
+    h_cmd = f"3dinfo -tr {subj_data}/*_run-1_*_desc-scaled_bold.nii.gz"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
     len_tr = float(h_out.decode("utf-8").strip())
 
@@ -110,22 +110,23 @@ def clean_data(subj_dir, decon_str):
     #   REML appends an extra brick because
     #   "reasons". Account for AFNIs random
     #   0-1 indexing
-    h_cmd = f"3dinfo -nv {subj_dir}/decon_{decon_str}_stats_REML+tlrc"
+    h_cmd = f"3dinfo -nv {subj_data}/decon_{decon_str}_cbucket_REML+tlrc"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
     len_wrong = h_out.decode("utf-8").strip()
     len_right = int(len_wrong) - 2
 
     # list all scale files
     scale_list = [
-        x
-        for x in os.listdir(subj_dir)
+        os.path.join(subj_data, x)
+        for x in os.listdir(subj_data)
         if fnmatch.fnmatch(x, "*desc-scaled_bold.nii.gz")
     ]
     scale_list.sort()
+    print(scale_list)
 
     # list undesirable sub-bricks (those starting with Run or mot)
     no_int = []
-    with open(os.path.join(subj_dir, f"X.decon_{decon_str}.xmat.1D")) as f:
+    with open(os.path.join(subj_data, f"X.decon_{decon_str}.xmat.1D")) as f:
         h_file = f.readlines()
         for line in h_file:
             if line.__contains__("ColumnLabels"):
@@ -139,12 +140,37 @@ def clean_data(subj_dir, decon_str):
     # strip extra sub-brick, make clean data by removing
     #   effects of no interest from concatenated runs
     h_cmd = f"""
-        cd {subj_dir}
-        3dTcat -prefix tmp_cbucket -tr {len_tr} "decon_{decon_str}_cbucket_REML+tlrc[0..{len_right}]"
-        3dSynthesize -prefix tmp_effNoInt -matrix X.decon_{decon_str}.xmat.1D \
-            -cbucket tmp_cbucket+tlrc -select {" ".join(no_int)} -cenfill nbhr
-        3dTcat -prefix tmp_all_runs -tr {len_tr} {" ".join(scale_list)}
-        3dcalc -a tmp_all_runs+tlrc -b tmp_effNoInt+tlrc -expr 'a-b' -prefix CleanData    """
+        cd {subj_out}
+
+        3dTcat \
+            -prefix tmp_cbucket \
+            -tr {len_tr} \
+            {subj_data}/"decon_{decon_str}_cbucket_REML+tlrc[0..{len_right}]"
+
+        3dSynthesize \
+            -prefix tmp_effNoInt \
+            -matrix {subj_data}/X.decon_{decon_str}.xmat.1D \
+            -cbucket tmp_cbucket+tlrc \
+            -select {" ".join(no_int)} \
+            -cenfill nbhr
+
+        3dTcat \
+            -prefix tmp_all_runs \
+            -tr {len_tr} \
+            {" ".join(scale_list)}
+
+        3dcalc \
+            -a tmp_all_runs+tlrc \
+            -b tmp_effNoInt+tlrc \
+            -expr 'a-b' \
+            -prefix CleanData && rm tmp_*
+    """
+    print(h_cmd)
+    subj_num = subj.split("-")[1]
+    h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}cle", subj_out)
+    clean_file = os.path.join(subj_out, "CleanData+tlrc.HEAD")
+    assert os.path.exists(clean_file), "CleanData not found."
+    return clean_file
 
 
 # %%
@@ -157,8 +183,13 @@ def main():
     sess = "ses-S2"
     decon_str = "task-test_UniqueBehs"
 
-    subj_dir = os.path.join(data_dir, subj, sess, "func")
-    # clean_data(subj_dir, decon_str)
+    subj_data = os.path.join(data_dir, subj, sess, "func")
+    subj_out = os.path.join(deriv_dir, subj, sess, "func")
+    if not os.path.exists(subj_out):
+        os.makedirs(subj_out)
+
+    if not os.path.exists(os.path.join(subj_out, "CleanData+tlrc.HEAD")):
+        clean_file = clean_data(subj, subj_data, subj_out, decon_str)
 
 
 if __name__ == "__main__":
