@@ -7,7 +7,6 @@ Desc.
 import os
 import fnmatch
 import subprocess
-import pandas as pd
 
 
 # %%
@@ -137,6 +136,7 @@ def clean_data(subj, subj_data, subj_out, decon_str):
     # make clean data
     clean_file = os.path.join(subj_out, "CleanData+tlrc.HEAD")
     if not os.path.exists(clean_file):
+        print(f"Making clean data for {subj}")
 
         #  list undesirable sub-bricks (those starting with Run or mot)
         no_int = []
@@ -191,36 +191,6 @@ def clean_data(subj, subj_data, subj_out, decon_str):
     return file_dict
 
 
-# %%
-def func_upsample(timeseries, resolution, tog_inter):
-    """
-    Receives a numeric list and returns and
-        list upsampled by factor = 1000
-
-    Will interpolate or repeat according
-        to tog_inter (1 = interpolate)
-
-    Paremeters
-    ----------
-
-    Returns
-    -------
-
-    """
-    df = pd.DataFrame(
-        data=timeseries, index=pd.RangeIndex(len(timeseries)) * resolution
-    )
-    df = df.rename(columns={0: "TS"})
-    df.index = df.index.map(datetime.datetime.utcfromtimestamp)
-    df = df.reindex(pd.date_range(df.index.min(), df.index.max(), freq="1L"))
-    if tog_inter == 1:
-        df.interpolate(method="polynomial", order=7, inplace=True)
-    else:
-        df = df.ffill()
-    out_list = df["TS"].tolist()
-    return out_list
-
-
 def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
     """Title.
 
@@ -244,12 +214,13 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
         else:
             res_multiplier += 1
 
-    # set status
-    resample_decision = "easy" if res_multiplier <= 32 else "hard"
+    # add mult to dict
+    file_dict["resamp_mult"] = res_multiplier
 
     # make ideal HRF, use same model as deconvolution
     hrf_file = os.path.join(subj_out, "HRF_model.1D")
     if not os.path.exists(hrf_file):
+        print("\nMaking ideal HRF")
         h_cmd = f"""
             cd {subj_out}
 
@@ -265,11 +236,13 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
     assert os.path.exists(hrf_file), "HRF model failed."
 
     clean_data = file_dict["Clean Data"]
+    seed_res = {}
     for seed, coord in seed_dict.items():
-
-        if not os.path.exists(os.path.join(subj_out, f"Seed_{seed}_neural_us.1D")):
+        seed_file = os.path.join(subj_out, f"Seed_{seed}_neural_us.1D")
+        if not os.path.exists(seed_file):
 
             # make seed, get timeseries
+            print(f"\nMaking seed timeseries for {subj} - {seed}")
             h_cmd = f"""
                 cd {subj_out}
 
@@ -298,25 +271,120 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
             )
 
             # upsample seed timeseries
-            if resample_decision == "easy":
+            h_cmd = f"""
+                1dUpsample \
+                    {res_multiplier} \
+                    {subj_out}/Seed_{seed}_neural.1D \
+                    > {seed_file}
+            """
+            h_out, h_err = submit_hpc_subprocess(h_cmd)
+
+        # update seed_dict with upsampled seed
+        seed_res[seed] = seed_file
+
+    # update file_dict with all seed files
+    file_dict["Seed Files"] = seed_res
+    return file_dict
+
+
+# %%
+def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_dur=2):
+    """Title.
+
+    Desc.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
+    # timing file list
+    tf_list = [
+        os.path.join(subj_data, x)
+        for x in os.listdir(subj_data)
+        if fnmatch.fnmatch(x, f"{subj}_{sess}_{task}_desc-*_events.1D")
+    ]
+
+    # get file_dict values
+    len_tr = file_dict["TR Length"]
+    res_mult = file_dict["resamp_mult"]
+    seed_res = file_dict["Seed Files"]
+
+    # list of run length in seconds
+    run_len = []
+    num_vol = []
+    for scale_file in file_dict["Scale Data"]:
+        h_cmd = f"module load afni-20.2.06 \n 3dinfo -ntimes {scale_file}"
+        h_out, h_err = submit_hpc_subprocess(h_cmd)
+        h_vol = int(h_out.decode("utf-8").strip())
+        num_vol.append(h_vol)
+        run_len.append(h_vol * len_tr)
+
+    final_dict = {}
+    for timing_file in tf_list:
+
+        # get upsampled behavior binary file
+        h_beh = timing_file.split("desc-")[1].split("_")[0]
+        beh_us = os.path.join(subj_out, f"Beh_{h_beh}_us.1D")
+        if not os.path.exists(beh_us):
+            print(f"\nMaking behavior files for {h_beh}")
+            h_cmd = f"""
+                timing_tool.py \
+                    -timing {timing_file} \
+                    -tr {len_tr} \
+                    -stim_dur {stim_dur} \
+                    -run_len {" ".join(map(str, run_len))} \
+                    -min_frac 0.3 \
+                    -timing_to_1D {subj_out}/Beh_{h_beh}_bin.1D
+
+                awk '{{for(j=0;j<{res_mult};j++)print}}' \
+                    {subj_out}/Beh_{h_beh}_bin.1D > {beh_us}
+            """
+            h_out, h_err = submit_hpc_subprocess(h_cmd)
+        assert os.path.exists(
+            f"{subj_out}/Beh_{h_beh}_bin.1D"
+        ), f"Failed to properly make {beh_us}"
+
+        # multiply beh_us by neural seed ts to get interaction term,
+        # downsample in bash, pad final volume
+        for seed_name, seed_us in seed_res.items():
+            final_file = os.path.join(
+                subj_out, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
+            )
+            if not os.path.exists(final_file):
+                print(f"\nMaking {final_file}")
                 h_cmd = f"""
-                    1dUpsample \
-                        {res_multiplier} \
-                        {subj_out}/Seed_{seed}_neural.1D \
-                        > {subj_out}/Seed_{seed}_neural_us.1D
+                    cd {subj_out}
+
+                    1deval \
+                        -a {seed_us} \
+                        -b {beh_us} \
+                        -expr 'a*b' \
+                        > Seed_{seed_name}_{h_beh}_neural_us.1D
+
+                    cat Seed_{seed_name}_{h_beh}_neural_us.1D | \
+                        awk -v n={res_mult} 'NR%n==0' \
+                        > Seed_{seed_name}_{h_beh}_neural.1D
+
+                    waver \
+                        -FILE {len_tr} HRF_model.1D \
+                        -peak 1 \
+                        -TR {len_tr} \
+                        -input Seed_{seed_name}_{h_beh}_neural.1D \
+                        -numout {sum(num_vol)} \
+                        > {final_file}
                 """
-                h_out, h_err = submit_hpc_subprocess(h_cmd)
+                subj_num = subj.split("-")[1]
+                h_out, h_err = submit_hpc_sbatch(
+                    h_cmd, 1, 4, 1, f"{subj_num}final", subj_out
+                )
+            assert os.path.exists(final_file), f"Failed to make {final_file}"
+            final_dict[f"{seed_name}_{h_beh}"] = final_file
 
-            elif resample_decision == "hard":
-
-                seed_file = open(f"{subj_out}/Seed_{seed}_neural.1D", "r")
-                h_ts = seed_file.readlines()
-                seed_ts = [float(x.strip()) for x in h_ts]
-                seed_us = func_upsample(seed_ts, len_tr, 1)
-
-                with open(f"{subj_out}/Seed_{seed}_neural_us.1D", "w") as seed_out:
-                    for value in seed_us:
-                        seed_out.write("%s\n" % value)
+    file_dict["Final Files"] = final_dict
+    return file_dict
 
 
 # %%
@@ -327,7 +395,8 @@ def main():
     deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
     subj = "sub-4001"
     sess = "ses-S2"
-    decon_str = "task-test_UniqueBehs"
+    task = "task-test"
+    decon_str = f"{task}_UniqueBehs"
 
     # make dict for seed construction from coordinates
     seed_dict = {"LHC": "-24 -12 -22"}
@@ -338,7 +407,8 @@ def main():
         os.makedirs(subj_out)
 
     file_dict = clean_data(subj, subj_data, subj_out, decon_str)
-    seed_timeseries(subj, subj_out, file_dict, seed_dict)
+    file_dict = seed_timeseries(subj, subj_out, file_dict, seed_dict)
+    file_dict = behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict)
 
 
 if __name__ == "__main__":
