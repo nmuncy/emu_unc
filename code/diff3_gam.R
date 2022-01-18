@@ -88,16 +88,111 @@ df_tract$sex <- factor(df_tract$sex)
 df_tract$pscared_group <- factor(df_tract$pscared_group)
 df_tract$pars6_group <- factor(df_tract$pars6_group)
 
-# plot raw
-ggplot(data = df_tract) +
-  geom_point(mapping = aes(x=nodeID, y=dti_fa, color=pscared_group), size=0.3) +
-  geom_smooth(mapping = aes(x=nodeID, y=dti_fa, color=pscared_group))
+# # plot raw
+# ggplot(data = df_tract) +
+#   geom_point(mapping = aes(x=nodeID, y=dti_fa, color=pscared_group), size=0.3) +
+#   geom_smooth(mapping = aes(x=nodeID, y=dti_fa, color=pscared_group))
 
 # determine distribution
 hist(df_tract$dti_fa)
 descdist(df_tract$dti_fa, discrete=F) # normal or logistic
 
-# gam
+
+# rather than looking for group differences, see if adding anxiety measure
+# changes model fit. then plot those two splines to find differences - indicating
+# where in the tract the anxiety measures are associated
+
+
+fit_normal <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    s(nodeID, k=20),
+  data = df_tract,
+  family = gaussian,
+  method = "REML"
+)
+gam.check(fit_normal, rep = 1000)
+
+fit_cov_normal <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    s(pds, by = sex) +
+    s(nodeID, k=40),
+  data = df_tract,
+  family = gaussian,
+  method = "REML"
+)
+gam.check(fit_cov_normal, rep = 1000)
+
+compareML(fit_normal, fit_cov_normal) # cov model preferred
+summary(fit_cov_normal)
+
+# add group
+fit_parent <- bam(dti_fa ~ sex +
+    pscared +
+    s(subjectID, bs = "re") +
+    s(pds, by = sex) +
+    s(nodeID, k=50),
+  data = df_tract,
+  family = gaussian,
+  method = "REML"
+)
+gam.check(fit_parent, rep = 1000)
+compareML(fit_cov_normal, fit_parent) # not much diff bx fits
+summary(fit_parent) # pscared is sig
+
+# generate predictions
+plot_norm <- predict.bam(
+  fit_cov_normal,
+  exclude_terms = c("pds", "sex", "subjectID"),
+  values = list(pds = NULL, sex = NULL),
+  se.fit = T,
+  type = "response"
+)
+plot_parent <- predict.bam(
+  fit_parent,
+  exclude_terms = c("pds", "sex", "subjectID"),
+  values = list(pds = NULL, sex = NULL),
+  se.fit = T,
+  type = "response"
+)
+
+# convert predictions to dataframe
+plot_norm <- data.frame(
+  sex = df_tract$sex,
+  subjectID = df_tract$subjectID,
+  nodeID = df_tract$nodeID,
+  fit = plot_norm$fit,
+  se.fit = plot_norm$se.fit
+)
+plot_parent <- data.frame(
+  sex = df_tract$sex,
+  subjectID = df_tract$subjectID,
+  nodeID = df_tract$nodeID,
+  fit = plot_parent$fit,
+  se.fit = plot_parent$se.fit
+)
+
+# draw plot
+ggplot(data = plot_norm) +
+  geom_smooth(mapping = aes(x = nodeID, y = fit)) +
+  ggtitle("GAM of L. Unc") +
+  ylab("Fit FA") +
+  xlab("Tract Node") +
+  theme(text = element_text(
+    family = "Times New Roman", face = "bold", size = 14
+  ))
+
+ggplot(data = plot_parent) +
+  geom_smooth(mapping = aes(x = nodeID, y = fit)) +
+  ggtitle("GAM of L. Unc, Controlling for pscared") +
+  ylab("Fit FA") +
+  xlab("Tract Node") +
+  theme(text = element_text(
+    family = "Times New Roman", face = "bold", size = 14
+  ))
+
+
+
+# gam by group
 fit_normal <- bam(dti_fa ~ pscared_group +
     sex +
     s(nodeID, by = pscared_group, k = 20) +
@@ -212,5 +307,11 @@ ggplot(data = df_pred) +
   theme(text = element_text(
     family = "Times New Roman", face = "bold", size = 14
   ))
+
+
+
+
+
+
 
 
