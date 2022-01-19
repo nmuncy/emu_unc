@@ -5,8 +5,10 @@ Desc.
 
 # %%
 import os
+import glob
 import fnmatch
 import subprocess
+import pandas as pd
 
 
 # %%
@@ -99,7 +101,7 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, out_dir)
 
 
 # %%
-def clean_data(subj, subj_data, subj_out, decon_str):
+def clean_data(subj, subj_out, file_dict):
     """Title.
 
     Desc.
@@ -112,26 +114,21 @@ def clean_data(subj, subj_data, subj_out, decon_str):
     """
 
     # get TR
-    h_cmd = f"3dinfo -tr {subj_data}/*_run-1_*_desc-scaled_bold.nii.gz"
+    h_cmd = f"3dinfo -tr {file_dict['scaled_files'][0]}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
     len_tr = float(h_out.decode("utf-8").strip())
 
-    # get proper brick length
-    #   REML appends an extra brick because
-    #   "reasons". Account for AFNIs random
-    #   0-1 indexing
-    h_cmd = f"3dinfo -nv {subj_data}/decon_{decon_str}_cbucket_REML+tlrc"
+    # get files from file_dict
+    decon_file = file_dict["decon_file"].split(".")[0]
+    decon_matrix = file_dict["decon_matrix"]
+    scaled_list = file_dict["scaled_files"]
+
+    # Get proper brick length - REML appends an extra brick because of
+    # "reasons". Account for AFNIs random 0-1 indexing
+    h_cmd = f"3dinfo -nv {decon_file}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
     len_wrong = h_out.decode("utf-8").strip()
     len_right = int(len_wrong) - 2
-
-    # list all scale files
-    scale_list = [
-        os.path.join(subj_data, x)
-        for x in os.listdir(subj_data)
-        if fnmatch.fnmatch(x, "*desc-scaled_bold.nii.gz")
-    ]
-    scale_list.sort()
 
     # make clean_data
     clean_file = os.path.join(subj_out, "CleanData+tlrc.HEAD")
@@ -140,7 +137,7 @@ def clean_data(subj, subj_data, subj_out, decon_str):
 
         #  list undesirable sub-bricks (those starting with Run or mot)
         no_int = []
-        with open(os.path.join(subj_data, f"X.decon_{decon_str}.xmat.1D")) as f:
+        with open(decon_matrix) as f:
             h_file = f.readlines()
             for line in h_file:
                 if line.__contains__("ColumnLabels"):
@@ -159,11 +156,11 @@ def clean_data(subj, subj_data, subj_out, decon_str):
             3dTcat \
                 -prefix tmp_cbucket \
                 -tr {len_tr} \
-                {subj_data}/"decon_{decon_str}_cbucket_REML+tlrc[0..{len_right}]"
+                {decon_file}"[0..{len_right}]"
 
             3dSynthesize \
                 -prefix tmp_effNoInt \
-                -matrix {subj_data}/X.decon_{decon_str}.xmat.1D \
+                -matrix {decon_matrix} \
                 -cbucket tmp_cbucket+tlrc \
                 -select {" ".join(no_int)} \
                 -cenfill nbhr
@@ -171,7 +168,7 @@ def clean_data(subj, subj_data, subj_out, decon_str):
             3dTcat \
                 -prefix tmp_all_runs \
                 -tr {len_tr} \
-                {" ".join(scale_list)}
+                {" ".join(scaled_list)}
 
             3dcalc \
                 -a tmp_all_runs+tlrc \
@@ -183,11 +180,8 @@ def clean_data(subj, subj_data, subj_out, decon_str):
         h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}cle", subj_out)
 
     assert os.path.exists(clean_file), "CleanData not found."
-    file_dict = {
-        "len_tr": len_tr,
-        "clean_data": clean_file,
-        "scale_files": scale_list,
-    }
+    file_dict["len_tr"] = len_tr
+    file_dict["clean_data"] = clean_file
     return file_dict
 
 
@@ -269,7 +263,7 @@ def seed_timeseries(subj, subj_out, file_dict, seed_coord):
 
                 1dtranspose \
                     tmp.1D > Seed_{seed}_neural.1D && \
-                    rm tmp.1D
+                    rm tmp*.1D
             """
             subj_num = subj.split("-")[1]
             h_out, h_err = submit_hpc_sbatch(
@@ -285,7 +279,7 @@ def seed_timeseries(subj, subj_out, file_dict, seed_coord):
 
 
 # %%
-def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_dur=2):
+def behavior_timeseries(subj, sess, task, subj_out, file_dict, stim_dur=2):
     """Title.
 
     Desc.
@@ -297,21 +291,20 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
     -------
     """
 
-    # timing file list
-    tf_list = [
-        os.path.join(subj_data, x)
-        for x in os.listdir(subj_data)
-        if fnmatch.fnmatch(x, f"{subj}_{sess}_{task}_desc-*_events.1D")
-    ]
-
     # get file_dict values
     len_tr = file_dict["len_tr"]
     seed_dict = file_dict["seed_files"]
+    tf_list = file_dict["timing_files"]
+
+    print("")
+    print("timing files:")
+    print(tf_list)
+    print("")
 
     # list of run length in seconds, total number of volumes (sum_vol)
     run_len = []
     num_vol = []
-    for scale_file in file_dict["scale_files"]:
+    for scale_file in file_dict["scaled_files"]:
         h_cmd = f"3dinfo -ntimes {scale_file}"
         h_out, h_err = submit_hpc_subprocess(h_cmd)
         h_vol = int(h_out.decode("utf-8").strip())
@@ -375,17 +368,377 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
 
 
 # %%
-def decon_ppi():
-    """Title.
+def mot_files(work_dir, afni_data):
+    """Constuct motion and censor files
 
-    Desc.
+    Mine <fMRIprep>_desc-confounds_timeseries.tsv for motion events, make
+    motion files for mean (6df) and derivative (6df) motion events. Also,
+    create motion censor file. Volume preceding a motion event is also
+    censored. Finally, report the number of censored volumes.
+
+    I'm not sure if motion is demeaned or not, given that
+    it is output by fMRIprep (mined from confounds.tsv file).
 
     Parameters
     ----------
+    work_dir : str
+        /path/to/project_dir/derivatives/afni/sub-1234/ses-A
+    afni_data : dict
+        contains names for various files
 
     Returns
     -------
+    afni_data : dict
+        updated with names of motion files
+        mot-mean = motion mean file
+        mot-deriv = motion derivative file
+        mot-censor = binary censory vector
+
+    Notes
+    -----
+    Requires afni_data[mot-confound*].
+
+    As runs do not have an equal number of volumes, motion/censor files
+    for each run are concatenated into a single file rather than managing
+    zero padding.
+
+    Writes 1D files - AFNI reads tsv as containing a header!
     """
+
+    # determine relevant col labels
+    mean_labels = [
+        "trans_x",
+        "trans_y",
+        "trans_z",
+        "rot_x",
+        "rot_y",
+        "rot_z",
+    ]
+
+    drv_labels = [
+        "trans_x_derivative1",
+        "trans_y_derivative1",
+        "trans_z_derivative1",
+        "rot_x_derivative1",
+        "rot_y_derivative1",
+        "rot_z_derivative1",
+    ]
+
+    # start empty lists to append
+    mean_cat = []
+    deriv_cat = []
+    censor_cat = []
+
+    num_mot = len([y for x, y in afni_data.items() if "mot-confound" in x])
+    assert (
+        num_mot > 0
+    ), "ERROR: afni_data['mot-confound?'] not found. Check resources.afni.copy.copy_data"
+
+    mot_list = [x for k, x in afni_data.items() if "mot-confound" in k]
+    mot_str = mot_list[0].replace("run-1_", "")
+    if not os.path.exists(
+        os.path.join(
+            work_dir, mot_str.replace("confounds", "censor").replace(".tsv", ".1D")
+        )
+    ):
+        print("Making motion mean, derivative, censor files ...")
+        for mot_file in mot_list:
+
+            # read in data
+            df_all = pd.read_csv(os.path.join(work_dir, mot_file), sep="\t")
+
+            # make motion mean file, round to 6 sig figs
+            df_mean = df_all[mean_labels].copy()
+            df_mean = df_mean.round(6)
+            mean_cat.append(df_mean)
+
+            # make motion deriv file
+            df_drv = df_all[drv_labels].copy()
+            df_drv = df_drv.fillna(0)
+            df_drv = df_drv.round(6)
+            deriv_cat.append(df_drv)
+
+            # make motion censor file - sum columns,
+            # invert binary, exclude preceding volume
+            df_cen = df_all.filter(regex="motion_outlier")
+            df_cen["sum"] = df_cen.iloc[:, :].sum(1)
+            df_cen = df_cen.astype(int)
+            df_cen = df_cen.replace({0: 1, 1: 0})
+            zero_pos = df_cen.index[df_cen["sum"] == 0].tolist()
+            zero_fill = [x - 1 for x in zero_pos]
+            if -1 in zero_fill:
+                zero_fill.remove(-1)
+            df_cen.loc[zero_fill, "sum"] = 0
+            censor_cat.append(df_cen)
+
+        # cat files into singule file rather than pad zeros for e/run
+        df_mean_cat = pd.concat(mean_cat, ignore_index=True)
+        df_deriv_cat = pd.concat(deriv_cat, ignore_index=True)
+        df_censor_cat = pd.concat(censor_cat, ignore_index=True)
+
+        # determine BIDS string, write tsvs, make sure
+        # output value is float (not scientific notation)
+        df_mean_cat.to_csv(
+            os.path.join(
+                work_dir,
+                f"""{mot_str.replace("confounds", "mean").replace(".tsv", ".1D")}""",
+            ),
+            sep="\t",
+            index=False,
+            header=False,
+            float_format="%.6f",
+        )
+        df_deriv_cat.to_csv(
+            os.path.join(
+                work_dir,
+                f"""{mot_str.replace("confounds", "deriv").replace(".tsv", ".1D")}""",
+            ),
+            sep="\t",
+            index=False,
+            header=False,
+            float_format="%.6f",
+        )
+        df_censor_cat.to_csv(
+            os.path.join(
+                work_dir,
+                f"""{mot_str.replace("confounds", "censor").replace(".tsv", ".1D")}""",
+            ),
+            sep="\t",
+            index=False,
+            header=False,
+            columns=["sum"],
+        )
+
+    # update afni_data
+    afni_data[
+        "mot-mean"
+    ] = f"""{mot_str.replace("confounds", "mean").replace(".tsv", ".1D")}"""
+    afni_data[
+        "mot-deriv"
+    ] = f"""{mot_str.replace("confounds", "deriv").replace(".tsv", ".1D")}"""
+    afni_data[
+        "mot-censor"
+    ] = f"""{mot_str.replace("confounds", "censor").replace(".tsv", ".1D")}"""
+
+    return afni_data
+
+
+def write_ppi_decon(decon_name, tf_dict, afni_data, work_dir, dur):
+    """Generate deconvolution script.
+
+    Write a deconvolution script using the pre-processed data, motion, and
+    censored files passed by afni_data. Uses a 2GAM basis function
+    (AFNI's TWOGAMpw). This script is used to generate X.files and the
+    foo_stats.REML_cmd.
+
+    Timing files should contain AFNI-formatted onset times (duration is hardcoded),
+    using the asterisk for runs in which a certain behavior does not occur.
+
+    Parameters
+    ----------
+    decon_name: str
+        name of deconvolution, useful when conducting multiple
+        deconvolutions on same session. Will be appended to
+        BIDS task name (decon_<task-name>_<decon_name>).
+    tf_dict : dict
+        timing files dictionary, behavior string is key
+        e.g. {"lureFA": "/path/to/tf_task-test_lureFA.txt"}
+    afni_data : dict
+        contains names for various files
+    work_dir : str
+        /path/to/project_dir/derivatives/afni/sub-1234/ses-A
+    dur : int/float/str
+        duration of event to model
+
+    Returns
+    -------
+    afni_data : dict
+        updated with REML commands
+        {"dcn-<decon_name>": foo_stats.REML_cmd}
+
+    Notes
+    -----
+    Requires afni_data["epi-scale*"], afni_data["mot-mean"],
+        afni_data["mot-deriv"], and afni_data["mot-censor"].
+    Deconvolution files will be written in AFNI format, rather
+        than BIDS. This includes the X.files (cue spooky theme), script,
+        and deconvolved output. Files names will have the format:
+            decon_<bids-task>_<decon_name>
+    """
+
+    # check for req files
+    num_epi = len([y for x, y in afni_data.items() if "epi-scale" in x])
+    assert (
+        num_epi > 0
+    ), "ERROR: afni_data['epi-scale?'] not found. Check resources.afni.process.scale_epi."
+    assert (
+        afni_data["mot-mean"] and afni_data["mot-deriv"] and afni_data["mot-censor"]
+    ), "ERROR: missing afni_data[mot-*] files, check resources.afni.motion.mot_files."
+
+    # set regressors - baseline
+    reg_base = [
+        f"""-ortvec {afni_data["mot-mean"]} mot_mean""",
+        f"""-ortvec {afni_data["mot-deriv"]} mot_deriv""",
+    ]
+
+    # set regressors - behavior
+    reg_beh = []
+    for c_beh, beh in enumerate(tf_dict):
+
+        # add stim_time info, order is
+        #   -stim_times 1 tf_beh.txt basisFunction
+        reg_beh.append("-stim_times")
+        reg_beh.append(f"{c_beh + 1}")
+        reg_beh.append(f"{tf_dict[beh]}")
+        reg_beh.append(f"'TWOGAMpw(4,5,0.2,12,7,{dur})'")
+
+        # add stim_label info, order is
+        #   -stim_label 1 beh
+        reg_beh.append("-stim_label")
+        reg_beh.append(f"{c_beh + 1}")
+        reg_beh.append(beh)
+
+    # set output str
+    epi_list = [x for k, x in afni_data.items() if "epi-scale" in k]
+    task_str = "task-" + epi_list[0].split("task-")[1].split("_")[0]
+    out_str = f"decon_{task_str}_{decon_name}"
+
+    # build full decon command
+    func_dir = os.path.join(work_dir, "func")
+    cmd_decon = f"""
+        3dDeconvolve \\
+            -x1D_stop \\
+            -GOFORIT \\
+            -input {" ".join(epi_list)} \\
+            -censor {afni_data["mot-censor"]} \\
+            {" ".join(reg_base)} \\
+            -polort A \\
+            -float \\
+            -local_times \\
+            -num_stimts {len(tf_dict.keys())} \\
+            {" ".join(reg_beh)} \\
+            -jobs 1 \\
+            -x1D {func_dir}/X.{out_str}.xmat.1D \\
+            -xjpeg {func_dir}/X.{out_str}.jpg \\
+            -x1D_uncensored {func_dir}/X.{out_str}.nocensor.xmat.1D \\
+            -bucket {func_dir}/{out_str}_stats \\
+            -cbucket {func_dir}/{out_str}_cbucket \\
+            -errts {func_dir}/{out_str}_errts
+    """
+
+    # write for review
+    decon_script = os.path.join(func_dir, f"{out_str}.sh")
+    with open(decon_script, "w") as script:
+        script.write(cmd_decon)
+
+    # generate x-matrices, reml command
+    out_file = os.path.join(func_dir, f"{out_str}_stats.REML_cmd")
+    if not os.path.exists(out_file):
+        print(f"Running 3dDeconvolve for {decon_name}")
+        h_out, h_err = submit.submit_hpc_subprocess(cmd_decon)
+
+    # update afni_data
+    assert os.path.exists(
+        out_file
+    ), f"{out_file} failed to write, check resources.afni.deconvolve.write_decon."
+    afni_data[f"dcn-{decon_name}"] = out_file
+
+    return afni_data
+
+
+def run_ppi_reml(work_dir, afni_data):
+    """Deconvolve EPI timeseries.
+
+    Generate an idea of nuissance signal from the white matter and
+    include this in the generated 3dREMLfit command.
+
+    Parameters
+    ----------
+    work_dir : str
+        /path/to/project_dir/derivatives/afni/sub-1234/ses-A
+    afni_data : dict
+        contains names for various files
+
+    Returns
+    -------
+    afni_data : dict
+        updated for nuissance, deconvolved files
+        epi-nuiss = nuissance signal file
+        rml-<decon_name> = deconvolved file (<decon_name>_stats_REML+tlrc)
+    """
+    # check for files
+    num_epi = len([y for x, y in afni_data.items() if "epi-scale" in x])
+    assert (
+        num_epi > 0
+    ), "ERROR: afni_data['epi-scale?'] not found. Check resources.afni.process.scale_epi."
+
+    assert afni_data[
+        "mask-erodedWM"
+    ], "ERROR: afni_data['mask-erodedWM'] not found. Check resources.afni.masks.make_tissue_masks."
+
+    # generate WM timeseries (nuissance file) for task
+    epi_list = [x for k, x in afni_data.items() if "epi-scale" in k]
+    eroded_mask = afni_data["mask-erodedWM"]
+    nuiss_file = (
+        epi_list[0].replace("_run-1", "").replace("desc-scaled", "desc-nuissance")
+    )
+    subj_num = epi_list[0].split("sub-")[-1].split("_")[0]
+
+    if not os.path.exists(nuiss_file):
+        print(f"Making nuissance file {nuiss_file} ...")
+        tcat_file = "tmp_tcat.sub".join(nuiss_file.rsplit("sub", 1))
+        epi_eroded = "tmp_epi.sub".join(eroded_mask.rsplit("sub", 1))
+        h_cmd = f"""
+            3dTcat -prefix {tcat_file} {" ".join(epi_list)}
+
+            3dcalc \
+                -a {tcat_file} \
+                -b {eroded_mask} \
+                -expr 'a*bool(b)' \
+                -datum float \
+                -prefix {epi_eroded}
+
+            3dmerge \
+                -1blur_fwhm 20 \
+                -doall \
+                -prefix {nuiss_file} \
+                {epi_eroded}
+        """
+        job_name, job_id = submit.submit_hpc_sbatch(
+            h_cmd, 1, 4, 1, f"{subj_num}wts", f"{work_dir}/sbatch_out"
+        )
+    assert os.path.exists(
+        nuiss_file
+    ), f"{nuiss_file} failed to write, check resources.afni.deconvolve.run_reml."
+    afni_data["epi-nuiss"] = nuiss_file
+
+    # run each planned deconvolution
+    num_dcn = len([y for x, y in afni_data.items() if "dcn-" in x])
+    assert (
+        num_dcn > 0
+    ), "ERROR: afni_data['dcn-*'] not found. Check resources.afni.deconvolve.write_decon."
+
+    reml_list = [x for k, x in afni_data.items() if "dcn-" in k]
+    for reml_script in reml_list:
+        decon_name = reml_script.split("decon_")[1].split("_")[1]
+        reml_out = reml_script.replace(".REML_cmd", "_REML+tlrc.HEAD")
+        if not os.path.exists(reml_out):
+            print(f"Starting 3dREMLfit for {decon_name} ...")
+            h_cmd = f"""
+                tcsh \
+                    -x {reml_script} \
+                    -dsort {afni_data["epi-nuiss"]} \
+                    -GOFORIT
+            """
+            job_name, job_id = submit.submit_hpc_sbatch(
+                h_cmd, 25, 4, 6, f"{subj_num}rml", f"{work_dir}/sbatch_out"
+            )
+        assert os.path.exists(
+            reml_out
+        ), f"{reml_out} failed to write, check resources.afni.deconvolve.run_reml."
+        afni_data[f"rml-{decon_name}"] = reml_out.split(".")[0]
+
+    return afni_data
 
 
 # %%
@@ -407,10 +760,35 @@ def main():
     if not os.path.exists(subj_out):
         os.makedirs(subj_out)
 
-    file_dict = clean_data(subj, subj_data, subj_out, decon_str)
+    # get required files produced by:
+    #   github.com/emu-project/func_processing/cli/run_afni.py
+    file_dict = {}
+    file_dict["scaled_files"] = sorted(
+        glob.glob(f"{subj_data}/*desc-scaled_bold.nii.gz")
+    )
+    file_dict["decon_file"] = f"{subj_data}/decon_{decon_str}_cbucket_REML+tlrc.HEAD"
+    file_dict["decon_matrix"] = f"{subj_data}/X.decon_{decon_str}.xmat.1D"
+    file_dict["timing_files"] = glob.glob(
+        f"{subj_data}/{subj}_{sess}_{task}_desc-*_events.1D"
+    )
+    file_dict["conf_files"] = sorted(
+        glob.glob(f"{subj_data}/*_run-*_desc-confounds_timeseries.tsv")
+    )
+    subj_anat = os.path.join(data_dir, subj, sess, "anat")
+    file_dict["wme_mask"] = glob.glob(f"{subj_anat}/*desc-WMe_mask.nii.gz")
+
+    # check that required files exist
+    for h_type, h_file in file_dict.items():
+        if type(h_file) == list:
+            assert os.path.exists(h_file[0]), f"Missing files for {h_type}"
+        else:
+            assert os.path.exists(h_file), f"Missing file for {h_type}"
+
+    # # generate timeseries files
+    file_dict = clean_data(subj, subj_out, file_dict)
     file_dict = hrf_model(subj_out, file_dict)
     file_dict = seed_timeseries(subj, subj_out, file_dict, seed_coord)
-    file_dict = behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict)
+    file_dict = behavior_timeseries(subj, sess, task, subj_out, file_dict)
     print(file_dict)
 
 
