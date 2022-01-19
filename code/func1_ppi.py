@@ -338,7 +338,6 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
 
         # multiply beh_file by neural seed ts to get interaction term
         for seed_name in seed_dict:
-
             final_file = os.path.join(
                 subj_out, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
             )
@@ -512,7 +511,7 @@ def mot_files(subj_out, afni_data):
     return afni_data
 
 
-def write_ppi_decon(decon_name, subj_out, seed, afni_data, dur=2):
+def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
     """Generate deconvolution script.
 
     Write a deconvolution script using the pre-processed data, motion, and
@@ -525,6 +524,9 @@ def write_ppi_decon(decon_name, subj_out, seed, afni_data, dur=2):
 
     Parameters
     ----------
+
+
+
     decon_name: str
         name of deconvolution, useful when conducting multiple
         deconvolutions on same session. Will be appended to
@@ -552,16 +554,13 @@ def write_ppi_decon(decon_name, subj_out, seed, afni_data, dur=2):
             decon_<bids-task>_<decon_name>
     """
 
+    print("\nBuilding decon script")
+
     # make timing file dict
     tf_dict = {}
     for tf in afni_data["timing_files"]:
         beh = tf.split("/")[-1].split("desc-")[1].split("_")[0]
         tf_dict[beh] = tf
-
-    # make seed dict
-    ppi_dict = {}
-    seed_list = afni_data[seed]
-    ppi_dict[seed] = os.path.join(subj_out, "")
 
     # set regressors - baseline
     reg_base = [
@@ -586,13 +585,25 @@ def write_ppi_decon(decon_name, subj_out, seed, afni_data, dur=2):
         reg_beh.append(f"{c_beh + 1}")
         reg_beh.append(beh)
 
-    # set output str
-    epi_list = [x for k, x in afni_data.items() if "epi-scale" in k]
-    task_str = "task-" + epi_list[0].split("task-")[1].split("_")[0]
-    out_str = f"decon_{task_str}_{decon_name}"
+    # increase behavior counter for 0-indexing, use with ppi files
+    c_beh += 2
+
+    # set regressors - seed timeseries
+    seed_ts = afni_data["seed_files"][seed]["seed_ts"]
+    reg_beh.append(f"-stim_file {c_beh} {seed_ts}")
+    reg_beh.append(f"-stim_label {c_beh} Seed_ts")
+
+    # set regressors - seed behavior timeseries
+    final_list = afni_data["final_files"][seed]
+    for final_name, final_file in final_list.items():
+        c_beh += 1
+        reg_beh.append(f"-stim_file {c_beh} {final_file}")
+        reg_beh.append(f"-stim_label {c_beh} S{final_name.split('_')[1]}")
+
+    # input files
+    epi_list = afni_data["scaled_files"]
 
     # build full decon command
-    func_dir = os.path.join(work_dir, "func")
     cmd_decon = f"""
         3dDeconvolve \\
             -x1D_stop \\
@@ -603,34 +614,32 @@ def write_ppi_decon(decon_name, subj_out, seed, afni_data, dur=2):
             -polort A \\
             -float \\
             -local_times \\
-            -num_stimts {len(tf_dict.keys())} \\
+            -num_stimts {c_beh} \\
             {" ".join(reg_beh)} \\
             -jobs 1 \\
-            -x1D {func_dir}/X.{out_str}.xmat.1D \\
-            -xjpeg {func_dir}/X.{out_str}.jpg \\
-            -x1D_uncensored {func_dir}/X.{out_str}.nocensor.xmat.1D \\
-            -bucket {func_dir}/{out_str}_stats \\
-            -cbucket {func_dir}/{out_str}_cbucket \\
-            -errts {func_dir}/{out_str}_errts
+            -x1D {subj_out}/X.{decon_ppi}.xmat.1D \\
+            -xjpeg {subj_out}/X.{decon_ppi}.jpg \\
+            -x1D_uncensored {subj_out}/X.{decon_ppi}.nocensor.xmat.1D \\
+            -bucket {subj_out}/{decon_ppi}_stats \\
+            -cbucket {subj_out}/{decon_ppi}_cbucket \\
+            -errts {subj_out}/{decon_ppi}_errts
     """
 
     # write for review
-    decon_script = os.path.join(func_dir, f"{out_str}.sh")
+    decon_script = os.path.join(subj_out, f"{decon_ppi}.sh")
     with open(decon_script, "w") as script:
         script.write(cmd_decon)
 
     # generate x-matrices, reml command
-    out_file = os.path.join(func_dir, f"{out_str}_stats.REML_cmd")
+    out_file = os.path.join(subj_out, f"{decon_ppi}_stats.REML_cmd")
     if not os.path.exists(out_file):
-        print(f"Running 3dDeconvolve for {decon_name}")
-        h_out, h_err = submit.submit_hpc_subprocess(cmd_decon)
+        print(f"Running 3dDeconvolve for {decon_ppi}")
+        subj_num = subj.split("-")[1]
+        h_out, h_err = submit_hpc_sbatch(cmd_decon, 1, 4, 1, f"{subj_num}dcn", subj_out)
 
-    # update afni_data
-    assert os.path.exists(
-        out_file
-    ), f"{out_file} failed to write, check resources.afni.deconvolve.write_decon."
-    afni_data[f"dcn-{decon_name}"] = out_file
-
+    # check, update afni_data
+    assert os.path.exists(out_file), f"Failed to write {out_file}"
+    afni_data[decon_ppi] = out_file
     return afni_data
 
 
@@ -738,7 +747,7 @@ def main():
     subj = "sub-4001"
     sess = "ses-S2"
     task = "task-test"
-    decon_str = f"{task}_UniqueBehs"
+    decon_str = f"decon_{task}_UniqueBehs"
 
     # make dict for seed construction from coordinates
     seed_coord = {"LHC": "-24 -12 -22"}
@@ -754,8 +763,8 @@ def main():
     afni_data["scaled_files"] = sorted(
         glob.glob(f"{subj_data}/*desc-scaled_bold.nii.gz")
     )
-    afni_data["decon_file"] = f"{subj_data}/decon_{decon_str}_cbucket_REML+tlrc.HEAD"
-    afni_data["decon_matrix"] = f"{subj_data}/X.decon_{decon_str}.xmat.1D"
+    afni_data["decon_file"] = f"{subj_data}/{decon_str}_cbucket_REML+tlrc.HEAD"
+    afni_data["decon_matrix"] = f"{subj_data}/X.{decon_str}.xmat.1D"
     afni_data["timing_files"] = glob.glob(
         f"{subj_data}/{subj}_{sess}_{task}_desc-*_events.1D"
     )
@@ -777,11 +786,12 @@ def main():
     afni_data = hrf_model(subj_out, afni_data)
     afni_data = seed_timeseries(subj, subj_out, afni_data, seed_coord)
     afni_data = behavior_timeseries(subj, sess, task, subj_out, afni_data)
-    print(afni_data["final_files"]["LHC"])
-    return
 
-    # make motion files
+    # do decons for each seed
     afni_data = mot_files(subj_out, afni_data)
+    for seed in seed_coord:
+        write_ppi_decon(subj, f"{decon_str}_PPI-{seed}", subj_out, seed, afni_data)
+    print(afni_data)
 
 
 if __name__ == "__main__":
