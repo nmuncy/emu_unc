@@ -4,6 +4,7 @@ library("mgcv")
 library("itsadug")
 
 
+# Set paths ----
 one_dir <- "/Users/nmuncy/Florida International University/EMU Study - Documents/EMU Data/current_working_data/datasets/_full_working_dataset/"
 proj_dir <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/"
 data_dir <- paste0(proj_dir, "derivatives/emu_unc/reco_afq/")
@@ -11,135 +12,184 @@ out_dir <- paste0(proj_dir, "derivatives/emu_unc/analyses/")
 
 # capture.output(sessionInfo(), file = paste0(data_dir, "R_session_info.txt"))
 
-# get dataframes
-df_summary <- read.csv(paste0(one_dir, "emuR01_summary_latest.csv"))
-df_afq <- read.csv(paste0(data_dir, "tract_profiles.csv"))
+# for testing
+out_dir <- data_dir <- proj_dir <- "/Users/nmuncy/Desktop/"
 
-# start age, sex, pds, parent's scared columns
-df_afq$age <- df_afq$sex <- df_afq$pds <- 
-  df_afq$pars6 <- df_afq$pars6_group <-
-  df_afq$pscared <- df_afq$pscared_group <- NA
 
-# get list of subjects
-subj_list <- unique(df_afq$subjectID)
 
-# fill data for each subject
-for(subj in subj_list){
-  
-  # determine indices of subjects in dfs
-  ind_afq <- which(df_afq$subjectID == subj)
-  ind_summ <- which(df_summary$emu_study_id == subj)
-  if(length(ind_summ) == 0){
-    print(paste("Missing summary data for", subj))
-    next
+# Functions ----
+make_dataframe <- function(one_dir, data_dir, out_dir) {
+  # Add demographic, participant info to AFQ dataframe.
+  # 
+  # Added values are: age in month, sex, PARS-6, and
+  # Parent's SCARED values.
+  #
+  # PARS-6 groups:
+  #   Low <= 3
+  #   3 < Med <= 12
+  #   High > 12
+  #
+  # Parent's SCARED groups:
+  #   Low <= 10
+  #   10 < Med < 25
+  #   High >= 25
+  #
+  # Arguments:
+  #   one_dir (str) = path to directory containing emuR01_summary_latest.csv
+  #   data_dir (str) = path to directory containing AFQ tract_profiles.csv
+  #   out_dir (str) = output location for dataframe
+  #
+  # Returns:
+  #   df_afq (dataframe) = long-formatted, AFQ + summary info
+  #
+  # Writes:
+  #   out_dir/AFQ_dataframe.csv
+
+  # get summary and afq dataframes
+  df_summary <- read.csv(paste0(one_dir, "emuR01_summary_latest.csv"))
+  df_afq <- read.csv(paste0(data_dir, "tract_profiles.csv"))
+
+  # start age, sex, pds, parent's scared columns
+  df_afq$age <- df_afq$sex <- df_afq$pds <-
+    df_afq$pars6 <- df_afq$pars6_group <-
+    df_afq$pscared <- df_afq$pscared_group <- NA
+
+  # get list of afq subjects
+  subj_list <- unique(df_afq$subjectID)
+
+  # fill data for each subject
+  for (subj in subj_list) {
+
+    # determine indices of subjects in afq, summary dfs
+    ind_afq <- which(df_afq$subjectID == subj)
+    ind_summ <- which(df_summary$emu_study_id == subj)
+
+    # make sure subj has summary info
+    if (length(ind_summ) == 0) {
+      print(paste("Missing summary data for", subj))
+      next
+    }
+
+    # fill age, sex, pds
+    df_afq[ind_afq, ]$age <- df_summary[ind_summ, ]$pinf_age_mo
+    df_afq[ind_afq, ]$sex <- df_summary[ind_summ, ]$pinf_gender
+    df_afq[ind_afq, ]$pds <- df_summary[ind_summ, ]$pds_shirtcliff
+
+    # get, determine parent's scared number, group
+    num_pscared <- df_summary[ind_summ, ]$scaredp_sum
+    if (num_pscared <= 10) {
+      group_pscared <- "Low"
+    } else if (num_pscared > 10 & num_pscared < 25) {
+      group_pscared <- "Med"
+    } else if (num_pscared >= 25) {
+      group_pscared <- "High"
+    }
+
+    # fill pscared info
+    df_afq[ind_afq, ]$pscared <- num_pscared
+    df_afq[ind_afq, ]$pscared_group <- group_pscared
+
+    # get, determine pars-6 scared number, group
+    num_pars6 <- df_summary[ind_summ, ]$pars_6
+    if (num_pars6 <= 3) {
+      group_pars6 <- "Low"
+    } else if (num_pars6 > 3 & num_pars6 <= 12) {
+      group_pars6 <- "Med"
+    } else if (num_pars6 > 12) {
+      group_pars6 <- "High"
+    }
+
+    # fill pars info
+    df_afq[ind_afq, ]$pars6 <- num_pars6
+    df_afq[ind_afq, ]$pars6_group <- group_pars6
   }
   
-  # fill age, sex, pds
-  df_afq[ind_afq,]$age <- df_summary[ind_summ,]$pinf_age_mo
-  df_afq[ind_afq,]$sex <- df_summary[ind_summ,]$pinf_gender
-  df_afq[ind_afq,]$pds <- df_summary[ind_summ,]$pds_shirtcliff
-  
-  # get, determine parent's scared group
-  num_pscared <- df_summary[ind_summ,]$scaredp_sum
-  if(num_pscared <= 10){
-    group_pscared <- "Low"
-  }else if(num_pscared > 10 & num_pscared < 25){
-    group_pscared <- "Med"
-  }else if(num_pscared >= 25){
-    group_pscared <- "High"
-  }
-  
-  # fill pscared info
-  df_afq[ind_afq,]$pscared <- num_pscared
-  df_afq[ind_afq,]$pscared_group <- group_pscared
-  
-  # get, determine pars-6 scared group
-  num_pars6 <- df_summary[ind_summ,]$pars_6
-  if (num_pars6 <= 3) {
-    group_pars6 <- "Low"
-  } else if (num_pars6 > 3 & num_pars6 <= 12) {
-    group_pars6 <- "Med"
-  } else if (num_pars6 > 12) {
-    group_pars6 <- "High"
-  }
-  
-  # fill pars info
-  df_afq[ind_afq,]$pars6 <- num_pars6
-  df_afq[ind_afq,]$pars6_group <- group_pars6
+  # set factors
+  #   sex: 1 = F, 2 = M
+  #   pscared_group: 1 = High, 2 = Low, 3 = Med
+  #   pars6_group: 1 = High, 2 = Low, 3 = Med
+  df_tract$sex <- factor(df_tract$sex)
+  df_tract$pscared_group <- factor(df_tract$pscared_group)
+  df_tract$pars6_group <- factor(df_tract$pars6_group)
+
+  # save df
+  write_out <- paste0(out_dir, "AFQ_dataframe.csv")
+  write.table(df_afq, write_out, sep = ",", row.names = F)
+
+  return(df_afq)
 }
 
-# save df
-write_out <- paste0(out_dir, "AFQ_dataframe.csv")
-write.table(df_afq, write_out, sep = ",", row.names=F)
 
-# tract list
+# GAM with continuous Parent's SCARED ----
+#
+# Rather than looking for group differences, see if adding anxiety measure
+# changes model fit. Then plot those two splines to find differences.
+
+# get data
+make_new_df <- T
+if (make_new_df) {
+  df_afq <- make_dataframe(one_dir, data_dir, out_dir)
+} else {
+  df_afq <- read.csv(paste0(out_dir, "AFQ_dataframe.csv"))
+}
+
+# tracts of interest
 tract_list <- c("UNC_L", "CGC_L")
 
-# subset df_afq
+# subset df_afq, take complete cases
 tract <- "UNC_L"
-df_tract <- df_afq[which(df_afq$tractID == tract),]
-df_tract <- df_tract[complete.cases(df_tract),]
-
-# set factors
-#   sex: 1 = F, 2 = M
-#   pscared_group: 1 = High, 2 = Low, 3 = Med
-#   pars6_group: 1 = High, 2 = Low, 3 = Med
-df_tract$sex <- factor(df_tract$sex)
-df_tract$pscared_group <- factor(df_tract$pscared_group)
-df_tract$pars6_group <- factor(df_tract$pars6_group)
-
-# # plot raw
-# ggplot(data = df_tract) +
-#   geom_point(mapping = aes(x=nodeID, y=dti_fa, color=pscared_group), size=0.3) +
-#   geom_smooth(mapping = aes(x=nodeID, y=dti_fa, color=pscared_group))
+df_tract <- df_afq[which(df_afq$tractID == tract), ]
+df_tract <- df_tract[complete.cases(df_tract), ]
 
 # determine distribution
 hist(df_tract$dti_fa)
-descdist(df_tract$dti_fa, discrete=F) # normal or logistic
+descdist(df_tract$dti_fa, discrete = F)
 
-
-# rather than looking for group differences, see if adding anxiety measure
-# changes model fit. then plot those two splines to find differences - indicating
-# where in the tract the anxiety measures are associated
-
-
+# determine if covariate pds helps model fit
 fit_normal <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
-    s(nodeID, k=20),
+    s(nodeID, k = 20),
   data = df_tract,
   family = gaussian,
   method = "REML"
 )
-gam.check(fit_normal, rep = 1000)
+# gam.check(fit_normal, rep = 1000)
 
-fit_cov_normal <- bam(dti_fa ~ sex +
+# fit_cov_normal <- bam(dti_fa ~ sex +
+#     s(subjectID, bs = "re") +
+#     s(pds, by = sex) +
+#     s(nodeID, k=40),
+#   data = df_tract,
+#   family = gaussian,
+#   method = "REML"
+# )
+fit_cov_normal <- bam(dti_fa ~ sex + sex * pds +
     s(subjectID, bs = "re") +
-    s(pds, by = sex) +
-    s(nodeID, k=40),
+    s(nodeID, k = 40),
   data = df_tract,
   family = gaussian,
   method = "REML"
 )
-gam.check(fit_cov_normal, rep = 1000)
+# gam.check(fit_cov_normal, rep = 1000)
 
 compareML(fit_normal, fit_cov_normal) # cov model preferred
 summary(fit_cov_normal)
 
 # add group
-fit_parent <- bam(dti_fa ~ sex +
-    pscared +
+fit_pscared <- bam(dti_fa ~ sex + sex * pds + pscared +
     s(subjectID, bs = "re") +
-    s(pds, by = sex) +
-    s(nodeID, k=50),
+    s(nodeID, k = 50),
   data = df_tract,
   family = gaussian,
   method = "REML"
 )
-gam.check(fit_parent, rep = 1000)
-compareML(fit_cov_normal, fit_parent) # not much diff bx fits
-summary(fit_parent) # pscared is sig
+gam.check(fit_pscared, rep = 1000)
+compareML(fit_cov_normal, fit_pscared)
 
-# generate predictions
+summary(fit_cov_normal)
+summary(fit_pscared)
+
+# generate predictions for fit_cov_normal, fit_pscared
 plot_norm <- predict.bam(
   fit_cov_normal,
   exclude_terms = c("pds", "sex", "subjectID"),
@@ -147,15 +197,16 @@ plot_norm <- predict.bam(
   se.fit = T,
   type = "response"
 )
-plot_parent <- predict.bam(
-  fit_parent,
+
+plot_pscared <- predict.bam(
+  fit_pscared,
   exclude_terms = c("pds", "sex", "subjectID"),
   values = list(pds = NULL, sex = NULL),
   se.fit = T,
   type = "response"
 )
 
-# convert predictions to dataframe
+# convert predictions to dataframes
 plot_norm <- data.frame(
   sex = df_tract$sex,
   subjectID = df_tract$subjectID,
@@ -163,15 +214,16 @@ plot_norm <- data.frame(
   fit = plot_norm$fit,
   se.fit = plot_norm$se.fit
 )
-plot_parent <- data.frame(
+
+plot_pscared <- data.frame(
   sex = df_tract$sex,
   subjectID = df_tract$subjectID,
   nodeID = df_tract$nodeID,
-  fit = plot_parent$fit,
-  se.fit = plot_parent$se.fit
+  fit = plot_pscared$fit,
+  se.fit = plot_pscared$se.fit
 )
 
-# draw plot
+# draw plots
 ggplot(data = plot_norm) +
   geom_smooth(mapping = aes(x = nodeID, y = fit)) +
   ggtitle("GAM of L. Unc") +
@@ -181,9 +233,9 @@ ggplot(data = plot_norm) +
     family = "Times New Roman", face = "bold", size = 14
   ))
 
-ggplot(data = plot_parent) +
+ggplot(data = plot_pscared) +
   geom_smooth(mapping = aes(x = nodeID, y = fit)) +
-  ggtitle("GAM of L. Unc, Controlling for pscared") +
+  ggtitle("GAM of L. Unc, pscared") +
   ylab("Fit FA") +
   xlab("Tract Node") +
   theme(text = element_text(
@@ -192,26 +244,32 @@ ggplot(data = plot_parent) +
 
 
 
-# gam by group
+# GAM by Parent's SCARED anxiety group ----
+#
+#
+
+
+
+
 fit_normal <- bam(dti_fa ~ pscared_group +
-    sex +
-    s(nodeID, by = pscared_group, k = 20) +
-    s(subjectID, bs = "re"),
-  data = df_tract,
-  family = gaussian(),
-  method = "REML"
+  sex +
+  s(nodeID, by = pscared_group, k = 20) +
+  s(subjectID, bs = "re"),
+data = df_tract,
+family = gaussian(),
+method = "REML"
 )
 gam.check(fit_normal, rep = 1000)
 
 # gam w/cov
 fit_cov_normal <- bam(dti_fa ~ pscared_group +
-    sex +
-    s(nodeID, by = pscared_group, k = 30) +
-    s(pds, by = sex) +
-    s(subjectID, bs = "re"),
-  data = df_tract,
-  family = gaussian(),
-  method = "REML"
+  sex +
+  s(nodeID, by = pscared_group, k = 30) +
+  s(pds, by = sex) +
+  s(subjectID, bs = "re"),
+data = df_tract,
+family = gaussian(),
+method = "REML"
 )
 gam.check(fit_cov_normal, rep = 1000)
 
@@ -219,7 +277,7 @@ gam.check(fit_cov_normal, rep = 1000)
 compareML(fit_normal, fit_cov_normal) # cov better
 
 # save better gam
-gam_file = paste0(out_dir, "GAM_", tract, "_normal_cov_PScared.Rda")
+gam_file <- paste0(out_dir, "GAM_", tract, "_normal_cov_PScared.Rda")
 saveRDS(fit_cov_normal, file = gam_file)
 
 # generate predictions
@@ -257,18 +315,19 @@ ggplot(data = df_pred) +
 
 
 
-# look at pars
-
+# GAM by PARS-6 anxiety group ----
+#
+#
 
 # gam w/cov
 fit_pars6 <- bam(dti_fa ~ pars6_group +
-    sex +
-    s(nodeID, by = pars6_group, k = 40) +
-    s(pds, by = sex) +
-    s(subjectID, bs = "re"),
-  data = df_tract,
-  family = gaussian(),
-  method = "REML"
+  sex +
+  s(nodeID, by = pars6_group, k = 40) +
+  s(pds, by = sex) +
+  s(subjectID, bs = "re"),
+data = df_tract,
+family = gaussian(),
+method = "REML"
 )
 gam.check(fit_pars6, rep = 1000)
 
@@ -307,11 +366,3 @@ ggplot(data = df_pred) +
   theme(text = element_text(
     family = "Times New Roman", face = "bold", size = 14
   ))
-
-
-
-
-
-
-
-
