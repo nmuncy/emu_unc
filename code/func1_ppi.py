@@ -226,7 +226,7 @@ def hrf_model(subj_out, file_dict, dur=2):
 
 
 # %%
-def seed_timeseries(subj, subj_out, file_dict, seed_dict):
+def seed_timeseries(subj, subj_out, file_dict, seed_coord):
     """Title.
 
     Desc.
@@ -238,25 +238,12 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict):
     -------
     """
 
-    # find smallest multiplier that returns int for resampling
-    res_multiplier = 2
-    status = True
-    len_tr = file_dict["len_tr"]
-
-    while status:
-        if ((len_tr * res_multiplier) % 2) == 0:
-            status = False
-        else:
-            res_multiplier += 1
-
-    # add mult to dict
-    file_dict["resamp_mult"] = res_multiplier
     hrf_file = file_dict["hrf_model"]
-
     clean_data = file_dict["clean_data"]
-    seed_res = {}
-    for seed, coord in seed_dict.items():
-        seed_file = os.path.join(subj_out, f"Seed_{seed}_neural_us.1D")
+
+    seed_dict = {}
+    for seed, coord in seed_coord.items():
+        seed_file = os.path.join(subj_out, f"Seed_{seed}_neural.1D")
         if not os.path.exists(seed_file):
 
             # make seed, get timeseries
@@ -273,10 +260,10 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict):
                 3dmaskave \
                     -quiet \
                     -mask Seed_{seed}+tlrc \
-                    {clean_data} > Seed_{seed}_orig.1D
+                    {clean_data} > tmp_Seed_{seed}_orig.1D
 
                 3dTfitter \
-                    -RHS Seed_{seed}_orig.1D \
+                    -RHS tmp_Seed_{seed}_orig.1D \
                     -FALTUNG {hrf_file} \
                     tmp.1D 012 0
 
@@ -289,20 +276,11 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict):
                 h_cmd, 1, 4, 1, f"{subj_num}mksd", subj_out
             )
 
-            # upsample seed timeseries
-            h_cmd = f"""
-                1dUpsample \
-                    {res_multiplier} \
-                    {subj_out}/Seed_{seed}_neural.1D \
-                    > {seed_file}
-            """
-            h_out, h_err = submit_hpc_subprocess(h_cmd)
-
         # update seed_dict with upsampled seed
-        seed_res[seed] = seed_file
+        seed_dict[seed] = seed_file
 
     # update file_dict with all seed_files
-    file_dict["seed_files"] = seed_res
+    file_dict["seed_files"] = seed_dict
     return file_dict
 
 
@@ -328,47 +306,41 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
 
     # get file_dict values
     len_tr = file_dict["len_tr"]
-    res_mult = file_dict["resamp_mult"]
-    seed_res = file_dict["seed_files"]
+    seed_dict = file_dict["seed_files"]
 
-    # list of run length in seconds
+    # list of run length in seconds, total number of volumes (sum_vol)
     run_len = []
     num_vol = []
     for scale_file in file_dict["scale_files"]:
-        h_cmd = f"module load afni-20.2.06 \n 3dinfo -ntimes {scale_file}"
+        h_cmd = f"3dinfo -ntimes {scale_file}"
         h_out, h_err = submit_hpc_subprocess(h_cmd)
         h_vol = int(h_out.decode("utf-8").strip())
         num_vol.append(h_vol)
-        run_len.append(h_vol * len_tr)
+        run_len.append(str(h_vol * len_tr))
+    sum_vol = sum(num_vol)
 
     final_dict = {}
     for timing_file in tf_list:
 
-        # get upsampled behavior binary file
+        # get binary behavior file, in TR time
         h_beh = timing_file.split("desc-")[1].split("_")[0]
-        beh_us = os.path.join(subj_out, f"Beh_{h_beh}_us.1D")
-        if not os.path.exists(beh_us):
+        beh_file = os.path.join(subj_out, f"Beh_{h_beh}_bin.1D")
+        if not os.path.exists(beh_file):
             print(f"\nMaking behavior files for {h_beh}")
             h_cmd = f"""
                 timing_tool.py \
                     -timing {timing_file} \
                     -tr {len_tr} \
                     -stim_dur {stim_dur} \
-                    -run_len {" ".join(map(str, run_len))} \
+                    -run_len {" ".join(run_len)} \
                     -min_frac 0.3 \
-                    -timing_to_1D {subj_out}/Beh_{h_beh}_bin.1D
-
-                awk '{{for(j=0;j<{res_mult};j++)print}}' \
-                    {subj_out}/Beh_{h_beh}_bin.1D > {beh_us}
+                    -timing_to_1D {beh_file}
             """
             h_out, h_err = submit_hpc_subprocess(h_cmd)
-        assert os.path.exists(
-            f"{subj_out}/Beh_{h_beh}_bin.1D"
-        ), f"Failed to properly make {beh_us}"
+        assert os.path.exists(beh_file), f"Failed to properly make {beh_file}"
 
-        # multiply beh_us by neural seed ts to get interaction term,
-        # downsample in bash, pad final volume
-        for seed_name, seed_us in seed_res.items():
+        # multiply beh_file by neural seed ts to get interaction term
+        for seed_name, seed_file in seed_dict.items():
             final_file = os.path.join(
                 subj_out, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
             )
@@ -378,13 +350,9 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
                     cd {subj_out}
 
                     1deval \
-                        -a {seed_us} \
-                        -b {beh_us} \
+                        -a {seed_file} \
+                        -b {beh_file} \
                         -expr 'a*b' \
-                        > Seed_{seed_name}_{h_beh}_neural_us.1D
-
-                    cat Seed_{seed_name}_{h_beh}_neural_us.1D | \
-                        awk -v n={res_mult} 'NR%n==0' \
                         > Seed_{seed_name}_{h_beh}_neural.1D
 
                     waver \
@@ -392,7 +360,7 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
                         -peak 1 \
                         -TR {len_tr} \
                         -input Seed_{seed_name}_{h_beh}_neural.1D \
-                        -numout {sum(num_vol)} \
+                        -numout {sum_vol} \
                         > {final_file}
                 """
                 subj_num = subj.split("-")[1]
@@ -407,6 +375,20 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
 
 
 # %%
+def decon_ppi():
+    """Title.
+
+    Desc.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
+
+# %%
 def main():
 
     # For testing
@@ -418,7 +400,7 @@ def main():
     decon_str = f"{task}_UniqueBehs"
 
     # make dict for seed construction from coordinates
-    seed_dict = {"LHC": "-24 -12 -22"}
+    seed_coord = {"LHC": "-24 -12 -22"}
 
     subj_data = os.path.join(data_dir, subj, sess, "func")
     subj_out = os.path.join(deriv_dir, subj, sess, "func")
@@ -427,8 +409,9 @@ def main():
 
     file_dict = clean_data(subj, subj_data, subj_out, decon_str)
     file_dict = hrf_model(subj_out, file_dict)
-    file_dict = seed_timeseries(subj, subj_out, file_dict, seed_dict)
+    file_dict = seed_timeseries(subj, subj_out, file_dict, seed_coord)
     file_dict = behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict)
+    print(file_dict)
 
 
 if __name__ == "__main__":
