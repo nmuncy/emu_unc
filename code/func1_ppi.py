@@ -101,7 +101,7 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, out_dir)
 
 
 # %%
-def clean_data(subj, subj_out, file_dict):
+def clean_data(subj, subj_out, afni_data):
     """Title.
 
     Desc.
@@ -114,14 +114,14 @@ def clean_data(subj, subj_out, file_dict):
     """
 
     # get TR
-    h_cmd = f"3dinfo -tr {file_dict['scaled_files'][0]}"
+    h_cmd = f"3dinfo -tr {afni_data['scaled_files'][0]}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
     len_tr = float(h_out.decode("utf-8").strip())
 
-    # get files from file_dict
-    decon_file = file_dict["decon_file"].split(".")[0]
-    decon_matrix = file_dict["decon_matrix"]
-    scaled_list = file_dict["scaled_files"]
+    # get files from afni_data
+    decon_file = afni_data["decon_file"].split(".")[0]
+    decon_matrix = afni_data["decon_matrix"]
+    scaled_list = afni_data["scaled_files"]
 
     # Get proper brick length - REML appends an extra brick because of
     # "reasons". Account for AFNIs random 0-1 indexing
@@ -180,13 +180,13 @@ def clean_data(subj, subj_out, file_dict):
         h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}cle", subj_out)
 
     assert os.path.exists(clean_file), "CleanData not found."
-    file_dict["len_tr"] = len_tr
-    file_dict["clean_data"] = clean_file
-    return file_dict
+    afni_data["len_tr"] = len_tr
+    afni_data["clean_data"] = clean_file
+    return afni_data
 
 
 # %%
-def hrf_model(subj_out, file_dict, dur=2):
+def hrf_model(subj_out, afni_data, dur=2):
     """Title.
 
     Desc.
@@ -199,7 +199,7 @@ def hrf_model(subj_out, file_dict, dur=2):
     """
 
     # make ideal HRF, use same model as deconvolution
-    len_tr = file_dict["len_tr"]
+    len_tr = afni_data["len_tr"]
     hrf_file = os.path.join(subj_out, "HRF_model.1D")
     if not os.path.exists(hrf_file):
         print("\nMaking ideal HRF")
@@ -215,12 +215,12 @@ def hrf_model(subj_out, file_dict, dur=2):
         h_out, h_err = submit_hpc_subprocess(h_cmd)
     assert os.path.exists(hrf_file), "HRF model failed."
 
-    file_dict["hrf_model"] = hrf_file
-    return file_dict
+    afni_data["hrf_model"] = hrf_file
+    return afni_data
 
 
 # %%
-def seed_timeseries(subj, subj_out, file_dict, seed_coord):
+def seed_timeseries(subj, subj_out, afni_data, seed_coord):
     """Title.
 
     Desc.
@@ -232,8 +232,8 @@ def seed_timeseries(subj, subj_out, file_dict, seed_coord):
     -------
     """
 
-    hrf_file = file_dict["hrf_model"]
-    clean_data = file_dict["clean_data"]
+    hrf_file = afni_data["hrf_model"]
+    clean_data = afni_data["clean_data"]
 
     seed_dict = {}
     for seed, coord in seed_coord.items():
@@ -273,13 +273,13 @@ def seed_timeseries(subj, subj_out, file_dict, seed_coord):
         # update seed_dict with upsampled seed
         seed_dict[seed] = seed_file
 
-    # update file_dict with all seed_files
-    file_dict["seed_files"] = seed_dict
-    return file_dict
+    # update afni_data with all seed_files
+    afni_data["seed_files"] = seed_dict
+    return afni_data
 
 
 # %%
-def behavior_timeseries(subj, sess, task, subj_out, file_dict, stim_dur=2):
+def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
     """Title.
 
     Desc.
@@ -291,10 +291,10 @@ def behavior_timeseries(subj, sess, task, subj_out, file_dict, stim_dur=2):
     -------
     """
 
-    # get file_dict values
-    len_tr = file_dict["len_tr"]
-    seed_dict = file_dict["seed_files"]
-    tf_list = file_dict["timing_files"]
+    # get afni_data values
+    len_tr = afni_data["len_tr"]
+    seed_dict = afni_data["seed_files"]
+    tf_list = afni_data["timing_files"]
 
     print("")
     print("timing files:")
@@ -304,7 +304,7 @@ def behavior_timeseries(subj, sess, task, subj_out, file_dict, stim_dur=2):
     # list of run length in seconds, total number of volumes (sum_vol)
     run_len = []
     num_vol = []
-    for scale_file in file_dict["scaled_files"]:
+    for scale_file in afni_data["scaled_files"]:
         h_cmd = f"3dinfo -ntimes {scale_file}"
         h_out, h_err = submit_hpc_subprocess(h_cmd)
         h_vol = int(h_out.decode("utf-8").strip())
@@ -363,12 +363,12 @@ def behavior_timeseries(subj, sess, task, subj_out, file_dict, stim_dur=2):
             assert os.path.exists(final_file), f"Failed to make {final_file}"
             final_dict[f"{seed_name}_{h_beh}"] = final_file
 
-    file_dict["final_files"] = final_dict
-    return file_dict
+    afni_data["final_files"] = final_dict
+    return afni_data
 
 
 # %%
-def mot_files(work_dir, afni_data):
+def mot_files(subj_out, afni_data):
     """Constuct motion and censor files
 
     Mine <fMRIprep>_desc-confounds_timeseries.tsv for motion events, make
@@ -381,7 +381,7 @@ def mot_files(work_dir, afni_data):
 
     Parameters
     ----------
-    work_dir : str
+    subj_out : str
         /path/to/project_dir/derivatives/afni/sub-1234/ses-A
     afni_data : dict
         contains names for various files
@@ -396,7 +396,7 @@ def mot_files(work_dir, afni_data):
 
     Notes
     -----
-    Requires afni_data[mot-confound*].
+    Requires afni_data["conf_files"].
 
     As runs do not have an equal number of volumes, motion/censor files
     for each run are concatenated into a single file rather than managing
@@ -424,28 +424,26 @@ def mot_files(work_dir, afni_data):
         "rot_z_derivative1",
     ]
 
-    # start empty lists to append
-    mean_cat = []
-    deriv_cat = []
-    censor_cat = []
+    # get list of confound timeseries files, set output strings
+    mot_list = afni_data["conf_files"]
+    mot_str = os.path.join(subj_out, mot_list[0].split("/")[-1].replace("run-1_", ""))
+    mean_str = f"""{mot_str.replace("confounds", "mean").replace(".tsv", ".1D")}"""
+    deriv_str = f"""{mot_str.replace("confounds", "deriv").replace(".tsv", ".1D")}"""
+    cens_str = f"""{mot_str.replace("confounds", "censor").replace(".tsv", ".1D")}"""
 
-    num_mot = len([y for x, y in afni_data.items() if "mot-confound" in x])
-    assert (
-        num_mot > 0
-    ), "ERROR: afni_data['mot-confound?'] not found. Check resources.afni.copy.copy_data"
-
-    mot_list = [x for k, x in afni_data.items() if "mot-confound" in k]
-    mot_str = mot_list[0].replace("run-1_", "")
-    if not os.path.exists(
-        os.path.join(
-            work_dir, mot_str.replace("confounds", "censor").replace(".tsv", ".1D")
-        )
-    ):
+    if not os.path.exists(cens_str):
         print("Making motion mean, derivative, censor files ...")
+
+        # start empty lists to append
+        mean_cat = []
+        deriv_cat = []
+        censor_cat = []
+
+        # each confound/motion file
         for mot_file in mot_list:
 
             # read in data
-            df_all = pd.read_csv(os.path.join(work_dir, mot_file), sep="\t")
+            df_all = pd.read_csv(mot_file, sep="\t")
 
             # make motion mean file, round to 6 sig figs
             df_mean = df_all[mean_labels].copy()
@@ -479,30 +477,21 @@ def mot_files(work_dir, afni_data):
         # determine BIDS string, write tsvs, make sure
         # output value is float (not scientific notation)
         df_mean_cat.to_csv(
-            os.path.join(
-                work_dir,
-                f"""{mot_str.replace("confounds", "mean").replace(".tsv", ".1D")}""",
-            ),
+            mean_str,
             sep="\t",
             index=False,
             header=False,
             float_format="%.6f",
         )
         df_deriv_cat.to_csv(
-            os.path.join(
-                work_dir,
-                f"""{mot_str.replace("confounds", "deriv").replace(".tsv", ".1D")}""",
-            ),
+            deriv_str,
             sep="\t",
             index=False,
             header=False,
             float_format="%.6f",
         )
         df_censor_cat.to_csv(
-            os.path.join(
-                work_dir,
-                f"""{mot_str.replace("confounds", "censor").replace(".tsv", ".1D")}""",
-            ),
+            cens_str,
             sep="\t",
             index=False,
             header=False,
@@ -510,15 +499,9 @@ def mot_files(work_dir, afni_data):
         )
 
     # update afni_data
-    afni_data[
-        "mot-mean"
-    ] = f"""{mot_str.replace("confounds", "mean").replace(".tsv", ".1D")}"""
-    afni_data[
-        "mot-deriv"
-    ] = f"""{mot_str.replace("confounds", "deriv").replace(".tsv", ".1D")}"""
-    afni_data[
-        "mot-censor"
-    ] = f"""{mot_str.replace("confounds", "censor").replace(".tsv", ".1D")}"""
+    afni_data["mot-mean"] = mean_str
+    afni_data["mot-deriv"] = deriv_str
+    afni_data["mot-censor"] = cens_str
 
     return afni_data
 
@@ -762,34 +745,43 @@ def main():
 
     # get required files produced by:
     #   github.com/emu-project/func_processing/cli/run_afni.py
-    file_dict = {}
-    file_dict["scaled_files"] = sorted(
+    afni_data = {}
+    afni_data["scaled_files"] = sorted(
         glob.glob(f"{subj_data}/*desc-scaled_bold.nii.gz")
     )
-    file_dict["decon_file"] = f"{subj_data}/decon_{decon_str}_cbucket_REML+tlrc.HEAD"
-    file_dict["decon_matrix"] = f"{subj_data}/X.decon_{decon_str}.xmat.1D"
-    file_dict["timing_files"] = glob.glob(
+    afni_data["decon_file"] = f"{subj_data}/decon_{decon_str}_cbucket_REML+tlrc.HEAD"
+    afni_data["decon_matrix"] = f"{subj_data}/X.decon_{decon_str}.xmat.1D"
+    afni_data["timing_files"] = glob.glob(
         f"{subj_data}/{subj}_{sess}_{task}_desc-*_events.1D"
     )
-    file_dict["conf_files"] = sorted(
+    afni_data["conf_files"] = sorted(
         glob.glob(f"{subj_data}/*_run-*_desc-confounds_timeseries.tsv")
     )
     subj_anat = os.path.join(data_dir, subj, sess, "anat")
-    file_dict["wme_mask"] = glob.glob(f"{subj_anat}/*desc-WMe_mask.nii.gz")
+    afni_data["wme_mask"] = glob.glob(f"{subj_anat}/*desc-WMe_mask.nii.gz")
 
     # check that required files exist
-    for h_type, h_file in file_dict.items():
+    for h_type, h_file in afni_data.items():
         if type(h_file) == list:
             assert os.path.exists(h_file[0]), f"Missing files for {h_type}"
         else:
-            assert os.path.exists(h_file), f"Missing file for {h_type}"
+            assert os.path.exists(h_file), f"Missing file for {h_type}: {h_file}"
 
-    # # generate timeseries files
-    file_dict = clean_data(subj, subj_out, file_dict)
-    file_dict = hrf_model(subj_out, file_dict)
-    file_dict = seed_timeseries(subj, subj_out, file_dict, seed_coord)
-    file_dict = behavior_timeseries(subj, sess, task, subj_out, file_dict)
-    print(file_dict)
+    # generate timeseries files
+    afni_data = clean_data(subj, subj_out, afni_data)
+    afni_data = hrf_model(subj_out, afni_data)
+    afni_data = seed_timeseries(subj, subj_out, afni_data, seed_coord)
+    afni_data = behavior_timeseries(subj, sess, task, subj_out, afni_data)
+
+    # make motion files
+    afni_data = mot_files(subj_out, afni_data)
+    print(afni_data)
+
+    # # set up for decon
+    # tf_dict = {}
+    # for tf in afni_data["timing_files"]:
+    #     beh = tf.split("/")[-1].split("desc-")[1].split("_")[0]
+    #     tf_dict[beh] = tf
 
 
 if __name__ == "__main__":
