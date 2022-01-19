@@ -237,8 +237,11 @@ def seed_timeseries(subj, subj_out, afni_data, seed_coord):
 
     seed_dict = {}
     for seed, coord in seed_coord.items():
-        seed_file = os.path.join(subj_out, f"Seed_{seed}_neural.1D")
-        if not os.path.exists(seed_file):
+        seed_dict[seed] = {"seed_ts": "", "seed_neural": ""}
+
+        seed_ts = os.path.join(subj_out, f"Seed_{seed}_timeSeries.1D")
+        seed_neural = os.path.join(subj_out, f"Seed_{seed}_neural.1D")
+        if not os.path.exists(seed_ts) or not os.path.exists(seed_neural):
 
             # make seed, get timeseries
             print(f"\nMaking seed timeseries for {subj} - {seed}")
@@ -254,16 +257,16 @@ def seed_timeseries(subj, subj_out, afni_data, seed_coord):
                 3dmaskave \
                     -quiet \
                     -mask Seed_{seed}+tlrc \
-                    {clean_data} > tmp_Seed_{seed}_orig.1D
+                    {clean_data} > {seed_ts}
 
                 3dTfitter \
-                    -RHS tmp_Seed_{seed}_orig.1D \
+                    -RHS {seed_ts} \
                     -FALTUNG {hrf_file} \
                     tmp.1D 012 0
 
                 1dtranspose \
-                    tmp.1D > Seed_{seed}_neural.1D && \
-                    rm tmp*.1D
+                    tmp.1D > {seed_neural} && \
+                    rm tmp.1D
             """
             subj_num = subj.split("-")[1]
             h_out, h_err = submit_hpc_sbatch(
@@ -271,7 +274,8 @@ def seed_timeseries(subj, subj_out, afni_data, seed_coord):
             )
 
         # update seed_dict with upsampled seed
-        seed_dict[seed] = seed_file
+        seed_dict[seed]["seed_ts"] = seed_ts
+        seed_dict[seed]["seed_neural"] = seed_neural
 
     # update afni_data with all seed_files
     afni_data["seed_files"] = seed_dict
@@ -296,11 +300,6 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
     seed_dict = afni_data["seed_files"]
     tf_list = afni_data["timing_files"]
 
-    print("")
-    print("timing files:")
-    print(tf_list)
-    print("")
-
     # list of run length in seconds, total number of volumes (sum_vol)
     run_len = []
     num_vol = []
@@ -312,7 +311,12 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
         run_len.append(str(h_vol * len_tr))
     sum_vol = sum(num_vol)
 
+    # start dict of final ts files
     final_dict = {}
+    for seed_name in seed_dict:
+        final_dict[seed_name] = {}
+
+    # get seed ts for e/behavior
     for timing_file in tf_list:
 
         # get binary behavior file, in TR time
@@ -333,17 +337,19 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
         assert os.path.exists(beh_file), f"Failed to properly make {beh_file}"
 
         # multiply beh_file by neural seed ts to get interaction term
-        for seed_name, seed_file in seed_dict.items():
+        for seed_name in seed_dict:
+
             final_file = os.path.join(
                 subj_out, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
             )
             if not os.path.exists(final_file):
                 print(f"\nMaking {final_file}")
+                seed_neural = seed_dict[seed_name]["seed_neural"]
                 h_cmd = f"""
                     cd {subj_out}
 
                     1deval \
-                        -a {seed_file} \
+                        -a {seed_neural} \
                         -b {beh_file} \
                         -expr 'a*b' \
                         > Seed_{seed_name}_{h_beh}_neural.1D
@@ -361,7 +367,7 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
                     h_cmd, 1, 4, 1, f"{subj_num}final", subj_out
                 )
             assert os.path.exists(final_file), f"Failed to make {final_file}"
-            final_dict[f"{seed_name}_{h_beh}"] = final_file
+            final_dict[seed_name][f"{seed_name}_{h_beh}"] = final_file
 
     afni_data["final_files"] = final_dict
     return afni_data
@@ -506,7 +512,7 @@ def mot_files(subj_out, afni_data):
     return afni_data
 
 
-def write_ppi_decon(decon_name, tf_dict, afni_data, work_dir, dur):
+def write_ppi_decon(decon_name, subj_out, seed, afni_data, dur=2):
     """Generate deconvolution script.
 
     Write a deconvolution script using the pre-processed data, motion, and
@@ -523,9 +529,6 @@ def write_ppi_decon(decon_name, tf_dict, afni_data, work_dir, dur):
         name of deconvolution, useful when conducting multiple
         deconvolutions on same session. Will be appended to
         BIDS task name (decon_<task-name>_<decon_name>).
-    tf_dict : dict
-        timing files dictionary, behavior string is key
-        e.g. {"lureFA": "/path/to/tf_task-test_lureFA.txt"}
     afni_data : dict
         contains names for various files
     work_dir : str
@@ -549,14 +552,16 @@ def write_ppi_decon(decon_name, tf_dict, afni_data, work_dir, dur):
             decon_<bids-task>_<decon_name>
     """
 
-    # check for req files
-    num_epi = len([y for x, y in afni_data.items() if "epi-scale" in x])
-    assert (
-        num_epi > 0
-    ), "ERROR: afni_data['epi-scale?'] not found. Check resources.afni.process.scale_epi."
-    assert (
-        afni_data["mot-mean"] and afni_data["mot-deriv"] and afni_data["mot-censor"]
-    ), "ERROR: missing afni_data[mot-*] files, check resources.afni.motion.mot_files."
+    # make timing file dict
+    tf_dict = {}
+    for tf in afni_data["timing_files"]:
+        beh = tf.split("/")[-1].split("desc-")[1].split("_")[0]
+        tf_dict[beh] = tf
+
+    # make seed dict
+    ppi_dict = {}
+    seed_list = afni_data[seed]
+    ppi_dict[seed] = os.path.join(subj_out, "")
 
     # set regressors - baseline
     reg_base = [
@@ -772,16 +777,11 @@ def main():
     afni_data = hrf_model(subj_out, afni_data)
     afni_data = seed_timeseries(subj, subj_out, afni_data, seed_coord)
     afni_data = behavior_timeseries(subj, sess, task, subj_out, afni_data)
+    print(afni_data["final_files"]["LHC"])
+    return
 
     # make motion files
     afni_data = mot_files(subj_out, afni_data)
-    print(afni_data)
-
-    # # set up for decon
-    # tf_dict = {}
-    # for tf in afni_data["timing_files"]:
-    #     beh = tf.split("/")[-1].split("desc-")[1].split("_")[0]
-    #     tf_dict[beh] = tf
 
 
 if __name__ == "__main__":
