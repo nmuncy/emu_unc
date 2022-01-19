@@ -133,10 +133,10 @@ def clean_data(subj, subj_data, subj_out, decon_str):
     ]
     scale_list.sort()
 
-    # make clean data
+    # make clean_data
     clean_file = os.path.join(subj_out, "CleanData+tlrc.HEAD")
     if not os.path.exists(clean_file):
-        print(f"Making clean data for {subj}")
+        print(f"Making clean_data for {subj}")
 
         #  list undesirable sub-bricks (those starting with Run or mot)
         no_int = []
@@ -151,7 +151,7 @@ def clean_data(subj, subj_data, subj_out, decon_str):
                         if fnmatch.fnmatch(j, "Run*") or fnmatch.fnmatch(j, "mot*"):
                             no_int.append(f"{str(i)}")
 
-        # strip extra sub-brick, make clean data by removing
+        # strip extra sub-brick, make clean_data by removing
         #   effects of no interest from concatenated runs
         h_cmd = f"""
             cd {subj_out}
@@ -184,14 +184,49 @@ def clean_data(subj, subj_data, subj_out, decon_str):
 
     assert os.path.exists(clean_file), "CleanData not found."
     file_dict = {
-        "TR Length": len_tr,
-        "Clean Data": clean_file,
-        "Scale Data": scale_list,
+        "len_tr": len_tr,
+        "clean_data": clean_file,
+        "scale_files": scale_list,
     }
     return file_dict
 
 
-def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
+# %%
+def hrf_model(subj_out, file_dict, dur=2):
+    """Title.
+
+    Desc.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
+    # make ideal HRF, use same model as deconvolution
+    len_tr = file_dict["len_tr"]
+    hrf_file = os.path.join(subj_out, "HRF_model.1D")
+    if not os.path.exists(hrf_file):
+        print("\nMaking ideal HRF")
+        h_cmd = f"""
+            3dDeconvolve\
+                -polort -1 \
+                -nodata {round((1 / len_tr) * 19)} {len_tr} \
+                -num_stimts 1 \
+                -stim_times 1 1D:0 'TWOGAMpw(4,5,0.2,12,7,{dur})' \
+                -x1D {hrf_file} \
+                -x1D_stop
+        """
+        h_out, h_err = submit_hpc_subprocess(h_cmd)
+    assert os.path.exists(hrf_file), "HRF model failed."
+
+    file_dict["hrf_model"] = hrf_file
+    return file_dict
+
+
+# %%
+def seed_timeseries(subj, subj_out, file_dict, seed_dict):
     """Title.
 
     Desc.
@@ -206,7 +241,7 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
     # find smallest multiplier that returns int for resampling
     res_multiplier = 2
     status = True
-    len_tr = file_dict["TR Length"]
+    len_tr = file_dict["len_tr"]
 
     while status:
         if ((len_tr * res_multiplier) % 2) == 0:
@@ -216,26 +251,9 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
 
     # add mult to dict
     file_dict["resamp_mult"] = res_multiplier
+    hrf_file = file_dict["hrf_model"]
 
-    # make ideal HRF, use same model as deconvolution
-    hrf_file = os.path.join(subj_out, "HRF_model.1D")
-    if not os.path.exists(hrf_file):
-        print("\nMaking ideal HRF")
-        h_cmd = f"""
-            cd {subj_out}
-
-            3dDeconvolve\
-                -polort -1 \
-                -nodata {round((1 / len_tr) * 19)} {len_tr} \
-                -num_stimts 1 \
-                -stim_times 1 1D:0 'TWOGAMpw(4,5,0.2,12,7,{dur})' \
-                -x1D HRF_model.1D \
-                -x1D_stop
-        """
-        h_out, h_err = submit_hpc_subprocess(h_cmd)
-    assert os.path.exists(hrf_file), "HRF model failed."
-
-    clean_data = file_dict["Clean Data"]
+    clean_data = file_dict["clean_data"]
     seed_res = {}
     for seed, coord in seed_dict.items():
         seed_file = os.path.join(subj_out, f"Seed_{seed}_neural_us.1D")
@@ -263,7 +281,8 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
                     tmp.1D 012 0
 
                 1dtranspose \
-                    tmp.1D > Seed_{seed}_neural.1D
+                    tmp.1D > Seed_{seed}_neural.1D && \
+                    rm tmp.1D
             """
             subj_num = subj.split("-")[1]
             h_out, h_err = submit_hpc_sbatch(
@@ -282,8 +301,8 @@ def seed_timeseries(subj, subj_out, file_dict, seed_dict, dur=2):
         # update seed_dict with upsampled seed
         seed_res[seed] = seed_file
 
-    # update file_dict with all seed files
-    file_dict["Seed Files"] = seed_res
+    # update file_dict with all seed_files
+    file_dict["seed_files"] = seed_res
     return file_dict
 
 
@@ -308,14 +327,14 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
     ]
 
     # get file_dict values
-    len_tr = file_dict["TR Length"]
+    len_tr = file_dict["len_tr"]
     res_mult = file_dict["resamp_mult"]
-    seed_res = file_dict["Seed Files"]
+    seed_res = file_dict["seed_files"]
 
     # list of run length in seconds
     run_len = []
     num_vol = []
-    for scale_file in file_dict["Scale Data"]:
+    for scale_file in file_dict["scale_files"]:
         h_cmd = f"module load afni-20.2.06 \n 3dinfo -ntimes {scale_file}"
         h_out, h_err = submit_hpc_subprocess(h_cmd)
         h_vol = int(h_out.decode("utf-8").strip())
@@ -383,7 +402,7 @@ def behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict, stim_d
             assert os.path.exists(final_file), f"Failed to make {final_file}"
             final_dict[f"{seed_name}_{h_beh}"] = final_file
 
-    file_dict["Final Files"] = final_dict
+    file_dict["final_files"] = final_dict
     return file_dict
 
 
@@ -407,6 +426,7 @@ def main():
         os.makedirs(subj_out)
 
     file_dict = clean_data(subj, subj_data, subj_out, decon_str)
+    file_dict = hrf_model(subj_out, file_dict)
     file_dict = seed_timeseries(subj, subj_out, file_dict, seed_dict)
     file_dict = behavior_timeseries(subj, sess, task, subj_data, subj_out, file_dict)
 
