@@ -1,17 +1,32 @@
 """Title
 
 Desc.
+
+Examples
+--------
+sbatch --job-name=p1234 \\
+    --output=p1234 \\
+    --mem-per-cpu=4000 \\
+    --partition=IB_44C_512G \\
+    --account=iacc_madlab \\
+    --qos=pq_madlab \\
+    func1_ppi.py \\
+    -s sub-1234 \\
+    -d decon_task-test_UniqueBehs
 """
 
 # %%
 import os
+import sys
 import glob
 import fnmatch
+import shutil
 import subprocess
 import pandas as pd
+import textwrap
+from argparse import ArgumentParser, RawTextHelpFormatter
 
 
-# %%
 def submit_hpc_subprocess(bash_command):
     """Submit quick job as subprocess.
 
@@ -100,7 +115,6 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, out_dir)
     return (job_name, job_id)
 
 
-# %%
 def clean_data(subj, subj_out, afni_data):
     """Title.
 
@@ -185,7 +199,6 @@ def clean_data(subj, subj_out, afni_data):
     return afni_data
 
 
-# %%
 def hrf_model(subj_out, afni_data, dur=2):
     """Title.
 
@@ -219,7 +232,6 @@ def hrf_model(subj_out, afni_data, dur=2):
     return afni_data
 
 
-# %%
 def seed_timeseries(subj, subj_out, afni_data, seed_coord):
     """Title.
 
@@ -282,7 +294,6 @@ def seed_timeseries(subj, subj_out, afni_data, seed_coord):
     return afni_data
 
 
-# %%
 def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
     """Title.
 
@@ -372,7 +383,6 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
     return afni_data
 
 
-# %%
 def mot_files(subj_out, afni_data):
     """Constuct motion and censor files
 
@@ -713,27 +723,132 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     return afni_data
 
 
+def copy_data(subj_out, subj_data, decon_ppi):
+    """Title.
+
+    Desc.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}.* {subj_data}"
+    h_out, h_err = submit_hpc_subprocess(h_cmd)
+    check_file = os.path.join(subj_data, f"{decon_ppi}_stats_REML+tlrc.HEAD")
+    assert os.path.exists(check_file), f"Missing PPI decon file in {subj_data}"
+
+
+def get_args():
+    """Get and parse arguments"""
+    parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
+
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        default="/home/data/madlab/McMakin_EMUR01/derivatives/afni",
+        help=textwrap.dedent(
+            """\
+            Path to BIDS-formatted derivatives directory containing output
+            of github.com/emu-project/func_processing/cli/run_afni.py
+            (default : %(default)s)
+            """
+        ),
+    )
+    parser.add_argument(
+        "--deriv-dir",
+        type=str,
+        default="/scratch/madlab/emu_unc/derivatives/afni_ppi",
+        help=textwrap.dedent(
+            """\
+            Path to desired scratch location, for intermediates.
+            (default : %(default)s)
+            """
+        ),
+    )
+    parser.add_argument(
+        "--sess",
+        type=str,
+        default="ses-S2",
+        help=textwrap.dedent(
+            """\
+            BIDS-formatted session string
+            (default : %(default)s)
+            """
+        ),
+    )
+    parser.add_argument(
+        "--task",
+        type=str,
+        default="task-test",
+        help=textwrap.dedent(
+            """\
+            BIDS-formatted task string
+            (default : %(default)s)
+            """
+        ),
+    )
+
+    required_args = parser.add_argument_group("Required Arguments")
+    required_args.add_argument(
+        "-s",
+        "--subj",
+        help="BIDS subject str (sub-1234)",
+        type=str,
+        required=True,
+    )
+    required_args.add_argument(
+        "-d",
+        "--decon-name",
+        help="Prefix of decon file (decon_task-test_UniqueBehs)",
+        type=str,
+        required=True,
+    )
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    return parser
+
+
 # %%
 def main():
 
-    # For testing
-    data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
-    deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
-    subj = "sub-4001"
-    sess = "ses-S2"
-    task = "task-test"
-    decon_str = f"decon_{task}_UniqueBehs"
+    # # For testing
+    # data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
+    # deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
+    # subj = "sub-4001"
+    # sess = "ses-S2"
+    # task = "task-test"
+    # decon_str = f"decon_{task}_UniqueBehs"
+
+    # check for correct conda env
+    assert (
+        "emuR01_unc_env" in sys.executable
+    ), "Please activate emuR01_unc conda environment."
+
+    # get passed args
+    args = get_args().parse_args()
+    data_dir = args.data_dir
+    deriv_dir = args.deriv_dir
+    subj = args.subj
+    sess = args.sess
+    task = args.task
+    decon_str = args.decon_name
 
     # make dict for seed construction from coordinates
     seed_coord = {"LHC": "-24 -12 -22"}
 
+    # setup paths
     subj_data = os.path.join(data_dir, subj, sess, "func")
     subj_out = os.path.join(deriv_dir, subj, sess, "func")
     if not os.path.exists(subj_out):
         os.makedirs(subj_out)
 
-    # get required files produced by:
-    #   github.com/emu-project/func_processing/cli/run_afni.py
+    # get required files produced by
+    # github.com/emu-project/func_processing/cli/run_afni.py
     afni_data = {}
     afni_data["scaled_files"] = sorted(
         glob.glob(f"{subj_data}/*desc-scaled_bold.nii.gz")
@@ -768,8 +883,12 @@ def main():
         decon_ppi = f"{decon_str}_PPI-{seed}"
         write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data)
         run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
-    print(afni_data)
+        copy_data(subj_out, subj_data, decon_ppi)
+
+    # clean up
+    shutil.rmtree(os.path.join(deriv_dir, subj))
 
 
+# %%
 if __name__ == "__main__":
     main()
