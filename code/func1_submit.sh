@@ -84,7 +84,7 @@ fi
 # check for conda env
 which python | grep "emuR01_unc" > /dev/null 2>&1
 if [ $? != 0 ]; then
-    echo "\n\t ERROR: Please conda activate emuR01_unc_env and try again.\n" >&2
+    echo -e "\n\t ERROR: Please conda activate emuR01_unc_env and try again.\n" >&2
     exit 1
 fi
 
