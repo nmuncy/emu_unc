@@ -621,7 +621,6 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
             -xjpeg {subj_out}/X.{decon_ppi}.jpg \\
             -x1D_uncensored {subj_out}/X.{decon_ppi}.nocensor.xmat.1D \\
             -bucket {subj_out}/{decon_ppi}_stats \\
-            -cbucket {subj_out}/{decon_ppi}_cbucket \\
             -errts {subj_out}/{decon_ppi}_errts
     """
 
@@ -643,7 +642,7 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
     return afni_data
 
 
-def run_ppi_reml(work_dir, afni_data):
+def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     """Deconvolve EPI timeseries.
 
     Generate an idea of nuissance signal from the white matter and
@@ -663,24 +662,16 @@ def run_ppi_reml(work_dir, afni_data):
         epi-nuiss = nuissance signal file
         rml-<decon_name> = deconvolved file (<decon_name>_stats_REML+tlrc)
     """
-    # check for files
-    num_epi = len([y for x, y in afni_data.items() if "epi-scale" in x])
-    assert (
-        num_epi > 0
-    ), "ERROR: afni_data['epi-scale?'] not found. Check resources.afni.process.scale_epi."
 
-    assert afni_data[
-        "mask-erodedWM"
-    ], "ERROR: afni_data['mask-erodedWM'] not found. Check resources.afni.masks.make_tissue_masks."
+    subj_num = subj.split("-")[-1]
+    epi_list = afni_data["scaled_files"]
+    eroded_mask = afni_data["wme_mask"]
+    h_nuiss = epi_list[0].split("/")[-1].replace("_run-1", "")
+    nuiss_file = os.path.join(
+        subj_out, h_nuiss.replace("desc-scaled", "desc-nuissance")
+    )
 
     # generate WM timeseries (nuissance file) for task
-    epi_list = [x for k, x in afni_data.items() if "epi-scale" in k]
-    eroded_mask = afni_data["mask-erodedWM"]
-    nuiss_file = (
-        epi_list[0].replace("_run-1", "").replace("desc-scaled", "desc-nuissance")
-    )
-    subj_num = epi_list[0].split("sub-")[-1].split("_")[0]
-
     if not os.path.exists(nuiss_file):
         print(f"Making nuissance file {nuiss_file} ...")
         tcat_file = "tmp_tcat.sub".join(nuiss_file.rsplit("sub", 1))
@@ -701,40 +692,24 @@ def run_ppi_reml(work_dir, afni_data):
                 -prefix {nuiss_file} \
                 {epi_eroded}
         """
-        job_name, job_id = submit.submit_hpc_sbatch(
-            h_cmd, 1, 4, 1, f"{subj_num}wts", f"{work_dir}/sbatch_out"
-        )
-    assert os.path.exists(
-        nuiss_file
-    ), f"{nuiss_file} failed to write, check resources.afni.deconvolve.run_reml."
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}wts", subj_out)
+    assert os.path.exists(nuiss_file), f"Failed to write {nuiss_file}"
     afni_data["epi-nuiss"] = nuiss_file
 
     # run each planned deconvolution
-    num_dcn = len([y for x, y in afni_data.items() if "dcn-" in x])
-    assert (
-        num_dcn > 0
-    ), "ERROR: afni_data['dcn-*'] not found. Check resources.afni.deconvolve.write_decon."
-
-    reml_list = [x for k, x in afni_data.items() if "dcn-" in k]
-    for reml_script in reml_list:
-        decon_name = reml_script.split("decon_")[1].split("_")[1]
-        reml_out = reml_script.replace(".REML_cmd", "_REML+tlrc.HEAD")
-        if not os.path.exists(reml_out):
-            print(f"Starting 3dREMLfit for {decon_name} ...")
-            h_cmd = f"""
-                tcsh \
-                    -x {reml_script} \
-                    -dsort {afni_data["epi-nuiss"]} \
-                    -GOFORIT
-            """
-            job_name, job_id = submit.submit_hpc_sbatch(
-                h_cmd, 25, 4, 6, f"{subj_num}rml", f"{work_dir}/sbatch_out"
-            )
-        assert os.path.exists(
-            reml_out
-        ), f"{reml_out} failed to write, check resources.afni.deconvolve.run_reml."
-        afni_data[f"rml-{decon_name}"] = reml_out.split(".")[0]
-
+    reml_script = afni_data[decon_ppi]
+    reml_out = reml_script.replace(".REML_cmd", "_REML+tlrc.HEAD")
+    if not os.path.exists(reml_out):
+        print(f"Starting 3dREMLfit for {decon_ppi} ...")
+        h_cmd = f"""
+            tcsh \
+                -x {reml_script} \
+                -dsort {afni_data["epi-nuiss"]} \
+                -GOFORIT
+        """
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 25, 4, 6, f"{subj_num}rml", subj_out)
+    assert os.path.exists(reml_out), f"Failed to write {reml_out}"
+    afni_data[f"rml-{decon_ppi}"] = reml_out.split(".")[0]
     return afni_data
 
 
@@ -790,7 +765,9 @@ def main():
     # do decons for each seed
     afni_data = mot_files(subj_out, afni_data)
     for seed in seed_coord:
-        write_ppi_decon(subj, f"{decon_str}_PPI-{seed}", subj_out, seed, afni_data)
+        decon_ppi = f"{decon_str}_PPI-{seed}"
+        write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data)
+        run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
     print(afni_data)
 
 
