@@ -687,7 +687,8 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     if not os.path.exists(nuiss_file):
         print(f"Making nuissance file {nuiss_file} ...")
         tcat_file = "tmp_tcat.sub".join(nuiss_file.rsplit("sub", 1))
-        epi_eroded = "tmp_epi.sub".join(eroded_mask.rsplit("sub", 1))
+        h_eroded = eroded_mask[0].split("/")[-1]
+        epi_eroded = os.path.join(subj_out, f"tmp_epi.{h_eroded}")
         h_cmd = f"""
             3dTcat -prefix {tcat_file} {" ".join(epi_list)}
 
