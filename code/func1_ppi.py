@@ -737,7 +737,7 @@ def copy_data(subj_out, subj_data, decon_ppi):
     Returns
     -------
     """
-    h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}.* {subj_data}"
+    h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}* {subj_data}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
     check_file = os.path.join(subj_data, f"{decon_ppi}_stats_REML+tlrc.HEAD")
     assert os.path.exists(check_file), f"Missing PPI decon file in {subj_data}"

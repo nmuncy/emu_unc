@@ -4,6 +4,14 @@ Desc.
 
 Examples
 --------
+sbatch --job-name=p1234 \\
+    --output=p1234 \\
+    --mem-per-cpu=4000 \\
+    --partition=IB_44C_512G \\
+    --account=iacc_madlab \\
+    --qos=pq_madlab \\
+    func0_masks.py \\
+    -s sub-1234
 """
 
 # %%
@@ -11,6 +19,8 @@ import os
 import sys
 import json
 import glob
+import textwrap
+from argparse import ArgumentParser, RawTextHelpFormatter
 from func1_ppi import submit_hpc_sbatch
 
 
@@ -102,19 +112,94 @@ def make_mask(subj, sess, work_dir, file_dict):
 
 
 # %%
+def get_args():
+    """Get and parse arguments"""
+    parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
+
+    parser.add_argument(
+        "--proj-dir",
+        type=str,
+        default="/home/data/madlab/McMakin_EMUR01",
+        help=textwrap.dedent(
+            """\
+            Path to BIDS-formatted derivatives directory containing output
+            of github.com/emu-project/func_processing/cli/run_afni.py
+            (default : %(default)s)
+            """
+        ),
+    )
+    parser.add_argument(
+        "--scratch-dir",
+        type=str,
+        default="/scratch/madlab/emu_unc",
+        help=textwrap.dedent(
+            """\
+            Path to desired scratch location, for intermediates.
+            (default : %(default)s)
+            """
+        ),
+    )
+    parser.add_argument(
+        "--sess",
+        type=str,
+        default="ses-S2",
+        help=textwrap.dedent(
+            """\
+            BIDS-formatted session string
+            (default : %(default)s)
+            """
+        ),
+    )
+    parser.add_argument(
+        "--task",
+        type=str,
+        default="task-test",
+        help=textwrap.dedent(
+            """\
+            BIDS-formatted task string
+            (default : %(default)s)
+            """
+        ),
+    )
+
+    required_args = parser.add_argument_group("Required Arguments")
+    required_args.add_argument(
+        "-s",
+        "--subj",
+        help="BIDS subject str (sub-1234)",
+        type=str,
+        required=True,
+    )
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    return parser
+
+
+# %%
 def main():
 
-    # For testing
-    proj_dir = "/home/data/madlab/McMakin_EMUR01"
-    scratch_dir = "/scratch/madlab/emu_unc"
-    subj = "sub-4001"
-    sess = "ses-S2"
-    task = "task-test"
+    # # For testing
+    # proj_dir = "/home/data/madlab/McMakin_EMUR01"
+    # scratch_dir = "/scratch/madlab/emu_unc"
+    # subj = "sub-4001"
+    # sess = "ses-S2"
+    # task = "task-test"
 
     # check for correct conda env
     assert (
         "emuR01_unc_env" in sys.executable
     ), "Please activate emuR01_unc conda environment."
+
+    # get passed args
+    args = get_args().parse_args()
+    proj_dir = args.proj_dir
+    scratch_dir = args.scratch_dir
+    subj = args.subj
+    sess = args.sess
+    task = args.task
 
     # set up
     atlas_dir = "/home/data/madlab/atlases/templateflow/tpl-MNIPediatricAsym/cohort-5"
