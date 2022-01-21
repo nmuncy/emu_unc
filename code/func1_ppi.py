@@ -687,7 +687,8 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     if not os.path.exists(nuiss_file):
         print(f"Making nuissance file {nuiss_file} ...")
         tcat_file = "tmp_tcat.sub".join(nuiss_file.rsplit("sub", 1))
-        epi_eroded = "tmp_epi.sub".join(eroded_mask.rsplit("sub", 1))
+        h_eroded = eroded_mask.split("/")[-1]
+        epi_eroded = os.path.join(subj_out, f"tmp_epi.{h_eroded}")
         h_cmd = f"""
             3dTcat -prefix {tcat_file} {" ".join(epi_list)}
 
@@ -818,13 +819,13 @@ def get_args():
 # %%
 def main():
 
-    # # For testing
-    # data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
-    # deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
-    # subj = "sub-4001"
-    # sess = "ses-S2"
-    # task = "task-test"
-    # decon_str = f"decon_{task}_UniqueBehs"
+    # For testing
+    data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
+    deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
+    subj = "sub-4001"
+    sess = "ses-S2"
+    task = "task-test"
+    decon_str = f"decon_{task}_UniqueBehs"
 
     # check for correct conda env
     assert (
