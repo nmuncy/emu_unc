@@ -101,7 +101,7 @@ def ants_warp(subj, work_dir, file_dict):
                 -d 3 \
                 -f {file_dict["mni-atlas"]} \
                 -m {file_dict["ntv-b0"]} \
-                -o ${work_dir}/ants_ \
+                -o {work_dir}/ants_ \
                 -n 4
         """
         subj_num = subj.split("-")[1]
@@ -288,7 +288,7 @@ def main():
     )
 
     file_dict = ants_warp(subj, work_dir, file_dict)
-    file_dict = make_mask(subj, sess, work_dir, file_dict)
+    file_dict = make_mask(subj, sess, work_dir, out_dir, file_dict)
 
 
 if __name__ == "__main__":
