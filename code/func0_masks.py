@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-"""Title
+"""Make kmeans bla masks.
 
-Desc.
+Use bla amygdala masks from kmeans to make
+resampled masks in template space.
 
 Examples
 --------
@@ -84,15 +85,28 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, work_dir
 
 
 def ants_warp(subj, work_dir, file_dict):
-    """Title.
+    """Register DWI to T2w template.
 
-    Desc.
+    Calculate symmetric normalization warp vectors
+    to move from native diffusion to template space.
 
     Parameters
     ----------
+    subj : str
+        BIDS subject string (sub-1234)
+    work_dir : str
+        path to scratch working directory for subj
+    file_dict : dict
+        key, path to needed files
+        mni-atlas = path to MNI PediatricAsym cohort-5 T2w res-2
+        ntv-b0 = path to subject b0 file
 
     Returns
     -------
+        file_dict : dict
+            updated with paths to new files
+            mni-b0 = path to warped b0 file
+            wrp-calc = path to normalizations calculations
     """
     ants_warp = os.path.join(work_dir, "ants_Warped.nii.gz")
     if not os.path.exists(ants_warp):
@@ -115,15 +129,36 @@ def ants_warp(subj, work_dir, file_dict):
 
 # %%
 def make_mask(subj, sess, work_dir, out_dir, file_dict):
-    """Title.
+    """Generate BLA masks in template space.
 
-    Desc.
+    Extract BLA mask, warp it into template space using
+    calculations from ants_warp, resample into
+    functional dimensions, and then binarize.
 
     Parameters
     ----------
+    subj : str
+        BIDS subject string (sub-1234)
+    sess : str
+        BIDS session string (ses-S2)
+    work_dir : str
+        path to scratch working directory for subj
+    out_dir : str
+        path to final output location for mask
+    file_dict : dict
+        key, path to needed files
+        ntv-mask = kmeans mask in native space
+        bla-num = BLA label value in kmeans mask
+        mni-atlas = path to MNI atlas
+        mni-b0 = path to warped b0 file
+        wrp-calc = path to normalizations calculations
+        epi-ref = path to reference EPI file
 
     Returns
     -------
+    file_dict : dict
+        updated with path to new file
+        mni-mask = path to bla mask in template space
     """
 
     bla_num = file_dict["bla-num"]

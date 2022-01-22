@@ -2,7 +2,15 @@
 
 function Usage {
     cat << USAGE
-    Foo
+    Wrapper for func0_masks.py. Checks for which subjects have
+    kmeans amygdala masks and not a resampled BLA mask in template
+    space. Submits sbatch jobs for N subjects meeting checks.
+
+    Required Arguments:
+        -d <project_derivatives> = path to project derivatives location
+        -w <scratch_directory> = path to parent scratch directory
+        -s <session> = BIDS session string
+        -n <number> = number of subjects to submit jobs
 
     Example Usage:
         ./func0_submit.sh \\
