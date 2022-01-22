@@ -12,7 +12,7 @@ sbatch --job-name=p1234 \\
     --partition=IB_44C_512G \\
     --account=iacc_madlab \\
     --qos=pq_madlab \\
-    func1_ppi.py \\
+    func2_ppi.py \\
     -s sub-1234 \\
     -d decon_task-test_UniqueBehs
 """
