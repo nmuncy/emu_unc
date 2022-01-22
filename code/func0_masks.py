@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Title
 
 Desc.
@@ -20,11 +22,67 @@ import sys
 import json
 import glob
 import textwrap
+import subprocess
 from argparse import ArgumentParser, RawTextHelpFormatter
-from func1_ppi import submit_hpc_sbatch
 
 
 # %%
+def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, work_dir):
+    """Submit job to slurm scheduler (sbatch).
+
+    Sbatch submit a larger job with scheduled resources. Waits for
+    job_name to no longer be found in squeue. Stderr/out written to
+    out_dir/sbatch_<job_name>.err/out. Supports AFNI and c3d commands.
+
+    Parameters
+    ----------
+    command : str
+        Bash code to be scheduled
+    wall_hours : int
+        number of desired walltime hours
+    mem_gig : int
+        amount of desired RAM
+    num_proc : int
+        number of desired processors
+    job_name : str
+        job name
+    out_dir : str
+        location for <job_name>.err/out
+
+    Returns
+    -------
+    (job_name, job_id) : tuple of str
+        job_name = scheduled job name
+        job_id = scheduled job ID
+
+    Example
+    -------
+    submit_hpc_sbatch("afni -ver")
+    """
+    sbatch_job = f"""
+        sbatch \
+        -J {job_name} \
+        -t {wall_hours}:00:00 \
+        --cpus-per-task={num_proc} \
+        --mem-per-cpu={mem_gig}000 \
+        -p IB_44C_512G \
+        -o {work_dir}/{job_name}.out \
+        -e {work_dir}/{job_name}.err \
+        --account iacc_madlab --qos pq_madlab \
+        --wait \
+        --wrap="module load afni-20.2.06
+            module load c3d-1.0.0-gcc-8.2.0
+            module load ants-2.3.5
+            {command}
+        "
+    """
+    if not os.path.exists(work_dir):
+        os.makedirs(work_dir)
+    sbatch_response = subprocess.Popen(sbatch_job, shell=True, stdout=subprocess.PIPE)
+    job_id = sbatch_response.communicate()[0].decode("utf-8")
+    return (job_name, job_id)
+
+
 def ants_warp(subj, work_dir, file_dict):
     """Title.
 
@@ -39,7 +97,6 @@ def ants_warp(subj, work_dir, file_dict):
     ants_warp = os.path.join(work_dir, "ants_Warped.nii.gz")
     if not os.path.exists(ants_warp):
         h_cmd = f"""
-            module load ants-2.3.5
             antsRegistrationSyN.sh \
                 -d 3 \
                 -f {file_dict["mni-atlas"]} \
@@ -57,7 +114,7 @@ def ants_warp(subj, work_dir, file_dict):
 
 
 # %%
-def make_mask(subj, sess, work_dir, file_dict):
+def make_mask(subj, sess, work_dir, out_dir, file_dict):
     """Title.
 
     Desc.
@@ -73,13 +130,11 @@ def make_mask(subj, sess, work_dir, file_dict):
     space = file_dict["mni-atlas"].split("/")[-1].split("tpl-")[1].split("_")[0]
     cohort = file_dict["mni-atlas"].split("/")[-1].split("cohort-")[1].split("_")[0]
     bla_mask = os.path.join(
-        work_dir,
+        out_dir,
         f"{subj}_{sess}_space-{space}_cohort-{cohort}_res-2_desc-bla_mask.nii.gz",
     )
     if not os.path.exists(bla_mask):
         h_cmd = f"""
-            module load ants-2.3.5
-
             c3d \
                 {file_dict["ntv-mask"]} \
                 -thresh {bla_num} {bla_num} 1 0 \
@@ -207,8 +262,10 @@ def main():
     b0_dir = os.path.join(proj_dir, "derivatives/dwi_bedpostx", subj, "emubpx/b0_file")
     epi_dir = os.path.join(proj_dir, "dset", subj, sess, "func")
     work_dir = os.path.join(scratch_dir, "derivatives/kmeans_warp", subj, sess, "dwi")
-    if not os.path.exists(work_dir):
-        os.makedirs(work_dir)
+    out_dir = os.path.join(proj_dir, "derivatives/afni", subj, sess, "dwi")
+    for h_dir in [work_dir, out_dir]:
+        if not os.path.exists(h_dir):
+            os.makedirs(h_dir)
 
     # get label definitions
     with open(
