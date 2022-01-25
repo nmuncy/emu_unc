@@ -24,7 +24,6 @@ function Usage {
     from the group-level masks.
 
     Required Arguments:
-        -a <atlas> = path to atlas
         -d <project_derivatives> = path to project derivatives location
         -w <scratch_directory> = path to working scratch/derivatives/kmeans_warp directory
         -s <session> = BIDS session string
@@ -34,7 +33,6 @@ function Usage {
             -e err.log \\
             -o out.log \\
             func1_combine.sh \\
-            -a /home/data/madlab/atlases/templateflow/tpl-MNIPediatricAsym/cohort-5/tpl-MNIPediatricAsym_cohort-5_res-2_T2w.nii.gz \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -w /scratch/madlab/emu_unc/derivatives/kmeans_warp \\
             -s ses-S2
@@ -42,11 +40,8 @@ USAGE
 }
 
 # capture arguments
-while getopts ":a:d:s:w:h" OPT; do
+while getopts ":d:s:w:h" OPT; do
     case $OPT in
-    a)
-        atlas=${OPTARG}
-        ;;
     d)
         deriv_dir=${OPTARG}
         ;;
@@ -77,12 +72,6 @@ fi
 # check args
 if [ ! -d $deriv_dir ]; then
     echo -e "\n\t ERROR: -d directory not found.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ ! -f $atlas ]; then
-    echo -e "\n\t ERROR: please specify -a atlas.\n" >&2
     Usage
     exit 1
 fi
@@ -185,9 +174,6 @@ c3d \
     -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaR_mask.nii.gz
 
 for hemi in L R; do
-    3drefit \
-        -atrcopy $atlas IJK_TO_DICOM_REAL \
-        ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-bla${hemi}_mask.nii.gz
     3drefit \
         -space MNI \
         ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-bla${hemi}_mask.nii.gz
