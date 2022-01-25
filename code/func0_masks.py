@@ -192,6 +192,10 @@ def make_mask(subj, sess, work_dir, out_dir, file_dict):
                 {work_dir}/tmp_bla_res.nii.gz \
                 -thresh 0.3 1 1 0 \
                 -o {bla_mask}
+
+            3drefit \
+                -space MNI \
+                {bla_mask}
         """
         subj_num = subj.split("-")[1]
         h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}wrp", work_dir)
@@ -295,7 +299,7 @@ def main():
     atlas_dir = "/home/data/madlab/atlases/templateflow/tpl-MNIPediatricAsym/cohort-5"
     kmean_dir = os.path.join(proj_dir, "derivatives/kmeans", subj, sess, "dwi")
     b0_dir = os.path.join(proj_dir, "derivatives/dwi_bedpostx", subj, "emubpx/b0_file")
-    epi_dir = os.path.join(proj_dir, "dset", subj, sess, "func")
+    epi_dir = os.path.join(proj_dir, "derivatives/afni", subj, sess, "func")
     work_dir = os.path.join(scratch_dir, "derivatives/kmeans_warp", subj, sess, "dwi")
     out_dir = os.path.join(proj_dir, "derivatives/afni", subj, sess, "dwi")
     for h_dir in [work_dir, out_dir]:
@@ -319,7 +323,8 @@ def main():
         atlas_dir, "tpl-MNIPediatricAsym_cohort-5_res-2_T2w.nii.gz"
     )
     file_dict["epi-ref"] = os.path.join(
-        epi_dir, f"{subj}_{sess}_{task}_run-1_bold.nii.gz"
+        epi_dir,
+        f"{subj}_{sess}_{task}_run-1_space-MNIPediatricAsym_cohort-5_res-2_desc-scaled_bold.nii.gz",
     )
 
     file_dict = ants_warp(subj, work_dir, file_dict)

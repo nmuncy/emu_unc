@@ -846,31 +846,31 @@ def get_args():
 # %%
 def main():
 
-    # For testing
-    data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
-    deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
-    subj = "sub-4001"
-    sess = "ses-S2"
-    task = "task-test"
-    decon_str = f"decon_{task}_UniqueBehs"
-    seed_name = "blaL"
-    seed_info = "/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz"
+    # # For testing
+    # data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
+    # deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
+    # subj = "sub-4001"
+    # sess = "ses-S2"
+    # task = "task-test"
+    # decon_str = f"decon_{task}_UniqueBehs"
+    # seed_name = "blaL"
+    # seed_info = "/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz"
 
     # check for correct conda env
     assert (
         "emuR01_unc_env" in sys.executable
     ), "Please activate emuR01_unc conda environment."
 
-    # # get passed args
-    # args = get_args().parse_args()
-    # data_dir = args.data_dir
-    # deriv_dir = args.deriv_dir
-    # subj = args.subj
-    # sess = args.sess
-    # task = args.task
-    # decon_str = args.decon_name
-    # seed_name = args.seed_name
-    # seed_info = args.seed_info
+    # get passed args
+    args = get_args().parse_args()
+    data_dir = args.data_dir
+    deriv_dir = args.deriv_dir
+    subj = args.subj
+    sess = args.sess
+    task = args.task
+    decon_str = args.decon_name
+    seed_name = args.seed_name
+    seed_info = args.seed_info
 
     # setup paths/dicts
     seed_tuple = (seed_name, seed_info)
