@@ -24,7 +24,7 @@ function Usage {
     from the group-level masks.
 
     Required Arguments:
-        -d <project_derivatives> = path to project derivatives/afni location
+        -d <project_derivatives> = path to project derivatives location
         -w <scratch_directory> = path to working scratch/derivatives/kmeans_warp directory
         -s <session> = BIDS session string
 
@@ -33,7 +33,7 @@ function Usage {
             -e err.log \\
             -o out.log \\
             func1_combine.sh \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
+            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -w /scratch/madlab/emu_unc/derivatives/kmeans_warp \\
             -s ses-S2
 USAGE
@@ -91,12 +91,16 @@ fi
 # load required modules (c3d)
 module load c3d-1.0.0-gcc-8.2.0
 
+# set up paths
+afni_dir=${deriv_dir}/afni
+out_dir=${deriv_dir}/emu_unc
+
 # find subjects with func0_masks.py mask
-subj_all=($(ls $deriv_dir | grep "sub-*"))
+subj_all=($(ls $afni_dir | grep "sub-*"))
 file_list=()
 subj_list=()
 for subj in ${subj_all[@]}; do
-    check_file=${deriv_dir}/${subj}/${sess}/dwi/${subj}_${sess}_space-MNIPediatricAsym_cohort-5_res-2_desc-bla_mask.nii.gz
+    check_file=${afni_dir}/${subj}/${sess}/dwi/${subj}_${sess}_space-MNIPediatricAsym_cohort-5_res-2_desc-bla_mask.nii.gz
     if [ -f $check_file ]; then
         echo -e "\t Found file for $subj"
         file_list+=($check_file)
@@ -162,6 +166,8 @@ c3d \
 c3d \
     ${scratch_dir}/bla_mask_bin.nii.gz \
     -as SEG -cmv -pop -pop -thresh 50% inf 1 0 -as MASK \
-    -push SEG -times -o ${scratch_dir}/bla_mask_left.nii.gz \
+    -push SEG -times \
+    -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \
     -push MASK -replace 1 0 0 1 \
-    -push SEG -times -o ${scratch_dir}/bla_mask_right.nii.gz
+    -push SEG -times \
+    -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaR_mask.nii.gz
