@@ -5,27 +5,54 @@ function Usage {
     Foo
 
     Example Usage:
-        ./func2_submit.sh \\
+        $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
             -f decon_task-test_UniqueBehs_PPI-LHC \\
             -s ses-S2 \\
+            -r blaL \\
+            -i /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \\
+            -n 8
+
+        $0 \\
+            -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
+            -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
+            -f decon_task-test_UniqueBehs_PPI-LHC \\
+            -s ses-S2 \\
+            -r LHC \\
+            -i "-24 -12 -22" \\
             -n 8
 
 USAGE
 }
 
 # capture arguments
-while getopts ":d:f:n:s:w:h" OPT; do
+while getopts ":d:f:i:n:r:s:w:" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
+        if [ ! -d $deriv_dir ]; then
+            echo -e "\n\t ERROR: -d directory not found.\n" >&2
+            Usage
+            exit 1
+        fi
         ;;
     f)
         ppi_str=${OPTARG}
         ;;
+    i)
+        seed_info=${OPTARG}
+        ;;
     n)
         num_subj=${OPTARG}
+        if [ $num_subj -lt 1 ]; then
+            echo -e "\n\t ERROR: -n value must be greater than 0.\n" >&2
+            Usage
+            exit 1
+        fi
+        ;;
+    r)
+        seed_name=${OPTARG}
         ;;
     s)
         sess=${OPTARG}
@@ -33,12 +60,13 @@ while getopts ":d:f:n:s:w:h" OPT; do
     w)
         scratch_dir=${OPTARG}
         ;;
-    h)
-        Usage
-        exit 0
-        ;;
     \?)
-        echo -e "\n \t ERROR: invalid option." >&2
+        echo "\n\t Error: invalid option -${OPTARG}."
+        Usage
+        exit 1
+        ;;
+    :)
+        echo "\n\t Error: -${OPTARG} requires an argument."
         Usage
         exit 1
         ;;
@@ -52,18 +80,6 @@ if [ $OPTIND == 1 ]; then
 fi
 
 # check args
-if [ $num_subj -lt 1 ]; then
-    echo -e "\n\t ERROR: -n value must be greater than 0.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ ! -d $deriv_dir ]; then
-    echo -e "\n\t ERROR: -d directory not found.\n" >&2
-    Usage
-    exit 1
-fi
-
 if [ -z $scratch_dir ]; then
     echo -e "\n\t ERROR: please specify -w directory.\n" >&2
     Usage
@@ -82,6 +98,18 @@ if [ -z $sess ]; then
     exit 1
 fi
 
+if [ -z $seed_name ]; then
+    echo -e "\n\t ERROR: please specify -r <seed name>.\n" >&2
+    Usage
+    exit 1
+fi
+
+if [ ${#seed_info} -lt 8 ]; then
+    echo -e "\n\t ERROR: argument -i <seed-info> not configured correctly.\n" >&2
+    Usage
+    exit 1
+fi
+
 # check for conda env
 which python | grep "emuR01_unc" >/dev/null 2>&1
 if [ $? != 0 ]; then
@@ -90,14 +118,16 @@ if [ $? != 0 ]; then
 fi
 
 # print report
-cat <<EOF
+cat <<-EOF
 
-    Success! Checks passed, starting work with the following variables:
+    Checks passed, captured the options:
         -w : $scratch_dir
         -d : $deriv_dir
         -f : $ppi_str
         -s : $sess
         -n : $num_subj
+        -r : $seed_name
+        -i : $seed_info
 
 EOF
 
@@ -133,7 +163,10 @@ while [ $c -lt $num_subj ]; do
         --qos=pq_madlab \
         func2_ppi.py \
         -s $subj \
-        -d $d_arg
+        -d $d_arg \
+        -r $seed_name \
+        -i "$seed_info"
 
+    sleep 1
     let c+=1
 done

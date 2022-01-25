@@ -14,7 +14,9 @@ sbatch --job-name=p1234 \\
     --qos=pq_madlab \\
     func2_ppi.py \\
     -s sub-1234 \\
-    -d decon_task-test_UniqueBehs
+    -d decon_task-test_UniqueBehs \\
+    -r LHC \\
+    -i "-24 -12 -22"
 """
 
 # %%
@@ -234,7 +236,7 @@ def hrf_model(subj_out, afni_data, dur=2):
     return afni_data
 
 
-def seed_timeseries(subj, subj_out, afni_data, seed_coord):
+def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
     """Title.
 
     Desc.
@@ -248,51 +250,62 @@ def seed_timeseries(subj, subj_out, afni_data, seed_coord):
 
     hrf_file = afni_data["hrf_model"]
     clean_data = afni_data["clean_data"]
+    seed = seed_tuple[0]
+    seed_info = seed_tuple[1]
 
-    seed_dict = {}
-    for seed, coord in seed_coord.items():
-        seed_dict[seed] = {"seed_ts": "", "seed_neural": ""}
+    seed_out = {}
+    seed_out[seed] = {"seed_ts": "", "seed_neural": ""}
+    seed_ts = os.path.join(subj_out, f"Seed_{seed}_timeSeries.1D")
+    seed_neural = os.path.join(subj_out, f"Seed_{seed}_neural.1D")
+    if not os.path.exists(seed_ts) or not os.path.exists(seed_neural):
 
-        seed_ts = os.path.join(subj_out, f"Seed_{seed}_timeSeries.1D")
-        seed_neural = os.path.join(subj_out, f"Seed_{seed}_neural.1D")
-        if not os.path.exists(seed_ts) or not os.path.exists(seed_neural):
+        # make seed if coordinates supplied as seed_info
+        if len(seed_info.split(" ")) != 1:
+            seed_file = os.path.join(subj_out, f"Seed_{seed}+tlrc.HEAD")
+            if not os.path.exists(seed_file):
+                h_cmd = f"""
+                    echo {seed_info} | 3dUndump \
+                        -xyz \
+                        -srad 3 \
+                        -master {clean_data} \
+                        -prefix {subj_out}/Seed_{seed} -
+                """
+                subj_num = subj.split("-")[1]
+                h_out, h_err = submit_hpc_sbatch(
+                    h_cmd, 1, 1, 1, f"{subj_num}mksd", subj_out
+                )
+        else:
+            seed_file = seed_info
+        assert os.path.exists(seed_file), "Seed file not found."
 
-            # make seed, get timeseries
-            print(f"\nMaking seed timeseries for {subj} - {seed}")
-            h_cmd = f"""
-                cd {subj_out}
+        # get timeseries
+        print(f"\nMaking seed timeseries for {subj} - {seed}")
+        h_cmd = f"""
+            cd {subj_out}
 
-                echo {coord} | 3dUndump \
-                    -xyz \
-                    -srad 3 \
-                    -master {clean_data} \
-                    -prefix Seed_{seed} -
+            3dmaskave \
+                -quiet \
+                -mask {seed_file} \
+                {clean_data} > {seed_ts}
 
-                3dmaskave \
-                    -quiet \
-                    -mask Seed_{seed}+tlrc \
-                    {clean_data} > {seed_ts}
+            3dTfitter \
+                -RHS {seed_ts} \
+                -FALTUNG {hrf_file} \
+                tmp.1D 012 0
 
-                3dTfitter \
-                    -RHS {seed_ts} \
-                    -FALTUNG {hrf_file} \
-                    tmp.1D 012 0
+            1dtranspose \
+                tmp.1D > {seed_neural} && \
+                rm tmp.1D
+        """
+        subj_num = subj.split("-")[1]
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}mksd", subj_out)
 
-                1dtranspose \
-                    tmp.1D > {seed_neural} && \
-                    rm tmp.1D
-            """
-            subj_num = subj.split("-")[1]
-            h_out, h_err = submit_hpc_sbatch(
-                h_cmd, 1, 4, 1, f"{subj_num}mksd", subj_out
-            )
-
-        # update seed_dict with upsampled seed
-        seed_dict[seed]["seed_ts"] = seed_ts
-        seed_dict[seed]["seed_neural"] = seed_neural
+    # update seed_out with upsampled seed
+    seed_out[seed]["seed_ts"] = seed_ts
+    seed_out[seed]["seed_neural"] = seed_neural
 
     # update afni_data with all seed_files
-    afni_data["seed_files"] = seed_dict
+    afni_data["seed_files"] = seed_out
     return afni_data
 
 
@@ -310,7 +323,7 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
 
     # get afni_data values
     len_tr = afni_data["len_tr"]
-    seed_dict = afni_data["seed_files"]
+    seed_out = afni_data["seed_files"]
     tf_list = afni_data["timing_files"]
 
     # list of run length in seconds, total number of volumes (sum_vol)
@@ -326,7 +339,7 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
 
     # start dict of final ts files
     final_dict = {}
-    for seed_name in seed_dict:
+    for seed_name in seed_out:
         final_dict[seed_name] = {}
 
     # get seed ts for e/behavior
@@ -350,13 +363,13 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
         assert os.path.exists(beh_file), f"Failed to properly make {beh_file}"
 
         # multiply beh_file by neural seed ts to get interaction term
-        for seed_name in seed_dict:
+        for seed_name in seed_out:
             final_file = os.path.join(
                 subj_out, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
             )
             if not os.path.exists(final_file):
                 print(f"\nMaking {final_file}")
-                seed_neural = seed_dict[seed_name]["seed_neural"]
+                seed_neural = seed_out[seed_name]["seed_neural"]
                 h_cmd = f"""
                     cd {subj_out}
 
@@ -808,6 +821,20 @@ def get_args():
         type=str,
         required=True,
     )
+    required_args.add_argument(
+        "-r",
+        "--seed-name",
+        help="Name of seed supplied/to be made.",
+        type=str,
+        required=True,
+    )
+    required_args.add_argument(
+        "-i",
+        "--seed-info",
+        help="Coordinates of or path to seed.",
+        type=str,
+        required=True,
+    )
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -826,25 +853,27 @@ def main():
     sess = "ses-S2"
     task = "task-test"
     decon_str = f"decon_{task}_UniqueBehs"
+    seed_name = "blaL"
+    seed_info = "/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz"
 
     # check for correct conda env
     assert (
         "emuR01_unc_env" in sys.executable
     ), "Please activate emuR01_unc conda environment."
 
-    # get passed args
-    args = get_args().parse_args()
-    data_dir = args.data_dir
-    deriv_dir = args.deriv_dir
-    subj = args.subj
-    sess = args.sess
-    task = args.task
-    decon_str = args.decon_name
+    # # get passed args
+    # args = get_args().parse_args()
+    # data_dir = args.data_dir
+    # deriv_dir = args.deriv_dir
+    # subj = args.subj
+    # sess = args.sess
+    # task = args.task
+    # decon_str = args.decon_name
+    # seed_name = args.seed_name
+    # seed_info = args.seed_info
 
-    # make dict for seed construction from coordinates
-    seed_coord = {"LHC": "-24 -12 -22"}
-
-    # setup paths
+    # setup paths/dicts
+    seed_tuple = (seed_name, seed_info)
     subj_data = os.path.join(data_dir, subj, sess, "func")
     subj_out = os.path.join(deriv_dir, subj, sess, "func")
     if not os.path.exists(subj_out):
@@ -877,16 +906,16 @@ def main():
     # generate timeseries files
     afni_data = clean_data(subj, subj_out, afni_data)
     afni_data = hrf_model(subj_out, afni_data)
-    afni_data = seed_timeseries(subj, subj_out, afni_data, seed_coord)
+    afni_data = seed_timeseries(subj, subj_out, afni_data, seed_tuple)
+    return
     afni_data = behavior_timeseries(subj, sess, task, subj_out, afni_data)
 
     # do decons for each seed
     afni_data = mot_files(subj_out, afni_data)
-    for seed in seed_coord:
-        decon_ppi = f"{decon_str}_PPI-{seed}"
-        write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data)
-        run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
-        copy_data(subj_out, subj_data, decon_ppi)
+    decon_ppi = f"{decon_str}_PPI-{seed_name}"
+    write_ppi_decon(subj, decon_ppi, subj_out, seed_name, afni_data)
+    run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
+    copy_data(subj_out, subj_data, decon_ppi)
 
     # clean up
     shutil.rmtree(os.path.join(deriv_dir, subj))
