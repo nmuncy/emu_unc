@@ -157,22 +157,24 @@ if [ ! -f ${scratch_dir}/bla_mask_sum.nii.gz ]; then
         -o ${scratch_dir}/bla_mask_sum.nii.gz
 fi
 
-# thresh, split LR
+# thresh
 echo -e "\n\t Making binary ${scratch_dir}/bla_mask_<left/right>.nii.gz"
 c3d \
     ${scratch_dir}/bla_mask_sum.nii.gz \
     -thresh 20 inf 1 0 \
     -o ${scratch_dir}/bla_mask_bin.nii.gz
 
+# split, invert LR for weird header info
 c3d \
     ${scratch_dir}/bla_mask_bin.nii.gz \
     -as SEG -cmv -pop -pop -thresh 50% inf 1 0 -as MASK \
     -push SEG -times \
-    -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \
+    -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaR_mask.nii.gz \
     -push MASK -replace 1 0 0 1 \
     -push SEG -times \
-    -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaR_mask.nii.gz
+    -o ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz
 
+# apply space
 for hemi in L R; do
     3drefit \
         -space MNI \

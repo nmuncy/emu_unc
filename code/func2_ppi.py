@@ -907,7 +907,6 @@ def main():
     afni_data = clean_data(subj, subj_out, afni_data)
     afni_data = hrf_model(subj_out, afni_data)
     afni_data = seed_timeseries(subj, subj_out, afni_data, seed_tuple)
-    return
     afni_data = behavior_timeseries(subj, sess, task, subj_out, afni_data)
 
     # do decons for each seed
