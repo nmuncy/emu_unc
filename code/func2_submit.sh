@@ -8,7 +8,7 @@ function Usage {
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
-            -f decon_task-test_UniqueBehs_PPI-LHC \\
+            -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
             -r blaL \\
             -i /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \\
@@ -17,7 +17,7 @@ function Usage {
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
-            -f decon_task-test_UniqueBehs_PPI-LHC \\
+            -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
             -r LHC \\
             -i "-24 -12 -22" \\
@@ -38,7 +38,7 @@ while getopts ":d:f:i:n:r:s:w:" OPT; do
         fi
         ;;
     f)
-        ppi_str=${OPTARG}
+        decon_str=${OPTARG}
         ;;
     i)
         seed_info=${OPTARG}
@@ -86,8 +86,8 @@ if [ -z $scratch_dir ]; then
     exit 1
 fi
 
-if [ -z $ppi_str ]; then
-    echo -e "\n\t ERROR: please specify -f PPI file name.\n" >&2
+if [ -z $decon_str ]; then
+    echo -e "\n\t ERROR: please specify -f decon prefix.\n" >&2
     Usage
     exit 1
 fi
@@ -120,10 +120,10 @@ fi
 # print report
 cat <<-EOF
 
-    Checks passed, captured the options:
+    Checks passed, options captured:
         -w : $scratch_dir
         -d : $deriv_dir
-        -f : $ppi_str
+        -f : $decon_str
         -s : $sess
         -n : $num_subj
         -r : $seed_name
@@ -135,7 +135,7 @@ EOF
 subj_list=()
 subj_all=($(ls $deriv_dir | grep "sub-*"))
 for subj in ${subj_all[@]}; do
-    ppi_file=${deriv_dir}/${subj}/${sess}/func/${ppi_str}_stats_REML+tlrc.HEAD
+    ppi_file=${deriv_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
     if [ ! -f $ppi_file ]; then
         subj_list+=($subj)
     fi
@@ -146,10 +146,21 @@ time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${scratch_dir}/slurm_out/ppi_${time}
 mkdir -p $out_dir
 
-echo "Submitting jobs for:"
-echo -e "\t${subj_list[@]:0:$num_subj}\n"
+cat <<-EOF
+    Submitting sbatch job
 
-d_arg=${ppi_str%_*}
+        func2_ppi.py \\
+            -s <subj> \\
+            -d $decon_str \\
+            -r $seed_name \\
+            -i "$seed_info"
+
+    with the following subjects:
+
+        ${subj_list[@]:0:$num_subj}
+
+EOF
+
 c=0
 while [ $c -lt $num_subj ]; do
 
@@ -163,7 +174,7 @@ while [ $c -lt $num_subj ]; do
         --qos=pq_madlab \
         func2_ppi.py \
         -s $subj \
-        -d $d_arg \
+        -d $decon_str \
         -r $seed_name \
         -i "$seed_info"
 
