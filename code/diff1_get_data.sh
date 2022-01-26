@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function Usage {
-    cat << USAGE
+    cat <<USAGE
     Copy data to a working directory.
 
     This script will copy data from a BIDS-structured project
@@ -38,34 +38,38 @@ function Usage {
 USAGE
 }
 
-
 # capture arguments
-while getopts ":d:p:s:r:x:j:h" OPT
-    do
+while getopts ":d:p:s:r:x:j:h" OPT; do
     case $OPT in
-        d) data_dir=${OPTARG}
-            ;;
-        p) proc_dir=${OPTARG}
-            ;;
-        s) sess=${OPTARG}
-            ;;
-        r) run=${OPTARG}
-            ;;
-        x) diff_dir=${OPTARG}
-            ;;
-        j) json_file=${OPTARG}
-            ;;
-        h)
-            Usage
-            exit 0
-            ;;
-        \?) echo -e "\n \t ERROR: invalid option." >&2
-            Usage
-            exit 1
-            ;;
+    d)
+        data_dir=${OPTARG}
+        ;;
+    p)
+        proc_dir=${OPTARG}
+        ;;
+    s)
+        sess=${OPTARG}
+        ;;
+    r)
+        run=${OPTARG}
+        ;;
+    x)
+        diff_dir=${OPTARG}
+        ;;
+    j)
+        json_file=${OPTARG}
+        ;;
+    h)
+        Usage
+        exit 0
+        ;;
+    \?)
+        echo -e "\n \t ERROR: invalid option." >&2
+        Usage
+        exit 1
+        ;;
     esac
 done
-
 
 # print help if no arg
 if [ $OPTIND == 1 ]; then
@@ -73,25 +77,30 @@ if [ $OPTIND == 1 ]; then
     exit 0
 fi
 
-
 # make sure required args have values - determine which (first) arg is empty
 function emptyArg {
     case $1 in
-        data_dir) h_ret="-d"
-            ;;
-        proc_dir) h_ret="-p"
-            ;;
-        sess) h_ret="-s"
-            ;;
-        run) h_ret="-r"
-            ;;
-        diff_dir) h_ret="-x"
-            ;;
-        json_file) h_ret="-j"
-            ;;
-        *)
-            echo -n "Unknown option."
-            ;;
+    data_dir)
+        h_ret="-d"
+        ;;
+    proc_dir)
+        h_ret="-p"
+        ;;
+    sess)
+        h_ret="-s"
+        ;;
+    run)
+        h_ret="-r"
+        ;;
+    diff_dir)
+        h_ret="-x"
+        ;;
+    json_file)
+        h_ret="-j"
+        ;;
+    *)
+        echo -n "Unknown option."
+        ;;
     esac
     echo -e "\n\n \t ERROR: Missing input parameter for \"${h_ret}\"." >&2
     Usage
@@ -105,14 +114,12 @@ for opt in data_dir proc_dir sess run diff_dir json_file; do
     fi
 done
 
-
 # check required files exist
 if [ ! -f $json_file ]; then
     echo -e "\n \t ERROR: $json_file not found." >&2
     Usage
     exit 1
 fi
-
 
 # check required directories exist
 if [ ! -d $data_dir ]; then
@@ -127,17 +134,16 @@ if [ ! -d ${data_dir}/derivatives/$diff_dir ]; then
     exit 1
 fi
 
-
 # print report
-cat << EOF
+cat <<EOF
 
-    Success! Checks passed, starting work with the following variables:
-        data_dir=$data_dir
-        proc_dir=$proc_dir
-        sess=$sess
-        run=$run
-        diff_dir=$diff_dir
-        json_file=$json_file
+    Checks passed, options captured:
+        -d : $data_dir
+        -p : $proc_dir
+        -s : $sess
+        -r : $run
+        -x : $diff_dir
+        -j : $json_file
 
 EOF
 
@@ -153,7 +159,7 @@ cp $json_file $work_dir
 
 # Copy, BIDs format pre-processed dwi data
 unset subj_list
-subj_list=(`ls $deriv_dir | grep "sub-*"`)
+subj_list=($(ls $deriv_dir | grep "sub-*"))
 for subj in ${subj_list[@]}; do
 
     source_dir=${deriv_dir}/${subj}/${sess}/dwi
