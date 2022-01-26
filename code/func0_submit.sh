@@ -13,7 +13,7 @@ function Usage {
         -n <number> = number of subjects to submit jobs
 
     Example Usage:
-        ./func0_submit.sh \\
+        $0 \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -w /scratch/madlab/emu_unc \\
             -s ses-S2 \\
@@ -89,7 +89,7 @@ fi
 # print report
 cat <<-EOF
 
-    Success! Checks passed, starting work with the following variables:
+    Checks passed, options captured:
         -w : $scratch_dir
         -d : $deriv_dir
         -s : $sess
@@ -98,6 +98,7 @@ cat <<-EOF
 EOF
 
 # find subjects missing kmeans masks
+echo -e "Building subject lists ...\n"
 subj_list=()
 kmeans_dir=${deriv_dir}/kmeans
 afni_dir=${deriv_dir}/afni
@@ -114,8 +115,17 @@ time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${scratch_dir}/slurm_out/kmean_${time}
 mkdir -p $out_dir
 
-echo "Submitting jobs for:"
-echo -e "\t${subj_list[@]:0:$num_subj}\n"
+cat <<-EOF
+    Submitting sbatch job
+
+        func0_masks.py \\
+            -s <subj>
+
+    with the following subjects:
+
+        ${subj_list[@]:0:$num_subj}
+
+EOF
 
 c=0
 while [ $c -lt $num_subj ]; do

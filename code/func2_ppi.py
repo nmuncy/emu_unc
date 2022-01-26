@@ -120,15 +120,34 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, out_dir)
 
 
 def clean_data(subj, subj_out, afni_data):
-    """Title.
+    """Construct Clean Data.
 
-    Desc.
+    Concatenate pre-processed EPI files and remove
+    "effects of no interest" i.e. data from deconvolved
+    sub-bricks beginning with "Run" or "mot" (these are
+    the polynomial and motion baseline regressors).
+
+    Writes <subj_out>/CleanData+tlrc
 
     Parameters
     ----------
+    subj : str
+        BIDS-formatted subject string
+    subj_out : str
+        Path to subject scratch directory
+    afni_data : dict
+        contains the fields decon_file, decon_matrix, and
+        scaled_files
 
     Returns
     -------
+    afni_data : dict
+        added fields of len_tr, clean_data
+
+    Raises
+    ------
+    AssertionError
+        missing <subj_out>/CleanData+tlrc.HEAD
     """
 
     # get TR
@@ -204,15 +223,32 @@ def clean_data(subj, subj_out, afni_data):
 
 
 def hrf_model(subj_out, afni_data, dur=2):
-    """Title.
+    """Create HRF model.
 
-    Desc.
+    Generate an idealized HRF function using the same
+    basis function used in the deconvolution (2GAM).
+
+    Writes <subj_out>/HRF_model.1D
 
     Parameters
     ----------
+    subj_out : str
+        Path to subject scratch directory
+    afni_data : dict
+        contains the fields len_tr
+    dur : int/float
+        duration of event to model
+        (default : 2)
 
     Returns
     -------
+    afni_data : dict
+        added field of hrf_model
+
+    Raises
+    ------
+    AssertionError
+        missing <subj_out>/HRF_model.1D
     """
 
     # make ideal HRF, use same model as deconvolution
@@ -237,15 +273,36 @@ def hrf_model(subj_out, afni_data, dur=2):
 
 
 def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
-    """Title.
+    """Get the seed timeseries.
 
-    Desc.
+    Extract an averaged timeseries for the voxels labeled
+    by a seed. Will construct a seed with srad=3 if coordinates
+    are supplied. The modeled HRF is then deconvolved from the
+    timeseries.
+
+    Writes <subj_out>/Seed_<seed>_<timeSeries|neural>.1D
 
     Parameters
     ----------
+    subj : str
+        BIDS-formatted subject string
+    subj_out : str
+        Path to subject scratch directory
+    afni_data : dict
+        contains the fields hrf_model, clean_data
+    seed_tuple : tuple
+        [0] = seed name (str)
+        [1] = seed info (str), coordinates or path to mask
 
     Returns
     -------
+    afni_data : dict
+        added field seed_files
+
+    Raises
+    ------
+    AssertionError
+        missing <subj_out>/Seed_<seed>+tlrc.HEAD
     """
 
     hrf_file = afni_data["hrf_model"]
@@ -309,16 +366,41 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
     return afni_data
 
 
-def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
-    """Title.
+def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
+    """Extract behavior timeseries.
 
-    Desc.
+    Convert timing files to binary vectors, with one binary value for each
+    EPI volume. Multiply by the seed neural timeseries to get seed-behavior
+    neural timeseries, and then convolve with HRF model to get seed-behavior
+    HRF timeseries.
+
+    Writes <subj_out>/Final_<seed>_<behavior>_timeSeries.1D
 
     Parameters
     ----------
+    subj : str
+        BIDS-formatted subject string
+    sess : str
+        BIDS-formatted session string
+    subj_out : str
+        Path to subject scratch directory
+    afni_data : dict
+        contains the fields len_tr, seed_files, timing_files,
+        and scaled_files
+    stim_dur : int/float
+        duration of stimulus to model
+        (default : 2)
 
     Returns
     -------
+    afni_data : dict
+        added field final_files
+
+    Raises
+    ------
+    AssertionError
+        missing <subj_out>/Beh_<behavior>_bin.1D
+        missing <subj_out>/Final_<seed>_<behavior>_timeSeries.1D
     """
 
     # get afni_data values
@@ -399,7 +481,7 @@ def behavior_timeseries(subj, sess, task, subj_out, afni_data, stim_dur=2):
 
 
 def mot_files(subj_out, afni_data):
-    """Constuct motion and censor files
+    """Constuct motion and censor files.
 
     Mine <fMRIprep>_desc-confounds_timeseries.tsv for motion events, make
     motion files for mean (6df) and derivative (6df) motion events. Also,
@@ -412,9 +494,9 @@ def mot_files(subj_out, afni_data):
     Parameters
     ----------
     subj_out : str
-        /path/to/project_dir/derivatives/afni/sub-1234/ses-A
+        Path to subject scratch directory
     afni_data : dict
-        contains names for various files
+        contains field conf_files
 
     Returns
     -------
@@ -426,8 +508,6 @@ def mot_files(subj_out, afni_data):
 
     Notes
     -----
-    Requires afni_data["conf_files"].
-
     As runs do not have an equal number of volumes, motion/censor files
     for each run are concatenated into a single file rather than managing
     zero padding.
@@ -539,44 +619,43 @@ def mot_files(subj_out, afni_data):
 def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
     """Generate deconvolution script.
 
-    Write a deconvolution script using the pre-processed data, motion, and
+    Write a deconvolution script using the pre-processed data, motion, PPI, and
     censored files passed by afni_data. Uses a 2GAM basis function
-    (AFNI's TWOGAMpw). This script is used to generate X.files and the
-    foo_stats.REML_cmd.
+    (AFNI's TWOGAMpw).
 
     Timing files should contain AFNI-formatted onset times (duration is hardcoded),
     using the asterisk for runs in which a certain behavior does not occur.
 
+    Writes X.<decon_ppi> files, <decon_ppi>.sh for review, and <decon_ppi>.REML_cmd.
+
     Parameters
     ----------
-
-
-
-    decon_name: str
-        name of deconvolution, useful when conducting multiple
-        deconvolutions on same session. Will be appended to
-        BIDS task name (decon_<task-name>_<decon_name>).
+    subj : str
+        BIDS-formatted subject string
+    decon_ppi : str
+        prefix of output PPI deconvolved file,
+        e.g. decon_<task-name>_<deconName>_PPI-<seed>
+    subj_out : str
+        Path to subject scratch directory
+    seed : str
+        name of seed
     afni_data : dict
-        contains names for various files
-    work_dir : str
-        /path/to/project_dir/derivatives/afni/sub-1234/ses-A
-    dur : int/float/str
-        duration of event to model
+        contains the fields timing_files, mot-mean, mot-deriv, mot-censor,
+        seed_files, final_files, scaled_files
+    dur : int/float
+        duration of behavior to model
+        (default : 2)
 
     Returns
     -------
     afni_data : dict
         updated with REML commands
-        {"dcn-<decon_name>": foo_stats.REML_cmd}
+        {decon_ppi: foo_stats.REML_cmd}
 
-    Notes
-    -----
-    Requires afni_data["epi-scale*"], afni_data["mot-mean"],
-        afni_data["mot-deriv"], and afni_data["mot-censor"].
-    Deconvolution files will be written in AFNI format, rather
-        than BIDS. This includes the X.files (cue spooky theme), script,
-        and deconvolved output. Files names will have the format:
-            decon_<bids-task>_<decon_name>
+    Raises
+    ------
+    AssertionError
+        missing <subj_out>/<decon_ppi>_stats.REML_cmd
     """
 
     print("\nBuilding decon script")
@@ -673,19 +752,31 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     Generate an idea of nuissance signal from the white matter and
     include this in the generated 3dREMLfit command.
 
+    Writes <subj_out>/<decon_ppi>_stats_REML+tlrc
+
     Parameters
     ----------
-    work_dir : str
-        /path/to/project_dir/derivatives/afni/sub-1234/ses-A
+    subj : str
+        BIDS-formatted subject string
+    subj_out : str
+        Path to subject scratch directory
+    decon_ppi : str
+        prefix of decon PPI file
     afni_data : dict
-        contains names for various files
+        contains fields scaled_files, wme_mask
 
     Returns
     -------
     afni_data : dict
         updated for nuissance, deconvolved files
         epi-nuiss = nuissance signal file
-        rml-<decon_name> = deconvolved file (<decon_name>_stats_REML+tlrc)
+        rml-<decon_ppi> = deconvolved file (<decon_ppi>_stats_REML+tlrc)
+
+    Raises
+    ------
+    AssertionError
+        missing <subj_out>/nuissance file
+        missing <subj_out>/<decon_ppi>_stats_REML+tlrc.HEAD
     """
 
     subj_num = subj.split("-")[-1]
@@ -733,22 +824,31 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
                 -dsort {afni_data["epi-nuiss"]} \
                 -GOFORIT
         """
-        h_out, h_err = submit_hpc_sbatch(h_cmd, 25, 4, 6, f"{subj_num}rml", subj_out)
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 25, 4, 8, f"{subj_num}rml", subj_out)
     assert os.path.exists(reml_out), f"Failed to write {reml_out}"
     afni_data[f"rml-{decon_ppi}"] = reml_out.split(".")[0]
     return afni_data
 
 
 def copy_data(subj_out, subj_data, decon_ppi):
-    """Title.
+    """Copy final files to storage.
 
-    Desc.
+    Move only the final files to storage, those with
+    <decon_ppi> in the file name.
 
     Parameters
     ----------
+    subj_out : str
+        Path to subject scratch directory
+    subj_data : str
+        Path to subect's project derivative directory
+    decon_ppi : str
+        prefix of deconvolved file
 
-    Returns
-    -------
+    Raises
+    ------
+    AssertionError
+        missing <subj_data>/<decon_ppi>_stats_REML+tlrc.HEAD
     """
     h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}* {subj_data}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
@@ -907,7 +1007,7 @@ def main():
     afni_data = clean_data(subj, subj_out, afni_data)
     afni_data = hrf_model(subj_out, afni_data)
     afni_data = seed_timeseries(subj, subj_out, afni_data, seed_tuple)
-    afni_data = behavior_timeseries(subj, sess, task, subj_out, afni_data)
+    afni_data = behavior_timeseries(subj, sess, subj_out, afni_data)
 
     # do decons for each seed
     afni_data = mot_files(subj_out, afni_data)

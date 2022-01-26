@@ -2,7 +2,18 @@
 
 function Usage {
     cat <<USAGE
-    Foo
+    Wrapper for func2_ppi.py. Checks for which subjects do not have
+    PPI output, and submits N sbatch jobs for detected subjects
+
+    Required Arguments:
+        -d <project_derivatives> = path to project derivatives location
+        -f <decon_string> = prefix of decon file
+        -i <mask_info> = path to a mask, or coordinates for mask to be
+            constructed. Only one input argument accepted for this option.
+        -n <number> = number of subjects to submit jobs
+        -r <seed_name> = seed's name, for writing files, sub-bricks
+        -s <session> = BIDS session string
+        -w <scratch_directory> = path to scratch/working directory
 
     Example Usage:
         $0 \\
@@ -132,6 +143,7 @@ cat <<-EOF
 EOF
 
 # find subjects missing ppi output
+echo -e "Building subject lists ...\n"
 subj_list=()
 subj_all=($(ls $deriv_dir | grep "sub-*"))
 for subj in ${subj_all[@]}; do
