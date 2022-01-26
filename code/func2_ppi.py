@@ -1012,8 +1012,8 @@ def main():
     # do decons for each seed
     afni_data = mot_files(subj_out, afni_data)
     decon_ppi = f"{decon_str}_PPI-{seed_name}"
-    write_ppi_decon(subj, decon_ppi, subj_out, seed_name, afni_data)
-    run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
+    afni_data = write_ppi_decon(subj, decon_ppi, subj_out, seed_name, afni_data)
+    afni_data = run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
     copy_data(subj_out, subj_data, decon_ppi)
 
     # clean up
