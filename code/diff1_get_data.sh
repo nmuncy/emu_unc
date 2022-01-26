@@ -2,6 +2,7 @@
 
 function Usage {
     cat <<USAGE
+
     Copy data to a working directory.
 
     This script will copy data from a BIDS-structured project
@@ -25,7 +26,7 @@ function Usage {
         -j <json-file> = BIDS dataset_description.json sidecar
 
     Example Usage:
-        ./diff1_get_data.sh \\
+        $0 \\
             -d /home/data/madlab/McMakin_EMUR01 \\
             -p /scratch/madlab/emu_unc \\
             -s ses-S2 \\
@@ -35,6 +36,7 @@ function Usage {
     Notes:
         In our file structure, bval exists in dset, while
         bvec and nii exist in derivatives/<deriv_dir>.
+
 USAGE
 }
 
@@ -43,6 +45,11 @@ while getopts ":d:p:s:r:x:j:h" OPT; do
     case $OPT in
     d)
         data_dir=${OPTARG}
+        if [ ! -d $data_dir ]; then
+            echo -e "\n\t ERROR: $data_dir not found or is not a directory." >&2
+            Usage
+            exit 1
+        fi
         ;;
     p)
         proc_dir=${OPTARG}
@@ -58,13 +65,23 @@ while getopts ":d:p:s:r:x:j:h" OPT; do
         ;;
     j)
         json_file=${OPTARG}
+        if [ ! -f $json_file ]; then
+            echo -e "\n\t ERROR: $json_file not found." >&2
+            Usage
+            exit 1
+        fi
         ;;
     h)
         Usage
         exit 0
         ;;
+    :)
+        echo -e "\n\t ERROR: option '$OPTARG' missing argument." >&2
+        Usage
+        exit 1
+        ;;
     \?)
-        echo -e "\n \t ERROR: invalid option." >&2
+        echo -e "\n\t ERROR: invalid option '$OPTARG'." >&2
         Usage
         exit 1
         ;;
@@ -114,28 +131,15 @@ for opt in data_dir proc_dir sess run diff_dir json_file; do
     fi
 done
 
-# check required files exist
-if [ ! -f $json_file ]; then
-    echo -e "\n \t ERROR: $json_file not found." >&2
-    Usage
-    exit 1
-fi
-
-# check required directories exist
-if [ ! -d $data_dir ]; then
-    echo -e "\n \t ERROR: $data_dir not found or is not a directory." >&2
-    Usage
-    exit 1
-fi
-
+# check for derivatives dir
 if [ ! -d ${data_dir}/derivatives/$diff_dir ]; then
-    echo -e "\n \t ERROR: $diff_dir not found or is not a directory." >&2
+    echo -e "\n\t ERROR: $diff_dir not found or is not a directory." >&2
     Usage
     exit 1
 fi
 
 # print report
-cat <<EOF
+cat <<-EOF
 
     Checks passed, options captured:
         -d : $data_dir

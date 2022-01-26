@@ -2,6 +2,7 @@
 
 function Usage {
     cat <<USAGE
+
     Wrapper for func0_masks.py. Checks for which subjects have
     kmeans amygdala masks and not a resampled BLA mask in template
     space. Submits sbatch jobs for N subjects meeting checks.
@@ -26,9 +27,19 @@ while getopts ":d:f:n:s:w:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
+        if [ ! -d $deriv_dir ]; then
+            echo -e "\n\t ERROR: -d directory not found." >&2
+            Usage
+            exit 1
+        fi
         ;;
     n)
         num_subj=${OPTARG}
+        if [ $num_subj -lt 1 ]; then
+            echo -e "\n\t ERROR: -n arg must be greater than 0." >&2
+            Usage
+            exit 1
+        fi
         ;;
     s)
         sess=${OPTARG}
@@ -40,8 +51,13 @@ while getopts ":d:f:n:s:w:h" OPT; do
         Usage
         exit 0
         ;;
+    :)
+        echo -e "\n\t ERROR: option '$OPTARG' missing argument." >&2
+        Usage
+        exit 1
+        ;;
     \?)
-        echo -e "\n \t ERROR: invalid option." >&2
+        echo -e "\n\t ERROR: invalid option '$OPTARG'." >&2
         Usage
         exit 1
         ;;
@@ -54,30 +70,36 @@ if [ $OPTIND == 1 ]; then
     exit 0
 fi
 
-# check args
-if [ $num_subj -lt 1 ]; then
-    echo -e "\n\t ERROR: -n value must be greater than 0.\n" >&2
+# make sure required args have values - determine which (first) arg is empty
+function emptyArg {
+    case $1 in
+    deriv_dir)
+        h_ret="-d"
+        ;;
+    num_subj)
+        h_ret="-n"
+        ;;
+    sess)
+        h_ret="-s"
+        ;;
+    scratch_dir)
+        h_ret="-w"
+        ;;
+    *)
+        echo -n "Unknown option."
+        ;;
+    esac
+    echo -e "\n\n\t ERROR: Missing input parameter for \"${h_ret}\"." >&2
     Usage
     exit 1
-fi
+}
 
-if [ ! -d $deriv_dir ]; then
-    echo -e "\n\t ERROR: -d directory not found.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ -z $scratch_dir ]; then
-    echo -e "\n\t ERROR: please specify -w directory.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ -z $sess ]; then
-    echo -e "\n\t ERROR: please specify -s session.\n" >&2
-    Usage
-    exit 1
-fi
+for opt in deriv_dir num_subj sess scratch_dir; do
+    h_opt=$(eval echo \${$opt})
+    if [ -z $h_opt ]; then
+        emptyArg $opt
+    fi
+done
 
 # check for conda env
 which python | grep "emuR01_unc" >/dev/null 2>&1

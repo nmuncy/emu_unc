@@ -2,6 +2,7 @@
 
 function Usage {
     cat <<USAGE
+
     Wrapper for func2_ppi.py. Checks for which subjects do not have
     PPI output, and submits N sbatch jobs for detected subjects
 
@@ -38,7 +39,7 @@ USAGE
 }
 
 # capture arguments
-while getopts ":d:f:i:n:r:s:w:" OPT; do
+while getopts ":d:f:i:n:r:s:w:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
@@ -53,6 +54,11 @@ while getopts ":d:f:i:n:r:s:w:" OPT; do
         ;;
     i)
         seed_info=${OPTARG}
+        if [ ${#seed_info} -lt 5 ]; then
+            echo -e "\n\t ERROR: argument -i <seed-info> not configured correctly." >&2
+            Usage
+            exit 1
+        fi
         ;;
     n)
         num_subj=${OPTARG}
@@ -70,6 +76,10 @@ while getopts ":d:f:i:n:r:s:w:" OPT; do
         ;;
     w)
         scratch_dir=${OPTARG}
+        ;;
+    h)
+        Usage
+        exit 0
         ;;
     \?)
         echo "\n\t Error: invalid option -${OPTARG}."
@@ -90,36 +100,45 @@ if [ $OPTIND == 1 ]; then
     exit 0
 fi
 
-# check args
-if [ -z $scratch_dir ]; then
-    echo -e "\n\t ERROR: please specify -w directory.\n" >&2
+# make sure required args have values - determine which (first) arg is empty
+function emptyArg {
+    case $1 in
+    deriv_dir)
+        h_ret="-d"
+        ;;
+    decon_str)
+        h_ret="-f"
+        ;;
+    seed_info)
+        h_ret="-i"
+        ;;
+    num_subj)
+        h_ret="-n"
+        ;;
+    seed_name)
+        h_ret="-r"
+        ;;
+    sess)
+        h_ret="-s"
+        ;;
+    scratch_dir)
+        h_ret="-w"
+        ;;
+    *)
+        echo -n "Unknown option."
+        ;;
+    esac
+    echo -e "\n\n \t ERROR: Missing input parameter for \"${h_ret}\"." >&2
     Usage
     exit 1
-fi
+}
 
-if [ -z $decon_str ]; then
-    echo -e "\n\t ERROR: please specify -f decon prefix.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ -z $sess ]; then
-    echo -e "\n\t ERROR: please specify -s session.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ -z $seed_name ]; then
-    echo -e "\n\t ERROR: please specify -r <seed name>.\n" >&2
-    Usage
-    exit 1
-fi
-
-if [ ${#seed_info} -lt 8 ]; then
-    echo -e "\n\t ERROR: argument -i <seed-info> not configured correctly.\n" >&2
-    Usage
-    exit 1
-fi
+for opt in deriv_dir decon_str seed_info num_subj seed_name sess scratch_dir; do
+    h_opt=$(eval echo \${$opt})
+    if [ -z $h_opt ]; then
+        emptyArg $opt
+    fi
+done
 
 # check for conda env
 which python | grep "emuR01_unc" >/dev/null 2>&1

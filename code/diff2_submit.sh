@@ -7,13 +7,11 @@ function Usage {
     emuR01_unc is required.
 
     Required Arguments:
-        -c <code_dir> = path to code directory, containing diff2_prob_CLI.sh
         -t <config_file> = path to config.toml
         -w <work_dir> = path to derivatives directory
 
     Example Usage:
-        ./diff2_submit.sh \\
-            -c /home/nmuncy/compute/emu_unc/code \\
+        $0 \\
             -w /scratch/madlab/emu_unc \\
             -t /home/nmuncy/compute/emu_unc/docs/config.toml
 
@@ -21,23 +19,35 @@ USAGE
 }
 
 # capture arguments
-while getopts ":c:t:w:h" OPT; do
+while getopts ":t:w:h" OPT; do
     case $OPT in
-    c)
-        code_dir=${OPTARG}
-        ;;
     t)
         config_file=${OPTARG}
+        if [ ! -f $config_file ] || [ -z $config_file ]; then
+            echo -e "\n\t ERROR: $config_file file not found or is empty." >&2
+            Usage
+            exit 1
+        fi
         ;;
     w)
         work_dir=${OPTARG}
+        if [ ! -d $work_dir ]; then
+            echo -e "\n\t ERROR: $work_dir not detected." >&2
+            Usage
+            exit 1
+        fi
         ;;
     h)
         Usage
         exit 0
         ;;
+    :)
+        echo -e "\n\t ERROR: option '$OPTARG' missing argument." >&2
+        Usage
+        exit 1
+        ;;
     \?)
-        echo -e "\n \t ERROR: invalid option." >&2
+        echo -e "\n\t ERROR: invalid option '$OPTARG'." >&2
         Usage
         exit 1
         ;;
@@ -50,24 +60,30 @@ if [ $OPTIND == 1 ]; then
     exit 0
 fi
 
-# check required directories
-if [ ! -d $code_dir ] || [ -z $code_dir ]; then
-    echo -e "\n\t ERROR: \"-c\" directory not detected." >&2
+# make sure required args have values - determine which (first) arg is empty
+function emptyArg {
+    case $1 in
+    config_file)
+        h_ret="-t"
+        ;;
+    work_dir)
+        h_ret="-w"
+        ;;
+    *)
+        echo -n "Unknown option."
+        ;;
+    esac
+    echo -e "\n\n\t ERROR: Missing input parameter for \"${h_ret}\"." >&2
     Usage
     exit 1
-fi
+}
 
-if [ ! -d $work_dir ] || [ -z $work_dir ]; then
-    echo -e "\n\t ERROR: \"-w\" directory not detected." >&2
-    Usage
-    exit 1
-fi
-
-if [ ! -f $config_file ] || [ -z $config_file ]; then
-    echo -e "\n\t ERROR: \"-t\" config.toml file not detected." >&2
-    Usage
-    exit 1
-fi
+for opt in work_dir config_file; do
+    h_opt=$(eval echo \${$opt})
+    if [ -z $h_opt ]; then
+        emptyArg $opt
+    fi
+done
 
 # check for conda env
 which python | grep "emuR01_unc" >/dev/null 2>&1
@@ -79,7 +95,6 @@ fi
 cat <<-EOF
 
     Checks passed, options captured:
-        -c : $code_dir
         -w : $work_dir
         -t : $config_file
 
@@ -97,4 +112,4 @@ mkdir -p $out_dir
 sbatch \
     -e ${out_dir}/err.txt \
     -o ${out_dir}/out.txt \
-    ${code_dir}/diff2_prob_CLI.sh $config_file
+    diff2_prob_CLI.sh $config_file
