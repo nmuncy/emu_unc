@@ -172,6 +172,22 @@ for subj in ${subj_all[@]}; do
     fi
 done
 
+# patch - remove subjs w/missing data
+problem_list=(sub-4{011,020,021,055,056,063,090,172,197})
+ind_problem=()
+for ind in ${!subj_list[@]}; do
+    for prob in ${problem_list[@]}; do
+        if [[ "${subj_list[$ind]}" == "${prob}" ]]; then
+            ind_problem+=($ind)
+        fi
+    done
+done
+
+for ind in "${ind_problem[@]}"; do
+    unset "subj_list[$ind]"
+done
+declare -a subj_list=(${subj_list[@]})
+
 # submit N jobs
 time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${scratch_dir}/slurm_out/ppi_${time}
