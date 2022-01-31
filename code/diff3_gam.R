@@ -2,6 +2,9 @@ library("ggplot2")
 library("fitdistrplus")
 library("mgcv")
 library("itsadug")
+library("tidymv")
+library("dplyr")
+library("ggplot2")
 
 
 # Set paths ----
@@ -126,7 +129,7 @@ make_dataframe <- function(one_dir, data_dir, out_dir) {
 # changes model fit. Then plot those two splines to find differences.
 
 # get data
-make_new_df <- T
+make_new_df <- F
 if (make_new_df) {
   df_afq <- make_dataframe(one_dir, data_dir, out_dir)
 } else {
@@ -141,18 +144,18 @@ tract <- "UNC_L"
 df_tract <- df_afq[which(df_afq$tractID == tract), ]
 df_tract <- df_tract[complete.cases(df_tract), ]
 
-# determine distribution
-hist(df_tract$dti_fa)
-descdist(df_tract$dti_fa, discrete = F)
-
-# determine if covariate pds helps model fit
-fit_normal <- bam(dti_fa ~ sex +
-    s(subjectID, bs = "re") +
-    s(nodeID, k = 20),
-  data = df_tract,
-  family = gaussian,
-  method = "REML"
-)
+# # determine distribution
+# hist(df_tract$dti_fa)
+# descdist(df_tract$dti_fa, discrete = F)
+# 
+# # determine if covariate pds helps model fit
+# fit_normal <- bam(dti_fa ~ sex +
+#     s(subjectID, bs = "re") +
+#     s(nodeID, k = 20),
+#   data = df_tract,
+#   family = gaussian,
+#   method = "REML"
+# )
 # gam.check(fit_normal, rep = 1000)
 
 # fit_cov_normal <- bam(dti_fa ~ sex +
@@ -163,31 +166,67 @@ fit_normal <- bam(dti_fa ~ sex +
 #   family = gaussian,
 #   method = "REML"
 # )
+
+df_tract$pscared_group <- factor(df_tract$pscared_group)
+df_tract$sex <- factor(df_tract$sex)
 fit_cov_normal <- bam(dti_fa ~ sex + sex * pds +
     s(subjectID, bs = "re") +
     s(nodeID, k = 40),
   data = df_tract,
-  family = gaussian,
+  family = gaussian(link = "logit"),
   method = "REML"
 )
 # gam.check(fit_cov_normal, rep = 1000)
 
-compareML(fit_normal, fit_cov_normal) # cov model preferred
-summary(fit_cov_normal)
+# compareML(fit_normal, fit_cov_normal) # cov model preferred
+# summary(fit_cov_normal)
 
 # add group
-fit_pscared <- bam(dti_fa ~ sex + sex * pds + pscared +
+fit_pscared <- bam(dti_fa ~ sex + sex * pds +
     s(subjectID, bs = "re") +
-    s(nodeID, k = 50),
+    s(nodeID, by = pscared, k = 50),
   data = df_tract,
-  family = gaussian,
+  family = gaussian(link = "logit"),
   method = "REML"
 )
-gam.check(fit_pscared, rep = 1000)
-compareML(fit_cov_normal, fit_pscared)
+# gam.check(fit_pscared, rep = 1000)
+# compareML(fit_cov_normal, fit_pscared)
 
 summary(fit_cov_normal)
 summary(fit_pscared)
+
+# try - new method for predicting
+pred_norm <- predict_gam(
+  fit_cov_normal, 
+  exclude_terms = c("sex", "pds", "s(subjectID)"),
+  values = list(pds = NULL, sex = NULL, subjectID = NULL),
+  length_out = 100
+)
+df_plot_norm <- data.frame(
+  nodeID = c(0:99), 
+  fit = pred_norm$fit, 
+  se.fit = pred_norm$se.fit
+)
+df_plot_norm %>% 
+  ggplot(aes(nodeID, fit)) +
+  geom_smooth_ci()
+
+
+pred_pscared <- predict_gam(
+  fit_pscared, 
+  exclude_terms = c("sex", "pds","s(subjectID)"),
+  values = list(pds = NULL, sex = NULL, subjectID = NULL, pscared = 10),
+  length_out = 100
+)
+df_plot_anx <- data.frame(
+  nodeID = c(0:99), 
+  fit = pred_pscared$fit, 
+  se.fit = pred_pscared$se.fit
+)
+df_plot_anx %>% 
+  ggplot(aes(nodeID, fit)) +
+  geom_smooth_ci()
+
 
 # generate predictions for fit_cov_normal, fit_pscared
 plot_norm <- predict.bam(
@@ -250,7 +289,7 @@ ggplot(data = plot_pscared) +
 
 
 
-
+df_tract$pscared_group <- factor(df_tract$pscared_group)
 fit_normal <- bam(dti_fa ~ pscared_group +
   sex +
   s(nodeID, by = pscared_group, k = 20) +
@@ -262,13 +301,14 @@ method = "REML"
 gam.check(fit_normal, rep = 1000)
 
 # gam w/cov
+
 fit_cov_normal <- bam(dti_fa ~ pscared_group +
   sex +
   s(nodeID, by = pscared_group, k = 30) +
   s(pds, by = sex) +
   s(subjectID, bs = "re"),
 data = df_tract,
-family = gaussian(),
+family = gaussian(link = "logit"),
 method = "REML"
 )
 gam.check(fit_cov_normal, rep = 1000)
