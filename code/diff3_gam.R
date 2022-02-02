@@ -4,7 +4,7 @@ library("mgcv")
 library("itsadug")
 library("tidymv")
 library("dplyr")
-library("ggplot2")
+library("mgcViz")
 
 
 # Set paths ----
@@ -123,10 +123,9 @@ make_dataframe <- function(one_dir, data_dir, out_dir) {
 }
 
 
-# GAM with continuous Parent's SCARED ----
+# Determine data distribution, base GAM function ----
 #
-# Rather than looking for group differences, see if adding anxiety measure
-# changes model fit. Then plot those two splines to find differences.
+#
 
 # get data
 make_new_df <- F
@@ -139,270 +138,138 @@ if (make_new_df) {
 # tracts of interest
 tract_list <- c("UNC_L", "CGC_L")
 
-# subset df_afq, take complete cases
+# subset df_afq, take complete cases, make factors
 tract <- "UNC_L"
 df_tract <- df_afq[which(df_afq$tractID == tract), ]
 df_tract <- df_tract[complete.cases(df_tract), ]
-
-# # determine distribution
-# hist(df_tract$dti_fa)
-# descdist(df_tract$dti_fa, discrete = F)
-# 
-# # determine if covariate pds helps model fit
-# fit_normal <- bam(dti_fa ~ sex +
-#     s(subjectID, bs = "re") +
-#     s(nodeID, k = 20),
-#   data = df_tract,
-#   family = gaussian,
-#   method = "REML"
-# )
-# gam.check(fit_normal, rep = 1000)
-
-# fit_cov_normal <- bam(dti_fa ~ sex +
-#     s(subjectID, bs = "re") +
-#     s(pds, by = sex) +
-#     s(nodeID, k=40),
-#   data = df_tract,
-#   family = gaussian,
-#   method = "REML"
-# )
-
-df_tract$pscared_group <- factor(df_tract$pscared_group)
 df_tract$sex <- factor(df_tract$sex)
-fit_cov_normal <- bam(dti_fa ~ sex + sex * pds +
-    s(subjectID, bs = "re") +
-    s(nodeID, k = 40),
-  data = df_tract,
-  family = gaussian(link = "logit"),
-  method = "REML"
-)
-# gam.check(fit_cov_normal, rep = 1000)
+df_tract$subjectID <- factor(df_tract$subjectID)
 
-# compareML(fit_normal, fit_cov_normal) # cov model preferred
-# summary(fit_cov_normal)
+# determine distribution
+hist(df_tract$dti_fa)
+descdist(df_tract$dti_fa, discrete = F)
 
-# add group
-fit_pscared <- bam(dti_fa ~ sex + sex * pds +
-    s(subjectID, bs = "re") +
-    s(nodeID, by = pscared, k = 50),
-  data = df_tract,
-  family = gaussian(link = "logit"),
-  method = "REML"
-)
-# gam.check(fit_pscared, rep = 1000)
-# compareML(fit_cov_normal, fit_pscared)
-
-summary(fit_cov_normal)
-summary(fit_pscared)
-
-# try - new method for predicting
-pred_norm <- predict_gam(
-  fit_cov_normal, 
-  exclude_terms = c("sex", "pds", "s(subjectID)"),
-  values = list(pds = NULL, sex = NULL, subjectID = NULL),
-  length_out = 100
-)
-df_plot_norm <- data.frame(
-  nodeID = c(0:99), 
-  fit = pred_norm$fit, 
-  se.fit = pred_norm$se.fit
-)
-df_plot_norm %>% 
-  ggplot(aes(nodeID, fit)) +
-  geom_smooth_ci()
-
-
-pred_pscared <- predict_gam(
-  fit_pscared, 
-  exclude_terms = c("sex", "pds","s(subjectID)"),
-  values = list(pds = NULL, sex = NULL, subjectID = NULL, pscared = 10),
-  length_out = 100
-)
-df_plot_anx <- data.frame(
-  nodeID = c(0:99), 
-  fit = pred_pscared$fit, 
-  se.fit = pred_pscared$se.fit
-)
-df_plot_anx %>% 
-  ggplot(aes(nodeID, fit)) +
-  geom_smooth_ci()
-
-
-# generate predictions for fit_cov_normal, fit_pscared
-plot_norm <- predict.bam(
-  fit_cov_normal,
-  exclude_terms = c("pds", "sex", "subjectID"),
-  values = list(pds = NULL, sex = NULL),
-  se.fit = T,
-  type = "response"
-)
-
-plot_pscared <- predict.bam(
-  fit_pscared,
-  exclude_terms = c("pds", "sex", "subjectID"),
-  values = list(pds = NULL, sex = NULL),
-  se.fit = T,
-  type = "response"
-)
-
-# convert predictions to dataframes
-plot_norm <- data.frame(
-  sex = df_tract$sex,
-  subjectID = df_tract$subjectID,
-  nodeID = df_tract$nodeID,
-  fit = plot_norm$fit,
-  se.fit = plot_norm$se.fit
-)
-
-plot_pscared <- data.frame(
-  sex = df_tract$sex,
-  subjectID = df_tract$subjectID,
-  nodeID = df_tract$nodeID,
-  fit = plot_pscared$fit,
-  se.fit = plot_pscared$se.fit
-)
-
-# draw plots
-ggplot(data = plot_norm) +
-  geom_smooth(mapping = aes(x = nodeID, y = fit)) +
-  ggtitle("GAM of L. Unc") +
-  ylab("Fit FA") +
-  xlab("Tract Node") +
-  theme(text = element_text(
-    family = "Times New Roman", face = "bold", size = 14
-  ))
-
-ggplot(data = plot_pscared) +
-  geom_smooth(mapping = aes(x = nodeID, y = fit)) +
-  ggtitle("GAM of L. Unc, pscared") +
-  ylab("Fit FA") +
-  xlab("Tract Node") +
-  theme(text = element_text(
-    family = "Times New Roman", face = "bold", size = 14
-  ))
-
-
-
-# GAM by Parent's SCARED anxiety group ----
-#
-#
-
-
-
-df_tract$pscared_group <- factor(df_tract$pscared_group)
-fit_normal <- bam(dti_fa ~ pscared_group +
-  sex +
-  s(nodeID, by = pscared_group, k = 20) +
-  s(subjectID, bs = "re"),
-data = df_tract,
-family = gaussian(),
-method = "REML"
+# build gam
+fit_normal <- bam(dti_fa ~ sex +
+                    s(subjectID, bs = "re") +
+                    s(nodeID, bs = "cr", k = 40),
+                  data = df_tract,
+                  family = gaussian(),
+                  method = "fREML"
 )
 gam.check(fit_normal, rep = 1000)
+summary(fit_normal)
+plot_normal <- getViz(fit_normal)
+plot(sm(plot_normal, 1))
+plot(sm(plot_normal, 2))
 
-# gam w/cov
-
-fit_cov_normal <- bam(dti_fa ~ pscared_group +
-  sex +
-  s(nodeID, by = pscared_group, k = 30) +
-  s(pds, by = sex) +
-  s(subjectID, bs = "re"),
-data = df_tract,
-family = gaussian(link = "logit"),
-method = "REML"
+# get stat of male smooth diff from female
+df_tract$sexOF <- factor(df_tract$sex, ordered = T)
+fit_normalOF <- bam(dti_fa ~ sexOF +
+                      s(subjectID, bs = "re") +
+                      s(nodeID, bs = "cr", k = 40) +
+                      s(nodeID, by = sexOF, bs = "cr", k = 40),
+                    data = df_tract,
+                    family = gaussian(),
+                    method = "fREML"
 )
-gam.check(fit_cov_normal, rep = 1000)
+summary(fit_normalOF)
+plot(fit_normalOF)
+plot_normalOF <- getViz(fit_normalOF)
+plot(sm(plot_normalOF, 3)) + geom_hline(yintercept = 0)
+gamtabs(fit_normalOF)
+report_stats(fit_normalOF)
 
-# compare normal w/ cov_normal
-compareML(fit_normal, fit_cov_normal) # cov better
-
-# save better gam
-gam_file <- paste0(out_dir, "GAM_", tract, "_normal_cov_PScared.Rda")
-saveRDS(fit_cov_normal, file = gam_file)
-
-# generate predictions
-df_pred <- predict.bam(
-  fit_cov_normal,
-  exclude_terms = c("pds", "sex", "subjectID"),
-  values = list(pds = NULL, sex = NULL),
-  se.fit = T,
-  type = "response"
+# add pds covariate
+fit_pds <- bam(dti_fa ~ sex +
+                    s(pds, by = sex) +
+                    s(subjectID, bs = "re") +
+                    s(nodeID, bs = "cr", k = 40),
+                  data = df_tract,
+                  family = gaussian(),
+                  method = "fREML"
 )
+gam.check(fit_pds, rep = 1000)
+compareML(fit_normal, fit_pds) # fit normal preferred
+summary(fit_pds)
 
-# convert predictions to dataframe
-df_pred <- data.frame(
-  PScared = df_tract$pscared_group,
-  sex = df_tract$sex,
-  subjectID = df_tract$subjectID,
-  pscared = df_tract$pscared,
-  nodeID = df_tract$nodeID,
-  fit = df_pred$fit,
-  se.fit = df_pred$se.fit
+plot_pds <- getViz(fit_pds)
+plot(sm(plot_pds, 4))
+gamtabs(fit_pds)
+report_stats(fit_pds)
+
+
+
+# GAM with continuous Parent's SCARED ----
+#
+# Rather than looking for group differences, see if adding anxiety measure
+# changes model fit. Then plot those two splines to find differences.
+
+# parent's scared
+fit_pscared <- bam(dti_fa ~ sex +
+                     t2(nodeID, pscared, bs = c("cr", "tp"), k = c(40, 10)) +
+                     s(subjectID, bs = "re"),
+                   data = df_tract,
+                   family = gaussian(),
+                   method = "fREML",
+                   discrete = T
 )
+gam.check(fit_pscared, rep = 1000)
+k.check(fit_pscared)
+
+summary(fit_pscared)
+compareML(fit_normal, fit_pscared)
+
+# topo plot
+plot(fit_pscared)
+plot_pscared <- getViz(fit_pscared)
+plot(sm(plot_pscared, 1))
+
+# 3d plot
+vis.gam(fit_pscared, view=c("nodeID", "pscared"), theta=-30)
 
 
-h_title <- paste0("GAM Fit of L. Uncinate FA Values")
+# simulate covariate data
+h_rand <- sample(0:60, length(unique(df_tract$subjectID)), replace = T)
+df_tract$sim_pscared <- c(rep(h_rand, each = 100))
 
-# draw plot
-ggplot(data = df_pred) +
-  geom_smooth(mapping = aes(x = nodeID, y = fit, color = PScared)) +
-  ggtitle(h_title) +
-  ylab("Fit FA") +
-  xlab("Tract Node") +
-  theme(text = element_text(
-    family = "Times New Roman", face = "bold", size = 14
-  ))
+fit_pscared_sim <- bam(dti_fa ~ sex +
+                     t2(nodeID, sim_pscared, bs = c("cr", "tp"), k = c(40, 10)) +
+                     s(subjectID, bs = "re"),
+                   data = df_tract,
+                   family = gaussian(),
+                   method = "fREML",
+                   discrete = T
+)
+gam.check(fit_pscared_sim, rep = 1000)
+k.check(fit_pscared)
+
+summary(fit_pscared_sim)
+compareML(fit_normal, fit_pscared_sim)
+
+plot(fit_pscared_sim)
+plot_pscared_sim <- getViz(fit_pscared_sim)
+plot(sm(plot_pscared_sim, 1))
 
 
-
-# GAM by PARS-6 anxiety group ----
+# GAM with continuous PARS-6 ----
 #
 #
 
-# gam w/cov
-fit_pars6 <- bam(dti_fa ~ pars6_group +
-  sex +
-  s(nodeID, by = pars6_group, k = 40) +
-  s(pds, by = sex) +
-  s(subjectID, bs = "re"),
-data = df_tract,
-family = gaussian(),
-method = "REML"
+fit_pars6 <- bam(dti_fa ~ sex +
+                     t2(nodeID, pars6, bs = c("cr", "tp"), k = c(40, 10)) +
+                     s(subjectID, bs = "re"),
+                   data = df_tract,
+                   family = gaussian(),
+                   method = "fREML",
+                   discrete = T
 )
 gam.check(fit_pars6, rep = 1000)
+k.check(fit_pars6)
 
-# compare normal w/ cov_normal
-compareML(fit_pars6, fit_cov_normal) # cov better
+summary(fit_pars6)
+compareML(fit_normal, fit_pars6)
 
-# generate predictions
-df_pred <- predict.bam(
-  fit_pars6,
-  exclude_terms = c("pds", "sex", "subjectID"),
-  values = list(pds = NULL, sex = NULL),
-  se.fit = T,
-  type = "response"
-)
+plot_pars6 <- getViz(fit_pars6)
+plot(sm(plot_pars6, 1))
 
-# convert predictions to dataframe
-df_pred <- data.frame(
-  Pars6 = df_tract$pars6_group,
-  sex = df_tract$sex,
-  subjectID = df_tract$subjectID,
-  pars6 = df_tract$pars6,
-  nodeID = df_tract$nodeID,
-  fit = df_pred$fit,
-  se.fit = df_pred$se.fit
-)
-
-
-h_title <- paste0("GAM Fit of L. Uncinate FA Values")
-
-# draw plot
-ggplot(data = df_pred) +
-  geom_smooth(mapping = aes(x = nodeID, y = fit, color = Pars6)) +
-  ggtitle(h_title) +
-  ylab("Fit FA") +
-  xlab("Tract Node") +
-  theme(text = element_text(
-    family = "Times New Roman", face = "bold", size = 14
-  ))
