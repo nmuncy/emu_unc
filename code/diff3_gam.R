@@ -152,7 +152,7 @@ descdist(df_tract$dti_fa, discrete = F)
 # build gam
 fit_normal <- bam(dti_fa ~ sex +
                     s(subjectID, bs = "re") +
-                    s(nodeID, bs = "cr", k = 40),
+                    s(nodeID, bs = "cr", by = sex, k = 40),
                   data = df_tract,
                   family = gaussian(),
                   method = "fREML"
@@ -162,6 +162,7 @@ summary(fit_normal)
 plot_normal <- getViz(fit_normal)
 plot(sm(plot_normal, 1))
 plot(sm(plot_normal, 2))
+plot(sm(plot_normal, 3))
 
 # get stat of male smooth diff from female
 df_tract$sexOF <- factor(df_tract$sex, ordered = T)
@@ -205,14 +206,13 @@ report_stats(fit_pds)
 # Rather than looking for group differences, see if adding anxiety measure
 # changes model fit. Then plot those two splines to find differences.
 
-# parent's scared
+# intx of scared with fa
 fit_pscared <- bam(dti_fa ~ sex +
-                     t2(nodeID, pscared, bs = c("cr", "tp"), k = c(40, 10)) +
-                     s(subjectID, bs = "re"),
-                   data = df_tract,
-                   family = gaussian(),
-                   method = "fREML",
-                   discrete = T
+                          s(subjectID, bs = "re") +
+                          te(nodeID, pscared, bs = c("cr", "tp"), k = c(40, 10)),
+                        data = df_tract,
+                        family = gaussian(),
+                        method = "fREML"
 )
 gam.check(fit_pscared, rep = 1000)
 k.check(fit_pscared)
@@ -223,33 +223,39 @@ compareML(fit_normal, fit_pscared)
 # topo plot
 plot(fit_pscared)
 plot_pscared <- getViz(fit_pscared)
-plot(sm(plot_pscared, 1))
+plot(sm(plot_pscared, 2))
 
 # 3d plot
-vis.gam(fit_pscared, view=c("nodeID", "pscared"), theta=-30)
+vis.gam(fit_pscared, view=c("nodeID", "pscared"), color = "topo", theta=330, phi=40)
+vis.gam(fit_pscared, view=c("nodeID", "pscared"), theta=60)
 
 
-# simulate covariate data
-h_rand <- sample(0:60, length(unique(df_tract$subjectID)), replace = T)
-df_tract$sim_pscared <- c(rep(h_rand, each = 100))
-
-fit_pscared_sim <- bam(dti_fa ~ sex +
-                     t2(nodeID, sim_pscared, bs = c("cr", "tp"), k = c(40, 10)) +
-                     s(subjectID, bs = "re"),
+# parent's scared - decompose intx term
+fit_pscared_intx <- bam(dti_fa ~ sex +
+                     s(subjectID, bs = "re") +
+                     s(nodeID, bs = "cr", k = 40) +
+                     s(pscared, k = 10) +
+                     ti(nodeID, pscared, bs = c("cr", "tp"), k = c(40, 10)),
                    data = df_tract,
                    family = gaussian(),
-                   method = "fREML",
-                   discrete = T
+                   method = "fREML"
 )
-gam.check(fit_pscared_sim, rep = 1000)
-k.check(fit_pscared)
+gam.check(fit_pscared_intx, rep = 1000)
+k.check(fit_pscared_intx)
 
-summary(fit_pscared_sim)
-compareML(fit_normal, fit_pscared_sim)
+summary(fit_pscared_intx)
+compareML(fit_normal, fit_pscared_intx)
 
-plot(fit_pscared_sim)
-plot_pscared_sim <- getViz(fit_pscared_sim)
-plot(sm(plot_pscared_sim, 1))
+# topo plot
+plot(fit_pscared_intx)
+plot_pscared_intx <- getViz(fit_pscared_intx)
+plot(sm(plot_pscared_intx, 2))
+plot(sm(plot_pscared_intx, 3))
+plot(sm(plot_pscared_intx, 4))
+
+# vis.gam(fit_pscared_intx, view = c("nodeID", "pscared"), plot.type = "contour", color = "topo")
+# vis.gam(fit_pscared_intx, view = c("nodeID", "pscared"), plot.type = "contour", color = "topo", too.far = 0.1)
+# vis.gam(fit_pscared_intx, view = c("nodeID", "pscared"), plot.type = "contour", color = "topo", too.far = 0.05)
 
 
 # GAM with continuous PARS-6 ----
@@ -257,12 +263,11 @@ plot(sm(plot_pscared_sim, 1))
 #
 
 fit_pars6 <- bam(dti_fa ~ sex +
-                     t2(nodeID, pars6, bs = c("cr", "tp"), k = c(40, 10)) +
-                     s(subjectID, bs = "re"),
-                   data = df_tract,
-                   family = gaussian(),
-                   method = "fREML",
-                   discrete = T
+      s(subjectID, bs = "re") +
+      te(nodeID, pars6, bs = c("cr", "tp"), k = c(40, 10)),
+    data = df_tract,
+    family = gaussian(),
+    method = "fREML"
 )
 gam.check(fit_pars6, rep = 1000)
 k.check(fit_pars6)
@@ -271,5 +276,26 @@ summary(fit_pars6)
 compareML(fit_normal, fit_pars6)
 
 plot_pars6 <- getViz(fit_pars6)
-plot(sm(plot_pars6, 1))
+plot(sm(plot_pars6, 2))
+
+
+fit_pars6_intx <- bam(dti_fa ~ sex +
+                   s(subjectID, bs = "re") +
+                   s(nodeID, bs = "cr", k = 40) +
+                   s(pars6) +
+                   ti(nodeID, pars6, bs = c("cr", "tp"), k = c(40, 10)),
+                 data = df_tract,
+                 family = gaussian(),
+                 method = "fREML"
+)
+gam.check(fit_pars6_intx, rep = 1000)
+k.check(fit_pars6_intx)
+
+summary(fit_pars6_intx)
+compareML(fit_normal, fit_pars6_intx)
+
+plot_pars6_intx <- getViz(fit_pars6_intx)
+plot(sm(plot_pars6_intx, 2))
+plot(sm(plot_pars6_intx, 3))
+plot(sm(plot_pars6_intx, 4))
 
