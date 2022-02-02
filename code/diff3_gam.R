@@ -16,7 +16,8 @@ out_dir <- paste0(proj_dir, "derivatives/emu_unc/analyses/")
 # capture.output(sessionInfo(), file = paste0(data_dir, "R_session_info.txt"))
 
 # for testing
-out_dir <- data_dir <- proj_dir <- "/Users/nmuncy/Desktop/"
+# out_dir <- data_dir <- proj_dir <- "/Users/nmuncy/Desktop/"
+out_dir <- "/Users/nmuncy/Desktop/"
 
 
 
@@ -55,7 +56,7 @@ make_dataframe <- function(one_dir, data_dir, out_dir) {
   # start age, sex, pds, parent's scared columns
   df_afq$age <- df_afq$sex <- df_afq$pds <-
     df_afq$pars6 <- df_afq$pars6_group <-
-    df_afq$pscared <- df_afq$pscared_group <- NA
+    df_afq$pscared <- df_afq$pscared_group <- df_afq$cscared <- NA
 
   # get list of afq subjects
   subj_list <- unique(df_afq$subjectID)
@@ -87,6 +88,9 @@ make_dataframe <- function(one_dir, data_dir, out_dir) {
     } else if (num_pscared >= 25) {
       group_pscared <- "High"
     }
+    
+    # get child's scared
+    df_afq[ind_afq, ]$cscared <- df_summary[ind_summ, ]$scaredc_sum
 
     # fill pscared info
     df_afq[ind_afq, ]$pscared <- num_pscared
@@ -111,9 +115,9 @@ make_dataframe <- function(one_dir, data_dir, out_dir) {
   #   sex: 1 = F, 2 = M
   #   pscared_group: 1 = High, 2 = Low, 3 = Med
   #   pars6_group: 1 = High, 2 = Low, 3 = Med
-  df_tract$sex <- factor(df_tract$sex)
-  df_tract$pscared_group <- factor(df_tract$pscared_group)
-  df_tract$pars6_group <- factor(df_tract$pars6_group)
+  df_afq$sex <- factor(df_afq$sex)
+  df_afq$pscared_group <- factor(df_afq$pscared_group)
+  df_afq$pars6_group <- factor(df_afq$pars6_group)
 
   # save df
   write_out <- paste0(out_dir, "AFQ_dataframe.csv")
@@ -253,7 +257,13 @@ plot(sm(plot_pscared_intx, 2))
 plot(sm(plot_pscared_intx, 3))
 plot(sm(plot_pscared_intx, 4))
 
-# vis.gam(fit_pscared_intx, view = c("nodeID", "pscared"), plot.type = "contour", color = "topo")
+vis.gam(
+  fit_pscared_intx, 
+  view = c("nodeID", "pscared"), 
+  color = "topo",
+  phi = 40,
+  theta = 330
+)
 # vis.gam(fit_pscared_intx, view = c("nodeID", "pscared"), plot.type = "contour", color = "topo", too.far = 0.1)
 # vis.gam(fit_pscared_intx, view = c("nodeID", "pscared"), plot.type = "contour", color = "topo", too.far = 0.05)
 
@@ -298,4 +308,74 @@ plot_pars6_intx <- getViz(fit_pars6_intx)
 plot(sm(plot_pars6_intx, 2))
 plot(sm(plot_pars6_intx, 3))
 plot(sm(plot_pars6_intx, 4))
+
+vis.gam(
+  fit_pars6_intx, 
+  view = c("nodeID", "pars6"), 
+  color = "topo",
+  phi = 40,
+  theta = 330
+)
+
+
+
+# GAM with continuous Child's SCARED ----
+#
+
+# intx of scared with fa
+fit_cscared <- bam(dti_fa ~ sex +
+                     s(subjectID, bs = "re") +
+                     te(nodeID, cscared, bs = c("cr", "tp"), k = c(40, 10)),
+                   data = df_tract,
+                   family = gaussian(),
+                   method = "fREML"
+)
+gam.check(fit_cscared, rep = 1000)
+k.check(fit_cscared)
+
+summary(fit_cscared)
+compareML(fit_normal, fit_cscared)
+
+# topo plot
+plot(fit_cscared)
+plot_cscared <- getViz(fit_cscared)
+plot(sm(plot_cscared, 2))
+
+# 3d plot
+vis.gam(fit_cscared, view=c("nodeID", "cscared"), color = "topo", theta=330, phi=40)
+vis.gam(fit_cscared, view=c("nodeID", "cscared"), theta=60)
+
+
+# parent's scared - decompose intx term
+fit_cscared_intx <- bam(dti_fa ~ sex +
+                          s(subjectID, bs = "re") +
+                          s(nodeID, bs = "cr", k = 40) +
+                          s(cscared, k = 10) +
+                          ti(nodeID, cscared, bs = c("cr", "tp"), k = c(40, 10)),
+                        data = df_tract,
+                        family = gaussian(),
+                        method = "fREML"
+)
+gam.check(fit_cscared_intx, rep = 1000)
+k.check(fit_cscared_intx)
+
+summary(fit_cscared_intx)
+compareML(fit_normal, fit_cscared_intx)
+
+# topo plot
+plot(fit_cscared_intx)
+plot_cscared_intx <- getViz(fit_cscared_intx)
+plot(sm(plot_cscared_intx, 2))
+plot(sm(plot_cscared_intx, 3))
+plot(sm(plot_cscared_intx, 4))
+
+vis.gam(
+  fit_cscared_intx, 
+  view = c("nodeID", "cscared"), 
+  color = "topo",
+  phi = 40,
+  theta = 330
+)
+# vis.gam(fit_cscared_intx, view = c("nodeID", "cscared"), plot.type = "contour", color = "topo", too.far = 0.1)
+# vis.gam(fit_cscared_intx, view = c("nodeID", "cscared"), plot.type = "contour", color = "topo", too.far = 0.05)
 
