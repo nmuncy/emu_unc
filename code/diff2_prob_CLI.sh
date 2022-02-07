@@ -9,7 +9,6 @@
 #SBATCH --account iacc_madlab  # account
 #SBATCH --qos pq_madlab
 
-
 # Notes:
 #
 # This script runs pyAFQ via the reference file
