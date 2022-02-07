@@ -5,42 +5,39 @@
 #SBATCH -p IB_44C_512G
 #SBATCH --nodes 1
 #SBATCH --ntasks 1
-#SBATCH --cpus-per-task 2
+#SBATCH --cpus-per-task 10
 #SBATCH --mem 16000
-#SBATCH --job-name ppiROI
+#SBATCH --job-name ppiETAC
 
 # load relevant modules
 module load afni-20.2.06
-module load c3d-1.0.0-gcc-8.2.0
+export TMPDIR=/scratch/madlab/emu_unc/derivatives/etac
 
 # help
 function Usage {
     cat <<USAGE
-    Extract PPI coefficient for supplied behaviors.
+    Generate and run paired t-test via 3dttest++ ETAC.
 
-    First, find subjects who have PPI output (ref func2_ppi.py).
-    Second, make a group intersection mask referencing *desc-intersect_mask.nii.gz
-        of each subject (ref resources.afni.masks.make_intersect_mask from
-        github.com/emu-project/func_processing.git).
-    Third, multiply ROI <mask_name> by intersection mask to make clean mask.
-    Fourth, use clean mask to extract coefs for each subject.
+    Find subjects who have PPI output (ref func2_ppi.py), then build ETAC
+    command for subjects who have both input behaviors. Assumes example
+    strings/locations described in required args, and requires group
+    intersection mask produced by func3_roiAnalysis.sh.
 
-    Assumes example strings/locations described in required args.
+    Generates an ETAC script in project derivatives/emu_unc called etac_<ppi_seed>.sh,
+    and output written to same directory.
 
     Required Arguments:
         -d </path/to/dir> = location of project derivatives directory, should contain both
             afni and emu_unc sub-directories.
-        -m <mask_name> = identifying mask name
-            (e.g. NSdmpfcL to find <mask_dir>/tpl-MNIPediatricAsym_cohort-5_res-2_desc-NSdmpfcL_mask.nii.gz)
         -p <ppi_seed> = identifying PPI seed name
             (e.g. amgL to find <data_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
         -s <session> = BIDS session string
         <behaviors> = remaining args are sub-brick behaviors to extract (ref 3dinfo -verb)
+            note - exactly 2 must be given
 
     Example Usage:
-        sbatch func3_roiAnalysis.sh \\
+        sbatch func5_expAnalysis.sh \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives \\
-            -m NSdmpfcL \\
             -p amgL \\
             -s ses-S2 \\
             SnegLF SneuLF
@@ -49,7 +46,7 @@ USAGE
 }
 
 # receive args
-while getopts ":d:m:p:s:h" OPT; do
+while getopts ":d:p:s:h" OPT; do
     case $OPT in
     d)
         proj_dir=${OPTARG}
@@ -58,9 +55,6 @@ while getopts ":d:m:p:s:h" OPT; do
             Usage
             exit 1
         fi
-        ;;
-    m)
-        mask_name=${OPTARG}
         ;;
     p)
         ppi_seed=${OPTARG}
@@ -101,9 +95,6 @@ function emptyArg {
     proj_dir)
         h_ret="-d"
         ;;
-    mask_name)
-        h_ret="-m"
-        ;;
     sess)
         h_ret="-s"
         ;;
@@ -119,7 +110,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in proj_dir sess mask_name ppi_seed; do
+for opt in proj_dir sess ppi_seed; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -127,8 +118,8 @@ for opt in proj_dir sess mask_name ppi_seed; do
 done
 
 # check for passed behaviors
-if [ ${#beh_list[@]} -eq 0 ]; then
-    echo -e "\n\n\t ERROR: Missing behavior inputs." >&2
+if [ ${#beh_list[@]} != 2 ]; then
+    echo -e "\n\n\t ERROR: Incorrect number of behavior inputs." >&2
     Usage
     exit 1
 fi
@@ -138,7 +129,6 @@ cat <<-EOF
 
     Checks passed, options captured:
         -d : $proj_dir
-        -m : $mask_name
         -p : $ppi_seed
         -s : $sess
         beh : ${beh_list[@]}
@@ -149,12 +139,12 @@ EOF
 # sess=ses-S2
 # ppi_seed=amgL
 # proj_dir=/home/data/madlab/McMakin_EMUR01/derivatives
-# mask_name=NSdmpfcL
 # beh_list=(SnegLF SneuLF)
 
 # set up
-mask_dir=${proj_dir}/emu_unc
+out_dir=${proj_dir}/emu_unc
 data_dir=${proj_dir}/afni
+group_mask=${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-grpIntx_mask.nii.gz
 
 # find subjs with PPI output
 subj_list_all=($(ls $data_dir | grep "sub-*"))
@@ -165,73 +155,44 @@ for subj in ${subj_list_all[@]}; do
         subj_list+=($subj)
     fi
 done
-echo -e "Subject list:\n\t${subj_list[@]}"
+echo -e "\nSubject list:\n\t${subj_list[@]}\n"
 
-# make group intersection mask
-group_mask=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-grpIntx_mask.nii.gz
-if [ ! -f $group_mask ]; then
-    echo -e "\n\tMaking: $group_mask"
-    maskCmd=(3dmask_tool
-        -frac 1
-        -prefix $group_mask
-        -input
-    )
-    for subj in ${subj_list[@]}; do
-        mask_file=${data_dir}/${subj}/${sess}/anat/${subj}_${sess}_space-MNIPediatricAsym_cohort-5_res-2_desc-intersect_mask.nii.gz
-        if [ -f $mask_file ]; then
-            maskCmd+=($mask_file)
-        fi
-    done
-    echo -e "Starting:\n\t${maskCmd[@]}"
-    "${maskCmd[@]}"
-fi
+# build etac structure
+echo -e "Building ETAC command ...\n"
+out_str=FINAL_PPI-${ppi_seed}_${beh_list[0]}-${beh_list[1]}
+etacCmd=(3dttest++
+    -paired
+    -mask $group_mask
+    -prefix $out_str
+    -prefix_clustsim ${out_str}_clustsim
+    -ETAC
+    -ETAC_opt NN=2:sid=2:hpow=0:pthr=0.01,0.005,0.002,0.001:name=etac
+)
 
-# multiply ROI mask by group intx mask, deal with origin issue, binarize
-mask_clean=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-${mask_name}Clean_mask.nii.gz
-if [ ! -f $mask_clean ]; then
-    echo -e "\n\tMaking: $mask_clean"
-    mask_raw=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-${mask_name}_mask.nii.gz
-    c3d \
-        $group_mask $mask_raw \
-        -reslice-identity \
-        -o $mask_raw
-    c3d \
-        $mask_raw $group_mask \
-        -multiply \
-        -o $mask_clean
-    c3d \
-        $mask_clean \
-        -thresh 0.5 1 1 0 \
-        -o $mask_clean
-fi
-
-# extract coefs for each subj/behavior
-out_file=${mask_dir}/Coefs_${ppi_seed}-${mask_name}.txt
-echo -e "\n\tWriting: $out_file ...\n"
-echo -e "Mask\t$mask_name" >$out_file
-
+# build set A, B
+setA=()
+setB=()
 for subj in ${subj_list[@]}; do
     ppi_file=${data_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
-
-    # find sub-brick for behavior coefficient
-    brick_list=()
+    beh_arr=()
     for beh in ${beh_list[@]}; do
         h_brick=$(3dinfo -label2index "${beh}#0_Coef" $ppi_file)
-        brick_list+=($h_brick)
+        beh_arr+=($h_brick)
     done
-
-    # make sure all planned behaviors were found
-    if [ ${#brick_list[@]} != ${#beh_list[@]} ]; then
+    if [ ${#beh_arr[@]} != 2 ]; then
         echo -e "\n\t Missing behavior for $subj, skipping ..."
         continue
     fi
-
-    # convert array to comma-delimited list
-    IFS=","
-    brick_str="${brick_list[*]}"
-    IFS=$' \t\n'
-
-    # get, print coefs
-    stats=$(3dROIstats -mask $mask_clean "${ppi_file}[${brick_str}]")
-    echo -e "$subj\t$stats" >>$out_file
+    setA+=($subj "${ppi_file}[${beh_arr[0]}]")
+    setB+=($subj "${ppi_file}[${beh_arr[1]}]")
 done
+
+# update etac command with sets A/B
+etacCmd+=(-setA ${beh_list[0]} ${setA[@]})
+etacCmd+=(-setB ${beh_list[1]} ${setB[@]})
+
+# print etac command for review, run
+echo "${etacCmd[@]}" >${out_dir}/etac_${ppi_seed}.sh
+echo -e "Starting ETAC ..."
+cd $out_dir
+"${etacCmd[@]}"
