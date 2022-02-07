@@ -53,6 +53,11 @@ while getopts ":d:m:p:s:h" OPT; do
     case $OPT in
     d)
         proj_dir=${OPTARG}
+        if [ ! -d ${proj_dir}/afni ] || [ ! -d ${proj_dir}/emu_unc ]; then
+            echo -e "\n\t ERROR: did not detect $proj_dir or required sub-directories." >&2
+            Usage
+            exit 1
+        fi
         ;;
     m)
         mask_name=${OPTARG}
@@ -201,7 +206,7 @@ if [ ! -f $mask_clean ]; then
 fi
 
 # extract coefs for each subj/behavior
-out_file=${mask_dir}/Coefs_${mask_name}.txt
+out_file=${mask_dir}/Coefs_${ppi_seed}-${mask_name}.txt
 echo -e "\n\tWriting: $out_file ...\n"
 echo -e "Mask\t$mask_name" >$out_file
 
