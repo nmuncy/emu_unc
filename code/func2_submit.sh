@@ -12,7 +12,7 @@ function Usage {
         -i <mask_info> = path to a mask, or coordinates for mask to be
             constructed. Only one input argument accepted for this option.
         -n <number> = number of subjects to submit jobs
-        -r <seed_name> = seed's name, for writing files, sub-bricks
+        -r <seed_name> = seed\'s name, for writing files, sub-bricks
         -s <session> = BIDS session string
         -w <scratch_directory> = path to scratch/working directory
 
