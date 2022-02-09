@@ -36,7 +36,7 @@ function Usage {
             note - exactly 2 must be given
 
     Example Usage:
-        sbatch func5_expAnalysis.sh \\
+        sbatch func6_expAnalysis.sh \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -p amgL \\
             -s ses-S2 \\

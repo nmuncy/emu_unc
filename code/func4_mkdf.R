@@ -71,7 +71,7 @@ make_dataframe <- function(
 
   # add demographic, measure info
   df_out$sex <- df_out$age <- df_out$pars <- df_out$pscared <-
-    df_out$cscared <- df_out$lgi <- NA
+    df_out$cscared <- df_out$lgi <- df_out$dx <- NA
   df_summary <- read.csv(paste0(one_dir, "/emuR01_summary_latest.csv"))
   for (subj in subj_list) {
     subj_int <- as.integer(gsub("sub-", "", subj))
@@ -86,6 +86,39 @@ make_dataframe <- function(
     df_out[ind_out, ]$pscared <- df_summary[ind_summ, ]$scaredp_sum
     df_out[ind_out, ]$cscared <- df_summary[ind_summ, ]$scaredc_sum
     df_out[ind_out, ]$lgi <- df_summary[ind_summ, ]$lgi_all_1WK
+    
+    # Get diagnoses:
+    #   GAD = GAD is dx 1, or dx GAD but SAD is not dx 1
+    #   SAD = SAD, contains separation/social strings
+    #   Con = No dx
+    df_dx <- cbind(
+      df_summary[ind_summ,]$adis_r_diag1,
+      df_summary[ind_summ,]$adis_r_diag2,
+      df_summary[ind_summ,]$adis_r_diag3,
+      df_summary[ind_summ,]$adis_r_diag4
+    )
+    
+    gad_prim <- grepl("Gen", df_dx[1, 1])
+    gad_occur <- sum(grep("Gen", df_dx[1, ])) != 0
+    
+    sad_str <- c("Separation", "Social")
+    sad_pos <- grep(paste(sad_str, collapse = "|"), df_dx[1,])
+    sad_prim <- sad_occur <- F
+    if (length(sad_pos) != 0){
+      sad_occur <- T
+      sad_prim <- sad_occur[1] == 1
+    }
+    
+    if(gad_prim){
+      h_dx <- "GAD"
+    } else if (gad_occur & !sad_prim){
+      h_dx <- "GAD"
+    } else if (sad_occur){
+      h_dx <- "SAD"
+    }else{
+      h_dx <- "Con"
+    }
+    df_out[ind_out, ]$dx <- h_dx
   }
 
   # save df

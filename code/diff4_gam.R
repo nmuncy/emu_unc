@@ -320,9 +320,10 @@ summary(lunc_dx_hgam)
 plot(lunc_dx_hgam)
 
 
-lunc_dx_intx <- bam(dti_fa ~ sex + dx +
+lunc_dx_intx <- bam(dti_fa ~ sex +
    s(subjectID, bs = "re") +
-   te(nodeID, pscared, by = dx, bs = c("cr", "tp"), k = c(40, 10)),
+   s(dx, bs = "re") +
+   te(nodeID, pscared, by = dx, bs = c("cr", "tp"), k = c(40, 10), m=1),
  data = df_tract,
  family = gaussian(),
  method = "fREML"
@@ -332,15 +333,16 @@ summary(lunc_dx_intx)
 
 plot(lunc_dx_intx)
 plot_lunc_dx_intx <- getViz(lunc_dx_intx)
-plot(sm(plot_lunc_dx_intx, 2))
 plot(sm(plot_lunc_dx_intx, 3))
 plot(sm(plot_lunc_dx_intx, 4))
+plot(sm(plot_lunc_dx_intx, 5))
 
 
 lunc_dx_decomp <- bam(dti_fa ~ sex + dx +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 40) +
     s(pscared, k = 10) +
+    s(dx, bs = "re") +
     ti(nodeID, pscared, by = dx, bs = c("cr", "tp"), k = c(40, 10)),
   data = df_tract,
   family = gaussian(),
@@ -351,9 +353,9 @@ plot(lunc_dx_decomp)
 plot_lunc_dx_decomp <- getViz(lunc_dx_decomp)
 plot(sm(plot_lunc_dx_decomp, 2))
 plot(sm(plot_lunc_dx_decomp, 3))
-plot(sm(plot_lunc_dx_decomp, 4))
 plot(sm(plot_lunc_dx_decomp, 5))
 plot(sm(plot_lunc_dx_decomp, 6))
+plot(sm(plot_lunc_dx_decomp, 7))
 
 
 
