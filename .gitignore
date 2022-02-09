@@ -1,2 +1,5 @@
 .Rhistory
+code/*.log
+code/*.err
 __pycache__
+code/slurm*
