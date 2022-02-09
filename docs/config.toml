@@ -137,7 +137,7 @@ nb_streamlines = false
 # 'Reco': Segment streamlines using the RecoBundles algorithm
 # [Garyfallidis2017].
 # Default: 'AFQ'
-seg_algo = "AFQ"
+seg_algo = "Reco"
 
 # Algorithm for streamline registration (case-insensitive):
 # 'slr' : Use Streamlinear Registration [Garyfallidis2015]_
@@ -145,7 +145,7 @@ seg_algo = "AFQ"
 # If None, will use SyN if a mapping is provided, slr otherwise.
 # If  seg_algo="AFQ", SyN is always used.
 # Default: None
-reg_algo = ""
+reg_algo = "syn"
 
 # Whether to clip the streamlines to be only in between the ROIs.
 # Default: False
