@@ -131,6 +131,7 @@ plot(sm(plot_lunc_groupGS, 4))
 # TODO split dataframes by dx
 
 
+
 # smooth for group * pscared
 # ti(nodeID, pscared, by = dx, bs = c("cr", "tp"), k = c(50, 10), m = 1)
 lunc_groupGS_pscared <- bam(dti_fa ~ sex +
