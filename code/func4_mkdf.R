@@ -39,8 +39,8 @@ make_dataframe <- function(
   ) {
   # Organize func3_roiAnalysis output, make dataframes.
   # 
-  # Added values are: age in month, sex, PARS-6, Child's SCARED, and
-  # Parent's SCARED values.
+  # Added values are: age in month, sex, PARS-6, Child's SCARED,
+  # Parent's SCARED, PARS/SCARED groups, primary diagnosis, diagonsis groups.
   #
   # Arguments:
   #   raw_file (str) = path to output text file of func3_roiAnalysis
@@ -71,7 +71,7 @@ make_dataframe <- function(
 
   # add demographic, measure info
   df_out$sex <- df_out$age <- df_out$pars <- df_out$pscared <-
-    df_out$cscared <- df_out$lgi <- df_out$dx <- NA
+    df_out$cscared <- df_out$lgi <- df_out$dx <- df_out$dx_group <- NA
   df_summary <- read.csv(paste0(one_dir, "/emuR01_summary_latest.csv"))
   for (subj in subj_list) {
     subj_int <- as.integer(gsub("sub-", "", subj))
@@ -119,6 +119,9 @@ make_dataframe <- function(
       h_dx <- "Con"
     }
     df_out[ind_out, ]$dx <- h_dx
+    
+    # dx group - control or patient
+    df_out[ind_out, ]$dx_group <- ifelse(h_dx == "Con", "Con", "Pat")
   }
 
   # save df

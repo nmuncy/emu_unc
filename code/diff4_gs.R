@@ -119,6 +119,7 @@ lunc_groupGS <- bam(dti_fa ~ sex +
                method = "fREML"
 )
 gam.check(lunc_groupGS, rep = 1000)
+compareML(lunc_G, lunc_groupGS)
 summary(lunc_groupGS)
 plot(lunc_groupGS)
 
@@ -130,6 +131,24 @@ plot(sm(plot_lunc_groupGS, 4))
 
 # TODO split dataframes by dx
 
+# Smooth for e/dx
+lunc_dx <- bam(dti_fa ~ sex +
+    s(dx, bs = "re") +
+    s(subjectID, bs = "re") +
+    s(nodeID, by = dx, bs = "cr", k = 50),
+  data = df_tract,
+  family = gaussian(),
+  method = "fREML"
+)
+gam.check(lunc_dx, rep = 1000)
+summary(lunc_dx)
+plot(lunc_dx)
+plot_lunc_dx <- getViz(lunc_dx)
+plot(sm(plot_lunc_dx, 1))
+plot(sm(plot_lunc_dx, 2))
+plot(sm(plot_lunc_dx, 3))
+plot(sm(plot_lunc_dx, 4))
+plot(sm(plot_lunc_dx, 5))
 
 
 # smooth for group * pscared

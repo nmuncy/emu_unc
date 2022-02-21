@@ -2,23 +2,18 @@ library(tools)
 
 # General Notes ----
 #
-#
+# Generate dataframe by adding demographic, group info to
+# AFQ output.
+# 
+# Usage:
+#   Rscript diff3_mkdf.R
 
 make_dataframe <- function(one_dir, data_dir) {
   # Add demographic, participant info to AFQ dataframe.
   # 
-  # Added values are: age in month, sex, PARS-6, and
-  # Parent's SCARED values.
-  #
-  # PARS-6 groups:
-  #   Low <= 3
-  #   3 < Med <= 12
-  #   High > 12
-  #
-  # Parent's SCARED groups:
-  #   Low <= 10
-  #   10 < Med < 25
-  #   High >= 25
+  # Added values are: age in month, sex, PARS-6,
+  # Parent's/Child's SCARED, PARS/SCARED groups, 
+  # primary diagnosis, diagnosis group.
   #
   # Arguments:
   #   one_dir (str) = path to directory containing emuR01_summary_latest.csv
@@ -38,7 +33,7 @@ make_dataframe <- function(one_dir, data_dir) {
   df_afq$age <- df_afq$sex <- df_afq$pds <-
     df_afq$pars6 <- df_afq$pars6_group <-
     df_afq$pscared <- df_afq$pscared_group <- 
-    df_afq$cscared <- df_afq$dx <- NA
+    df_afq$cscared <- df_afq$dx <- df_afq$dx_group <- NA
 
   # get list of afq subjects
   subj_list <- unique(df_afq$subjectID)
@@ -124,22 +119,16 @@ make_dataframe <- function(one_dir, data_dir) {
       h_dx <- "Con"
     }
     df_afq[ind_afq, ]$dx <- h_dx
+    
+    # Set diagnosis group:
+    #   Con = No dx
+    #   Pat = GAD/SAD
+    df_afq[ind_afq, ]$dx_group <- ifelse(h_dx == "Con", "Con", "Pat")
   }
-  
-  # set factors
-  #   sex: 1 = F, 2 = M
-  #   pscared_group: 1 = High, 2 = Low, 3 = Med
-  #   pars6_group: 1 = High, 2 = Low, 3 = Med
-  #   dx: 1 = Con, 2 = GAD, 3 = SAD
-  df_afq$sex <- factor(df_afq$sex)
-  df_afq$pscared_group <- factor(df_afq$pscared_group)
-  df_afq$pars6_group <- factor(df_afq$pars6_group)
-  df_afq$dx <- factor(df_afq$dx)
 
-  # save df
+  # save df, return for review
   write_out <- paste0(data_dir, "/AFQ_dataframe.csv")
   write.table(df_afq, write_out, sep = ",", row.names = F)
-
   return(df_afq)
 }
 
