@@ -67,7 +67,7 @@ family = gaussian(),
 method = "fREML"
 )
 gam.check(lunc_dxGI, rep = 1000)
-summary(lunc_dxGS)
+summary(lunc_dxGI)
 plot(lunc_dxGI)
 compareML(lunc_dxGI, lunc_dxGS) # lunc_dxGS preferred
 
@@ -138,7 +138,7 @@ runc_dxGI <- bam(dti_fa ~ sex + dx_group +
                  method = "fREML"
 )
 gam.check(runc_dxGI, rep = 1000)
-summary(runc_dxGS)
+summary(runc_dxGI)
 plot(runc_dxGI)
 compareML(runc_dxGI, runc_dxGS) # runc_dxGS preferred
 
@@ -159,3 +159,129 @@ plot_runc_dxGS_OF <- getViz(runc_dxGS_OF)
 plot(sm(plot_runc_dxGS_OF, 2))
 plot(sm(plot_runc_dxGS_OF, 3)) +
   geom_hline(yintercept = 0)
+
+
+# L. Cing ----
+#
+#
+
+# subset df_afq, take complete cases, make factors
+df_tract <- df_afq[which(df_afq$tractID == "CGC_L"), ]
+df_tract <- df_tract[complete.cases(df_tract), ]
+
+# determine distribution
+hist(df_tract$dti_fa)
+descdist(df_tract$dti_fa, discrete = F)
+ggplot(df_tract, aes(y = dti_fa, x = nodeID)) +
+  geom_point()
+
+# build gam
+lcgc_beta <- bam(dti_fa ~ sex +
+                   s(subjectID, bs = "re") +
+                   s(nodeID, bs = "cr", k = 50),
+                 data = df_tract,
+                 family = betar(link = "logit"),
+                 method = "fREML"
+)
+gam.check(lcgc_beta, rep = 1000)
+
+lcgc_gamma <- bam(dti_fa ~ sex +
+                    s(subjectID, bs = "re") +
+                    s(nodeID, bs = "cr", k = 50),
+                  data = df_tract,
+                  family = Gamma(link = "logit"),
+                  method = "fREML"
+)
+gam.check(lcgc_gamma, rep = 1000)
+compareML(lcgc_beta, lcgc_gamma)
+
+# L. Cing: GS
+lcgc_dxGS <- bam(dti_fa ~ sex + dx_group +
+                   s(subjectID, bs = "re") +
+                   s(nodeID, bs = "cr", k = 50, m = 2) +
+                   s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
+                 data = df_tract,
+                 family = Gamma(link = "logit"),
+                 method = "fREML"
+)
+gam.check(lcgc_dxGS, rep = 1000)
+compareML(lcgc_gamma, lcgc_dxGS) # almost equal
+summary(lcgc_dxGS)
+plot(lcgc_dxGS)
+
+# L. Cing: GI
+lcgc_dxGI <- bam(dti_fa ~ sex + dx_group +
+                   s(subjectID, bs = "re") +
+                   s(dx_group, bs = "re") +
+                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 2),
+                 data = df_tract,
+                 family = Gamma(link = "logit"),
+                 method = "fREML"
+)
+gam.check(lcgc_dxGI, rep = 1000)
+summary(lcgc_dxGI)
+plot(lcgc_dxGI)
+compareML(lcgc_dxGI, lcgc_dxGS) # lcgc_dxGS preferred
+
+
+# R. Cing ----
+#
+#
+
+# subset df_afq, take complete cases, make factors
+df_tract <- df_afq[which(df_afq$tractID == "CGC_R"), ]
+df_tract <- df_tract[complete.cases(df_tract), ]
+
+# determine distribution
+hist(df_tract$dti_fa)
+descdist(df_tract$dti_fa, discrete = F)
+ggplot(df_tract, aes(y = dti_fa, x = nodeID)) +
+  geom_point()
+
+# build gam
+rcgc_beta <- bam(dti_fa ~ sex +
+                   s(subjectID, bs = "re") +
+                   s(nodeID, bs = "cr", k = 50),
+                 data = df_tract,
+                 family = betar(link = "logit"),
+                 method = "fREML"
+)
+gam.check(rcgc_beta, rep = 1000)
+
+rcgc_gamma <- bam(dti_fa ~ sex +
+                   s(subjectID, bs = "re") +
+                   s(nodeID, bs = "cr", k = 50),
+                 data = df_tract,
+                 family = Gamma(link = "logit"),
+                 method = "fREML"
+)
+gam.check(rcgc_gamma, rep = 1000)
+compareML(rcgc_beta, rcgc_gamma)
+
+# R. Cing: GS
+rcgc_dxGS <- bam(dti_fa ~ sex + dx_group +
+                   s(subjectID, bs = "re") +
+                   s(nodeID, bs = "cr", k = 50, m = 2) +
+                   s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
+                 data = df_tract,
+                 family = Gamma(link = "logit"),
+                 method = "fREML"
+)
+gam.check(rcgc_dxGS, rep = 1000)
+compareML(rcgc_gamma, rcgc_dxGS) # almost equal
+summary(rcgc_dxGS)
+plot(rcgc_dxGS)
+
+# R. Cing: GI
+rcgc_dxGI <- bam(dti_fa ~ sex + dx_group +
+                   s(subjectID, bs = "re") +
+                   s(dx_group, bs = "re") +
+                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 2),
+                 data = df_tract,
+                 family = Gamma(link = "logit"),
+                 method = "fREML"
+)
+gam.check(rcgc_dxGI, rep = 1000)
+summary(rcgc_dxGI)
+plot(rcgc_dxGI)
+compareML(rcgc_dxGI, rcgc_dxGS) # rcgc_dxGS preferred
