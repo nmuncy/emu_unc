@@ -1,0 +1,21 @@
+
+Call:
+lm(formula = df[, col_name] ~ pscared * dx_group, data = df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.3560 -1.0551  0.0438  0.9539  4.8182 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(>|t|)  
+(Intercept)          0.117806   0.357015   0.330   0.7423  
+pscared             -0.009726   0.042705  -0.228   0.8204  
+dx_groupPat          1.437656   0.802320   1.792   0.0769 .
+pscared:dx_groupPat -0.032627   0.051954  -0.628   0.5318  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2.049 on 80 degrees of freedom
+Multiple R-squared:  0.04549,	Adjusted R-squared:  0.009693 
+F-statistic: 1.271 on 3 and 80 DF,  p-value: 0.2901
+

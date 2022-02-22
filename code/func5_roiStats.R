@@ -1,260 +1,229 @@
 library("tools")
 library("dplyr")
 library("ggplot2")
+library("ez")
 
+# functions ----
+adjust_outliers <- function(df, col_name){
+  # Replace outliers with max/min values.
+  #
+  # Arguments:
+  #   
+  # Returns:
+  #
+  
+  # find min/max
+  h_iqr <- IQR(df[, col_name], na.rm = TRUE)
+  h_quant <- quantile(df[, col_name], na.rm = TRUE, names = FALSE)
+  h_min <- h_quant[2] - (1.5 * h_iqr)
+  h_max <- h_quant[4] + (1.5 * h_iqr)
+  
+  # detect, replace outliers
+  ind_out <- which(df[, col_name] < h_min | df[, col_name] > h_max)
+  for(ind in ind_out){
+    if(df[ind, col_name] > h_max){
+      df[ind, col_name] <- h_max
+    }else if(df[ind, col_name] < h_min){
+      df[ind, col_name] <- h_min
+    }
+  }
+  return(df)
+}
+
+linear_model <- function(df, roi, col_name, data_dir){
+  # Title.
+  #
+  # Arguments:
+  #   
+  # Returns:
+  #
+  h_fit <- lm(df[, col_name] ~ pscared * dx_group, data = df)
+  h_aov <- anova(h_fit)
+  out_fit <- paste0(
+    data_dir, "/ppi_stats/LM_", roi, "_", col_name, "-pScared.txt"
+  )
+  writeLines(capture.output(summary(h_fit)), out_fit)
+}
+
+switch_roi <- function(h_str) {
+  # Title.
+  #
+  # Arguments:
+  #
+  # Returns:
+  #
+  h_roi <- switch(
+    h_str,
+    "lvmPFC" = "vmPFC",
+    "ldmPFC" = "dmPFC",
+  )
+  return(h_roi)
+}
+
+switch_beh <- function(h_str) {
+  # Title.
+  #
+  # Arguments:
+  #
+  # Returns:
+  #
+  h_beh <- switch(
+    h_str,
+    "SnegLF" = "Negative",
+    "SneuLF" = "Neutral",
+  )
+  return(h_beh)
+}
+
+linear_plot <- function(df, roi, col_name, data_dir){
+  # Title.
+  #
+  # Arguments:
+  #
+  # Returns:
+  #
+  h_roi <- switch_roi(roi)
+  y_lab <- paste(switch_beh(col_name), "Lure FA PPI Term")
+  ggplot(data = df, aes(x = pscared, y = df[, col_name], color = dx_group)) +
+    geom_point() +
+    geom_ribbon(
+      stat = "smooth", 
+      method = "lm", 
+      se = T, 
+      alpha=0.1,
+      aes(color = NULL, group = factor(dx_group))
+    ) +
+    geom_line(stat = "smooth", method = "lm", alpha = 1) +
+    ggtitle(paste0("L. Amg -- ", h_roi)) +
+    ylab(y_lab) +
+    xlab("Parent's SCARED") +
+    labs(color="Dx Group")
+  
+  out_plot <- paste0(
+    data_dir, "/ppi_plots/LM_", roi, "_", col_name, "-pScared.png"
+  )
+  ggsave(
+    out_plot,
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+long_format <- function(df, beh_list){
+  # Title.
+  #
+  # Arguments:
+  #
+  # Returns:
+  #
+  subj_list <- unique(df$subj)
+  num_subj <- length(subj_list)
+  num_beh <- length(beh_list)
+  
+  df_long <- as.data.frame(
+    matrix(NA, nrow=num_subj*num_beh, ncol=4)
+  )
+  colnames(df_long) <- c("subj", "group", "beh", "value")
+  df_long$subj <- rep(subj_list, each = num_beh)
+  df_long$beh <- rep(beh_list, num_subj)
+  
+  for(h_row in 1:dim(df)[1]){
+    ind_subj <- which(df_long$subj == df[h_row,]$subj)
+    df_long[ind_subj, ]$group <- as.character(df[h_row, ]$dx_group)
+    for(h_beh in beh_list){
+      ind_beh <- which(df_long$subj == df[h_row,]$subj & df_long$beh == h_beh)
+      df_long[ind_beh, ]$value <- df[h_row, h_beh]
+    }
+  }
+  df_long$group <- factor(df_long$group)
+  return(df_long)
+}
+
+anova_model <- function(df_long, roi, beh_list, data_dir){
+  # Title.
+  #
+  # Arguments:
+  #
+  # Returns:
+  #
+  h_fit <- ezANOVA(
+    df_long, 
+    dv = value, 
+    wid = subj, 
+    within = beh, 
+    between = group
+  )
+  out_fit <- paste0(
+    data_dir, "/ppi_stats/AN_", roi, ".txt"
+  )
+  writeLines(capture.output(h_fit), out_fit)
+}
+
+anova_plot <- function(df_long, roi, beh_list, data_dir){
+  # Title.
+  #
+  # Arguments:
+  #
+  # Returns:
+  #
+  h_roi <- switch_roi(roi)
+  y_lab <- "Lure FA PPI Term"
+  ind_a <- which(df_long$beh == beh_list[1])
+  ind_b <- which(df_long$beh == beh_list[2])
+  df_long[ind_a,]$beh <- switch_beh(beh_list[1])
+  df_long[ind_b,]$beh <- switch_beh(beh_list[2])
+  
+  ggplot(df_long, aes(x = beh, y = value, fill = group)) +
+    geom_boxplot() +
+    ggtitle(paste0("L. Amg -- ", h_roi)) +
+    labs(fill="Dx Group") +
+    ylab(y_lab) +
+    scale_x_discrete(name = "Stimulus Valence")
+  
+  out_plot <- paste0(
+    data_dir, "/ppi_plots/AN_", roi, ".png"
+  )
+  ggsave(
+    out_plot,
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+
+# Set Up ----
 data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
 
-# amgL vmPFC LMs ----
-df_amgL_vmpfc <- read.csv(paste0(data_dir, "/df_amgL-lvmPFC.csv"))
-df_amgL_vmpfc$dx <- factor(df_amgL_vmpfc$dx)
-df_amgL_vmpfc <- na.omit(df_amgL_vmpfc)
-
-# find outliers of SnegLF
-h_iqr <- IQR(df_amgL_vmpfc$SnegLF, na.rm = TRUE)
-h_quant <- quantile(df_amgL_vmpfc$SnegLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_amgL_vmpfc$SnegLF < h_min | df_amgL_vmpfc$SnegLF > h_max)
-for(ind in ind_out){
-  if(df_amgL_vmpfc[ind,]$SnegLF > h_max){
-    df_amgL_vmpfc[ind,]$SnegLF <- h_max
-  }else if(df_amgL_vmpfc[ind,]$SnegLF < h_min){
-    df_amgL_vmpfc[ind,]$SnegLF <- h_min
+# amgL vmPFC, dmPFC ----
+roi_list <- c("lvmPFC", "ldmPFC")
+beh_list <- c("SnegLF", "SneuLF")
+for(roi in roi_list){
+  
+  # get data
+  df <- read.csv(paste0(data_dir, "/df_amgL-", roi, ".csv"))
+  df$dx_group <- factor(df$dx_group)
+  df <- na.omit(df)
+  
+  # deal w/outliers
+  for(beh in beh_list){
+    df <- adjust_outliers(df, beh)
   }
+  
+  # beh x group
+  df_long <- long_format(df, beh_list)
+  anova_model(df_long, roi, beh_list, data_dir)
+  anova_plot(df_long, roi, beh_list, data_dir)
+  
+  # linear models
+  for( beh in beh_list){
+    linear_model(df, roi, beh, data_dir)
+    linear_plot(df, roi, beh, data_dir)
+  }
+  
 }
 
-# find outliers of SneuLF
-h_iqr <- IQR(df_amgL_vmpfc$SneuLF, na.rm = TRUE)
-h_quant <- quantile(df_amgL_vmpfc$SneuLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_amgL_vmpfc$SneuLF < h_min | df_amgL_vmpfc$SneuLF > h_max)
-for(ind in ind_out){
-  if(df_amgL_vmpfc[ind,]$SneuLF > h_max){
-    df_amgL_vmpfc[ind,]$SneuLF <- h_max
-  }else if(df_amgL_vmpfc[ind,]$SneuLF < h_min){
-    df_amgL_vmpfc[ind,]$SneuLF <- h_min
-  }
-}
-
-hist(df_amgL_vmpfc$SneuLF)
-hist(df_amgL_vmpfc$SnegLF)
-
-fit_neg <- lm(SnegLF ~ pscared * dx, data = df_amgL_vmpfc)
-summary(fit_neg)
-anova(fit_neg)
-
-fit_neu <- lm(SneuLF ~ pscared * dx, data = df_amgL_vmpfc)
-summary(fit_neu)
-anova(fit_neu)
-
-ggplot(data = df_amgL_vmpfc, aes(x = pscared, y = SnegLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. Amg -- vmPFC")
-
-ggplot(data = df_amgL_vmpfc, aes(x = pscared, y = SneuLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. Amg -- vmPFC")
-
-
-
-# amgL dmPFC LMs ----
-df_amgL_dmpfc <- read.csv(paste0(data_dir, "/df_amgL-ldmPFC.csv"))
-df_amgL_dmpfc$dx <- factor(df_amgL_dmpfc$dx)
-df_amgL_dmpfc <- na.omit(df_amgL_dmpfc)
-
-# find outliers of SnegLF
-h_iqr <- IQR(df_amgL_dmpfc$SnegLF, na.rm = TRUE)
-h_quant <- quantile(df_amgL_dmpfc$SnegLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_amgL_dmpfc$SnegLF < h_min | df_amgL_dmpfc$SnegLF > h_max)
-for(ind in ind_out){
-  if(df_amgL_dmpfc[ind,]$SnegLF > h_max){
-    df_amgL_dmpfc[ind,]$SnegLF <- h_max
-  }else if(df_amgL_dmpfc[ind,]$SnegLF < h_min){
-    df_amgL_dmpfc[ind,]$SnegLF <- h_min
-  }
-}
-
-# find outliers of SneuLF
-h_iqr <- IQR(df_amgL_dmpfc$SneuLF, na.rm = TRUE)
-h_quant <- quantile(df_amgL_dmpfc$SneuLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_amgL_dmpfc$SneuLF < h_min | df_amgL_dmpfc$SneuLF > h_max)
-for(ind in ind_out){
-  if(df_amgL_dmpfc[ind,]$SneuLF > h_max){
-    df_amgL_dmpfc[ind,]$SneuLF <- h_max
-  }else if(df_amgL_dmpfc[ind,]$SneuLF < h_min){
-    df_amgL_dmpfc[ind,]$SneuLF <- h_min
-  }
-}
-
-hist(df_amgL_dmpfc$SneuLF)
-hist(df_amgL_dmpfc$SnegLF)
-
-fit_neg <- lm(SnegLF ~ pscared * dx, data = df_amgL_dmpfc)
-summary(fit_neg)
-anova(fit_neg)
-
-fit_neu <- lm(SneuLF ~ pscared * dx, data = df_amgL_dmpfc)
-summary(fit_neu)
-anova(fit_neu)
-
-ggplot(data = df_amgL_dmpfc, aes(x = pscared, y = SnegLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. Amg -- dmPFC")
-
-ggplot(data = df_amgL_dmpfc, aes(x = pscared, y = SneuLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. Amg -- dmPFC")
-
-
-
-# blaL vmPFC LMs ----
-df_blaL_vmpfc <- read.csv(paste0(data_dir, "/df_blaL-lvmPFC.csv"))
-df_blaL_vmpfc$dx <- factor(df_blaL_vmpfc$dx)
-df_blaL_vmpfc <- na.omit(df_blaL_vmpfc)
-
-# find outliers of SnegLF
-h_iqr <- IQR(df_blaL_vmpfc$SnegLF, na.rm = TRUE)
-h_quant <- quantile(df_blaL_vmpfc$SnegLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_blaL_vmpfc$SnegLF < h_min | df_blaL_vmpfc$SnegLF > h_max)
-for(ind in ind_out){
-  if(df_blaL_vmpfc[ind,]$SnegLF > h_max){
-    df_blaL_vmpfc[ind,]$SnegLF <- h_max
-  }else if(df_blaL_vmpfc[ind,]$SnegLF < h_min){
-    df_blaL_vmpfc[ind,]$SnegLF <- h_min
-  }
-}
-
-# find outliers of SneuLF
-h_iqr <- IQR(df_blaL_vmpfc$SneuLF, na.rm = TRUE)
-h_quant <- quantile(df_blaL_vmpfc$SneuLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_blaL_vmpfc$SneuLF < h_min | df_blaL_vmpfc$SneuLF > h_max)
-for(ind in ind_out){
-  if(df_blaL_vmpfc[ind,]$SneuLF > h_max){
-    df_blaL_vmpfc[ind,]$SneuLF <- h_max
-  }else if(df_blaL_vmpfc[ind,]$SneuLF < h_min){
-    df_blaL_vmpfc[ind,]$SneuLF <- h_min
-  }
-}
-
-hist(df_blaL_vmpfc$SneuLF)
-hist(df_blaL_vmpfc$SnegLF)
-
-fit_neg <- lm(SnegLF ~ pscared * dx, data = df_blaL_vmpfc)
-summary(fit_neg)
-anova(fit_neg)
-
-fit_neu <- lm(SneuLF ~ pscared * dx, data = df_blaL_vmpfc)
-summary(fit_neu)
-anova(fit_neu)
-
-ggplot(data = df_blaL_vmpfc, aes(x = pscared, y = SnegLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. BLA -- vmPFC")
-
-ggplot(data = df_blaL_vmpfc, aes(x = pscared, y = SneuLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. BLA -- vmPFC")
-
-
-
-# blaL dmPFC LMs ----
-df_blaL_dmpfc <- read.csv(paste0(data_dir, "/df_blaL-ldmPFC.csv"))
-df_blaL_dmpfc$dx <- factor(df_blaL_dmpfc$dx)
-df_blaL_dmpfc <- na.omit(df_blaL_dmpfc)
-
-# find outliers of SnegLF
-h_iqr <- IQR(df_blaL_dmpfc$SnegLF, na.rm = TRUE)
-h_quant <- quantile(df_blaL_dmpfc$SnegLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_blaL_dmpfc$SnegLF < h_min | df_blaL_dmpfc$SnegLF > h_max)
-for(ind in ind_out){
-  if(df_blaL_dmpfc[ind,]$SnegLF > h_max){
-    df_blaL_dmpfc[ind,]$SnegLF <- h_max
-  }else if(df_blaL_dmpfc[ind,]$SnegLF < h_min){
-    df_blaL_dmpfc[ind,]$SnegLF <- h_min
-  }
-}
-
-# find outliers of SneuLF
-h_iqr <- IQR(df_blaL_dmpfc$SneuLF, na.rm = TRUE)
-h_quant <- quantile(df_blaL_dmpfc$SneuLF, na.rm = TRUE, names = FALSE)
-h_min <- h_quant[2] - (1.5 * h_iqr)
-h_max <- h_quant[4] + (1.5 * h_iqr)
-
-# replace outliers with min/max
-ind_out <- which(df_blaL_dmpfc$SneuLF < h_min | df_blaL_dmpfc$SneuLF > h_max)
-for(ind in ind_out){
-  if(df_blaL_dmpfc[ind,]$SneuLF > h_max){
-    df_blaL_dmpfc[ind,]$SneuLF <- h_max
-  }else if(df_blaL_dmpfc[ind,]$SneuLF < h_min){
-    df_blaL_dmpfc[ind,]$SneuLF <- h_min
-  }
-}
-
-hist(df_blaL_dmpfc$SneuLF)
-hist(df_blaL_dmpfc$SnegLF)
-
-fit_neg <- lm(SnegLF ~ pscared * dx, data = df_blaL_dmpfc)
-summary(fit_neg)
-anova(fit_neg)
-
-fit_neu <- lm(SneuLF ~ pscared * dx, data = df_blaL_dmpfc)
-summary(fit_neu)
-anova(fit_neu)
-
-ggplot(data = df_blaL_dmpfc, aes(x = pscared, y = SnegLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. BLA -- dmPFC")
-
-ggplot(data = df_blaL_dmpfc, aes(x = pscared, y = SneuLF, color = dx)) +
-  geom_point() +
-  geom_ribbon(stat = "smooth", method = "lm", se = T, alpha=0.1,
-              aes(color = NULL, group = factor(dx))) +
-  geom_line(stat = "smooth", method = "lm", alpha = 1) +
-  ggtitle("L. BLA -- dmPFC")
