@@ -202,6 +202,57 @@ data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 # amgL vmPFC, dmPFC ----
 roi_list <- c("lvmPFC", "ldmPFC")
 beh_list <- c("SnegLF", "SneuLF")
+
+# omnibus
+df_a <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[1], ".csv"))
+df_a$roi <- roi_list[1]
+df_b <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[2], ".csv"))
+df_b$roi <- roi_list[2]
+for(beh in beh_list){
+  df_a <- adjust_outliers(df_a, beh)
+  df_b <- adjust_outliers(df_b, beh)
+}
+df_master <- rbind(df_a, df_b)
+df_master <- na.omit(df_master)
+
+num_roi <- length(roi_list)
+num_beh <- length(beh_list)
+subj_list <- unique(df_master$subj)
+num_subj <- length(subj_list)
+col_names <- c("subj", "group", "roi", "beh", "value")
+df_long <- as.data.frame(
+  matrix(NA, nrow=num_subj*num_roi*num_beh, ncol=length(col_names))
+)
+colnames(df_long) <- col_names
+
+df_long$subj <- rep(subj_list, each = num_roi * num_beh)
+df_long$roi <- rep(roi_list, each = num_roi, times = num_subj)
+df_long$beh <- rep(beh_list, times = num_roi * num_subj)
+for(subj in subj_list){
+  for(roi in roi_list){
+    ind_wide <- which(df_master$subj == subj & df_master$roi == roi)
+    for(beh in beh_list){
+      ind_long <- which(
+        df_long$subj == subj & df_long$roi == roi & df_long$beh == beh
+      )
+      df_long[ind_long,]$value <- df_master[ind_wide, beh]
+      df_long[ind_long,]$group <- df_master[ind_wide, ]$dx_group
+    }
+  }
+}
+df_long$roi <- factor(df_long$roi)
+df_long$group <- factor(df_long$group)
+
+fit_omni <- ezANOVA(
+  df_long, value, wid=subj, within = c(beh, roi), between = group
+)
+fit_omni
+ggplot(df_long, aes(x = beh, y = value, fill = group)) +
+  facet_wrap(~roi) +
+  geom_boxplot()
+
+
+# post-hoc
 for(roi in roi_list){
   
   # get data
@@ -224,6 +275,5 @@ for(roi in roi_list){
     linear_model(df, roi, beh, data_dir)
     linear_plot(df, roi, beh, data_dir)
   }
-  
 }
 
