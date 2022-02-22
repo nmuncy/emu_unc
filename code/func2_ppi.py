@@ -830,7 +830,7 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     return afni_data
 
 
-def copy_data(subj_out, subj_data, decon_ppi):
+def copy_data(subj_out, subj_final, decon_ppi):
     """Copy final files to storage.
 
     Move only the final files to storage, those with
@@ -840,7 +840,7 @@ def copy_data(subj_out, subj_data, decon_ppi):
     ----------
     subj_out : str
         Path to subject scratch directory
-    subj_data : str
+    subj_final : str
         Path to subect's project derivative directory
     decon_ppi : str
         prefix of deconvolved file
@@ -848,12 +848,12 @@ def copy_data(subj_out, subj_data, decon_ppi):
     Raises
     ------
     AssertionError
-        missing <subj_data>/<decon_ppi>_stats_REML+tlrc.HEAD
+        missing <subj_final>/<decon_ppi>_stats_REML+tlrc.HEAD
     """
-    h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}* {subj_data}"
+    h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}* {subj_final}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
-    check_file = os.path.join(subj_data, f"{decon_ppi}_stats_REML+tlrc.HEAD")
-    assert os.path.exists(check_file), f"Missing PPI decon file in {subj_data}"
+    check_file = os.path.join(subj_final, f"{decon_ppi}_stats_REML+tlrc.HEAD")
+    assert os.path.exists(check_file), f"Missing PPI decon file in {subj_final}"
 
 
 def get_args():
@@ -861,9 +861,9 @@ def get_args():
     parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 
     parser.add_argument(
-        "--data-dir",
+        "--deriv-dir",
         type=str,
-        default="/home/data/madlab/McMakin_EMUR01/derivatives/afni",
+        default="/home/data/madlab/McMakin_EMUR01/derivatives",
         help=textwrap.dedent(
             """\
             Path to BIDS-formatted derivatives directory containing output
@@ -873,7 +873,7 @@ def get_args():
         ),
     )
     parser.add_argument(
-        "--deriv-dir",
+        "--work-dir",
         type=str,
         default="/scratch/madlab/emu_unc/derivatives/afni_ppi",
         help=textwrap.dedent(
@@ -947,8 +947,8 @@ def get_args():
 def main():
 
     # # For testing
-    # data_dir = "/home/data/madlab/McMakin_EMUR01/derivatives/afni"
-    # deriv_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
+    # deriv_dir = "/home/data/madlab/McMakin_EMUR01/derivatives"
+    # work_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
     # subj = "sub-4001"
     # sess = "ses-S2"
     # task = "task-test"
@@ -963,8 +963,8 @@ def main():
 
     # get passed args
     args = get_args().parse_args()
-    data_dir = args.data_dir
     deriv_dir = args.deriv_dir
+    work_dir = args.work_dir
     subj = args.subj
     sess = args.sess
     task = args.task
@@ -974,10 +974,13 @@ def main():
 
     # setup paths/dicts
     seed_tuple = (seed_name, seed_info)
+    data_dir = os.path.join(deriv_dir, "afni")
     subj_data = os.path.join(data_dir, subj, sess, "func")
-    subj_out = os.path.join(deriv_dir, subj, sess, "func")
-    if not os.path.exists(subj_out):
-        os.makedirs(subj_out)
+    subj_out = os.path.join(work_dir, subj, sess, "func")
+    subj_final = os.path.join(deriv_dir, "emu_unc", subj, sess, "func")
+    for h_dir in [subj_out, subj_final]:
+        if not os.path.exists(h_dir):
+            os.makedirs(h_dir)
 
     # get required files produced by
     # github.com/emu-project/func_processing/cli/run_afni.py
@@ -1014,10 +1017,10 @@ def main():
     decon_ppi = f"{decon_str}_PPI-{seed_name}"
     afni_data = write_ppi_decon(subj, decon_ppi, subj_out, seed_name, afni_data)
     afni_data = run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
-    copy_data(subj_out, subj_data, decon_ppi)
+    copy_data(subj_out, subj_final, decon_ppi)
 
     # clean up
-    shutil.rmtree(os.path.join(deriv_dir, subj))
+    shutil.rmtree(os.path.join(work_dir, subj))
 
 
 # %%

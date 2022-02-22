@@ -153,14 +153,16 @@ EOF
 # beh_list=(SnegLF SneuLF)
 
 # set up
-mask_dir=${proj_dir}/emu_unc
-data_dir=${proj_dir}/afni
+afni_dir=${proj_dir}/afni
+ppi_dir=${proj_dir}/emu_unc
+mask_dir=${ppi_dir}/template
+analysis_dir=${ppi_dir}/analyses
 
 # find subjs with PPI output
-subj_list_all=($(ls $data_dir | grep "sub-*"))
+subj_list_all=($(ls $ppi_dir | grep "sub-*"))
 subj_list=()
 for subj in ${subj_list_all[@]}; do
-    check_file=${data_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
+    check_file=${ppi_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
     if [ -f $check_file ]; then
         subj_list+=($subj)
     fi
@@ -177,7 +179,7 @@ if [ ! -f $group_mask ]; then
         -input
     )
     for subj in ${subj_list[@]}; do
-        mask_file=${data_dir}/${subj}/${sess}/anat/${subj}_${sess}_space-MNIPediatricAsym_cohort-5_res-2_desc-intersect_mask.nii.gz
+        mask_file=${afni_dir}/${subj}/${sess}/anat/${subj}_${sess}_space-MNIPediatricAsym_cohort-5_res-2_desc-intersect_mask.nii.gz
         if [ -f $mask_file ]; then
             maskCmd+=($mask_file)
         fi
@@ -206,12 +208,12 @@ if [ ! -f $mask_clean ]; then
 fi
 
 # extract coefs for each subj/behavior
-out_file=${mask_dir}/Coefs_${ppi_seed}-${mask_name}.txt
+out_file=${analysis_dir}/Coefs_${ppi_seed}-${mask_name}.txt
 echo -e "\n\tWriting: $out_file ...\n"
 echo -e "Mask\t$mask_name" >$out_file
 
 for subj in ${subj_list[@]}; do
-    ppi_file=${data_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
+    ppi_file=${ppi_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
 
     # find sub-brick for behavior coefficient
     brick_list=()

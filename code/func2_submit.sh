@@ -19,16 +19,16 @@ function Usage {
     Example Usage:
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
+            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
             -r blaL \\
-            -i /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \\
+            -i /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \\
             -n 8
 
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives/afni \\
+            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
             -r LHC \\
@@ -164,9 +164,11 @@ EOF
 # find subjects missing ppi output
 echo -e "Building subject lists ...\n"
 subj_list=()
-subj_all=($(ls $deriv_dir | grep "sub-*"))
+afni_dir=${deriv_dir}/afni
+ppi_dir=${deriv_dir}/emu_unc
+subj_all=($(ls $afni_dir | grep "sub-*"))
 for subj in ${subj_all[@]}; do
-    ppi_file=${deriv_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
+    ppi_file=${ppi_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
     if [ ! -f $ppi_file ]; then
         subj_list+=($subj)
     fi

@@ -13,11 +13,11 @@ function Usage {
     Optional Arguments:
         --run = [y/N] whether to run or print this help
         -o <outDir> = path to output directory
-            default: /scratch/madlab/McMakin_EMUR01/derivatives/amgJLF
+            default: /scratch/madlab/McMakin_EMUR01/derivatives/emu_unc/template
         -f <fsDir> = path to FreeSurfer derivatives
             default: /home/data/madlab/McMakin_EMUR01/derivatives/freesurfer
         -t <template> = path to template
-            default: \${outDir}/tpl-MNIPediatricAsym/cohort-5/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
+            default: \${outDir}/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
 
 USAGE
 }
@@ -29,9 +29,9 @@ fi
 
 # set defaults
 run=n
-outDir=/scratch/madlab/McMakin_EMUR01/derivatives/amgJLF
+outDir=/scratch/madlab/McMakin_EMUR01/derivatives/emu_unc/template
 fsDir=/home/data/madlab/McMakin_EMUR01/derivatives/freesurfer
-atlas=${outDir}/tpl-MNIPediatricAsym/cohort-5/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
+atlas=${outDir}/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
 
 # Check options
 while (($# >= 1)); do
