@@ -44,7 +44,7 @@ summary(lunc_gaus)
 plot(lunc_gaus)
 
 # L. Unc: GS
-lunc_dxGS <- bam(dti_fa ~ sex + dx_group +
+lunc_dxGS <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
   s(nodeID, bs = "cr", k = 50, m = 2) +
   s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
@@ -58,10 +58,11 @@ summary(lunc_dxGS)
 plot(lunc_dxGS)
 
 # L. Unc: GI
-lunc_dxGI <- bam(dti_fa ~ sex + dx_group +
+lunc_dxGI <- bam(dti_fa ~ sex + 
   s(subjectID, bs = "re") +
   s(dx_group, bs = "re") +
-  s(nodeID, by = dx_group, bs = "cr", k = 50, m = 2),
+    s(nodeID, bs = "cr", k = 50, m = 2) +
+  s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
 data = df_tract,
 family = gaussian(),
 method = "fREML"
@@ -73,7 +74,7 @@ compareML(lunc_dxGI, lunc_dxGS) # lunc_dxGS preferred
 
 # L. Unc: GS difference via ordered factors
 df_tract$dx_groupOF <- factor(df_tract$dx_group, ordered = T)
-lunc_dxGS_OF <- bam(dti_fa ~ sex + dx_groupOF +
+lunc_dxGS_OF <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
   s(nodeID, bs = "cr", k = 50, m = 2) +
   s(nodeID, by = dx_groupOF, bs = "cr", k = 50, m = 2),
@@ -115,7 +116,7 @@ summary(runc_gaus)
 plot(runc_gaus)
 
 # R. Unc: GS
-runc_dxGS <- bam(dti_fa ~ sex + dx_group +
+runc_dxGS <- bam(dti_fa ~ sex + 
                    s(subjectID, bs = "re") +
                    s(nodeID, bs = "cr", k = 50, m = 2) +
                    s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
@@ -129,10 +130,11 @@ summary(runc_dxGS)
 plot(runc_dxGS)
 
 # R. Unc: GI
-runc_dxGI <- bam(dti_fa ~ sex + dx_group +
+runc_dxGI <- bam(dti_fa ~ sex + 
                    s(subjectID, bs = "re") +
                    s(dx_group, bs = "re") +
-                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 2),
+                   s(nodeID, bs = "cr", k = 50, m = 2) +
+                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
                  data = df_tract,
                  family = gaussian(),
                  method = "fREML"
@@ -144,7 +146,7 @@ compareML(runc_dxGI, runc_dxGS) # runc_dxGS preferred
 
 # R. Unc: GS difference via ordered factors
 df_tract$dx_groupOF <- factor(df_tract$dx_group, ordered = T)
-runc_dxGS_OF <- bam(dti_fa ~ sex + dx_groupOF +
+runc_dxGS_OF <- bam(dti_fa ~ sex + 
                       s(subjectID, bs = "re") +
                       s(nodeID, bs = "cr", k = 50, m = 2) +
                       s(nodeID, by = dx_groupOF, bs = "cr", k = 50, m = 2),
@@ -196,7 +198,7 @@ gam.check(lcgc_gamma, rep = 1000)
 compareML(lcgc_beta, lcgc_gamma)
 
 # L. Cing: GS
-lcgc_dxGS <- bam(dti_fa ~ sex + dx_group +
+lcgc_dxGS <- bam(dti_fa ~ sex + 
                    s(subjectID, bs = "re") +
                    s(nodeID, bs = "cr", k = 50, m = 2) +
                    s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
@@ -210,10 +212,11 @@ summary(lcgc_dxGS)
 plot(lcgc_dxGS)
 
 # L. Cing: GI
-lcgc_dxGI <- bam(dti_fa ~ sex + dx_group +
+lcgc_dxGI <- bam(dti_fa ~ sex + 
                    s(subjectID, bs = "re") +
                    s(dx_group, bs = "re") +
-                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 2),
+                   s(nodeID, bs = "cr", k = 50, m = 2) +
+                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
                  data = df_tract,
                  family = Gamma(link = "logit"),
                  method = "fREML"
@@ -259,7 +262,7 @@ gam.check(rcgc_gamma, rep = 1000)
 compareML(rcgc_beta, rcgc_gamma)
 
 # R. Cing: GS
-rcgc_dxGS <- bam(dti_fa ~ sex + dx_group +
+rcgc_dxGS <- bam(dti_fa ~ sex + 
                    s(subjectID, bs = "re") +
                    s(nodeID, bs = "cr", k = 50, m = 2) +
                    s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
@@ -273,10 +276,11 @@ summary(rcgc_dxGS)
 plot(rcgc_dxGS)
 
 # R. Cing: GI
-rcgc_dxGI <- bam(dti_fa ~ sex + dx_group +
+rcgc_dxGI <- bam(dti_fa ~ sex + 
                    s(subjectID, bs = "re") +
                    s(dx_group, bs = "re") +
-                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 2),
+                   s(nodeID, bs = "cr", k = 50, m = 2) +
+                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
                  data = df_tract,
                  family = Gamma(link = "logit"),
                  method = "fREML"
