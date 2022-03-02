@@ -33,7 +33,8 @@ make_dataframe <- function(one_dir, data_dir) {
   df_afq$age <- df_afq$sex <- df_afq$pds <-
     df_afq$pars6 <- df_afq$pars6_group <-
     df_afq$pscared <- df_afq$pscared_group <- 
-    df_afq$cscared <- df_afq$dx <- df_afq$dx_group <- NA
+    df_afq$cscared <- df_afq$dx <- df_afq$dx_group <-
+    df_afq$lgi_neg <- df_afq$lgi_neu <- NA
 
   # get list of afq subjects
   subj_list <- unique(df_afq$subjectID)
@@ -51,10 +52,12 @@ make_dataframe <- function(one_dir, data_dir) {
       next
     }
 
-    # fill age, sex, pds
+    # fill age, sex, pds, lgi
     df_afq[ind_afq, ]$age <- df_summary[ind_summ, ]$pinf_age_mo
     df_afq[ind_afq, ]$sex <- df_summary[ind_summ, ]$pinf_gender
     df_afq[ind_afq, ]$pds <- df_summary[ind_summ, ]$pds_shirtcliff
+    df_afq[ind_afq, ]$lgi_neg <- df_summary[ind_summ, ]$lgi_neg_1WK
+    df_afq[ind_afq, ]$lgi_neu <- df_summary[ind_summ, ]$lgi_neu_1WK
 
     # get, determine parent's scared number, group
     num_pscared <- df_summary[ind_summ, ]$scaredp_sum
