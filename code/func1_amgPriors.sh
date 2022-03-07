@@ -97,7 +97,7 @@ echo -e "\nStarting:\n\t${jlfCmd[@]}\n"
 "${jlfCmd[@]}"
 
 # split L/R priors
-atlas_str=tpl-MNIPediatricAsym_cohort-5_res-2
+atlas_str=tpl-MNIPediatricAsym_cohort-5_res-1
 cp ${out_dir}/JLF_Labels.nii.gz ${out_dir}/${atlas_str}_desc-amg_mask.nii.gz
 c3d \
     ${out_dir}/${atlas_str}_desc-amg_mask.nii.gz \

@@ -7,7 +7,7 @@
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 2
 #SBATCH --mem 16000
-#SBATCH --job-name ppiROI
+#SBATCH --job-name ppiINTX
 
 # load relevant modules
 module load afni-20.2.06
@@ -36,13 +36,13 @@ function Usage {
 
     Example Usage:
         deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
-        seed_dir=${deriv_dir}/emu_unc/template
+        seed_dir=\${deriv_dir}/emu_unc/template
         sbatch func2_intx_mask.sh \\
-            -d $deriv_dir \\
+            -d \$deriv_dir \\
             -s ses-S2 \\
             -t task-test \\
-            ${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgL_mask.nii.gz \\
-            ${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgR_mask.nii.gz \\
+            \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgL_mask.nii.gz \\
+            \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgR_mask.nii.gz
 
 USAGE
 }
@@ -154,12 +154,16 @@ if [ ! -f $intx_mask ]; then
     echo -e "Starting:\n\t${maskCmd[@]}"
     "${maskCmd[@]}"
 fi
+exit
 
 # multiply seed mask by intersection mask
 if [ ${#seed_list[@]} -gt 0 ]; then
     for seed in ${seed_list[@]}; do
         seed_clean="${seed/_mask.nii.gz/Clean_mask.nii.gz}"
         echo -e "\n\t Making $seed_clean"
+
+        # TODO resample seed here
+
         c3d \
             $intx_mask $seed \
             -multiply \
