@@ -18,38 +18,42 @@ function Usage {
     cat <<USAGE
     Extract PPI coefficient for supplied behaviors.
 
-    First, find subjects who have PPI output (ref func2_ppi.py).
-    Second, make a group intersection mask referencing *desc-intersect_mask.nii.gz
-        of each subject (ref resources.afni.masks.make_intersect_mask from
-        github.com/emu-project/func_processing.git).
-    Third, multiply ROI <mask_name> by intersection mask to make clean mask.
-    Fourth, use clean mask to extract coefs for each subject.
-
-    Assumes example strings/locations described in required args.
+    Find subjects who have PPI output (ref func3_ppi.py). Then multiply ROI <mask_name>
+    by intersection mask (-g) to make clean mask. Finally, use clean mask to extract
+    coefs for each subject.
 
     Required Arguments:
         -d </path/to/dir> = location of project derivatives directory, should contain both
             afni and emu_unc sub-directories.
+        -g <group_intx_mask> = group intersection mask
         -m <mask_name> = identifying mask name
             (e.g. NSdmpfcL to find <mask_dir>/tpl-MNIPediatricAsym_cohort-5_res-2_desc-NSdmpfcL_mask.nii.gz)
+        -n <decon_name> = identifying deconvolution name
         -p <ppi_seed> = identifying PPI seed name
             (e.g. amgL to find <data_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
         -s <session> = BIDS session string
+        -t <task> = BIDS task string
         <behaviors> = remaining args are sub-brick behaviors to extract (ref 3dinfo -verb)
 
     Example Usage:
-        sbatch func3_roiAnalysis.sh \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
+        sess=ses-S2
+        task=task-test
+        sbatch func4_roiAnalysis.sh \\
+            -d $deriv_dir \\
+            -g ${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz \\
             -m NSdmpfcL \\
+            -n UniqueBehs \\
             -p amgL \\
-            -s ses-S2 \\
+            -s $sess \\
+            -t $task \\
             SnegLF SneuLF
 
 USAGE
 }
 
 # receive args
-while getopts ":d:m:p:s:h" OPT; do
+while getopts ":d:m:n:p:s:t:h" OPT; do
     case $OPT in
     d)
         proj_dir=${OPTARG}
@@ -59,14 +63,23 @@ while getopts ":d:m:p:s:h" OPT; do
             exit 1
         fi
         ;;
+    g)
+        group_mask=${OPTARG}
+        ;;
     m)
         mask_name=${OPTARG}
+        ;;
+    n)
+        decon_name=${OPTARG}
         ;;
     p)
         ppi_seed=${OPTARG}
         ;;
     s)
         sess=${OPTARG}
+        ;;
+    t)
+        task=${OPTARG}
         ;;
     h)
         Usage
@@ -104,11 +117,20 @@ function emptyArg {
     mask_name)
         h_ret="-m"
         ;;
+    decon_name)
+        h_ret="-n"
+        ;;
     sess)
         h_ret="-s"
         ;;
+    task)
+        h_ret="-t"
+        ;;
     ppi_seed)
         h_ret="-p"
+        ;;
+    group_mask)
+        h_ret="-g"
         ;;
     *)
         echo -n "Unknown option."
@@ -119,7 +141,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in proj_dir sess mask_name ppi_seed; do
+for opt in proj_dir sess task mask_name decon_name group_mask ppi_seed; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -138,19 +160,15 @@ cat <<-EOF
 
     Checks passed, options captured:
         -d : $proj_dir
+        -g : $group_mask
         -m : $mask_name
+        -n : $decon_name
         -p : $ppi_seed
         -s : $sess
+        -t : $task
         beh : ${beh_list[@]}
 
 EOF
-
-# # for testing
-# sess=ses-S2
-# ppi_seed=amgL
-# proj_dir=/home/data/madlab/McMakin_EMUR01/derivatives
-# mask_name=NSdmpfcL
-# beh_list=(SnegLF SneuLF)
 
 # set up
 afni_dir=${proj_dir}/afni
@@ -162,45 +180,29 @@ analysis_dir=${ppi_dir}/analyses
 subj_list_all=($(ls $ppi_dir | grep "sub-*"))
 subj_list=()
 for subj in ${subj_list_all[@]}; do
-    check_file=${ppi_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
+    check_file=${ppi_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
     if [ -f $check_file ]; then
         subj_list+=($subj)
     fi
 done
 echo -e "Subject list:\n\t${subj_list[@]}"
 
-# make group intersection mask
-group_mask=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-grpIntx_mask.nii.gz
-if [ ! -f $group_mask ]; then
-    echo -e "\n\tMaking: $group_mask"
-    maskCmd=(3dmask_tool
-        -frac 1
-        -prefix $group_mask
-        -input
-    )
-    for subj in ${subj_list[@]}; do
-        mask_file=${afni_dir}/${subj}/${sess}/anat/${subj}_${sess}_space-MNIPediatricAsym_cohort-5_res-2_desc-intersect_mask.nii.gz
-        if [ -f $mask_file ]; then
-            maskCmd+=($mask_file)
-        fi
-    done
-    echo -e "Starting:\n\t${maskCmd[@]}"
-    "${maskCmd[@]}"
-fi
-
 # multiply ROI mask by group intx mask, deal with origin issue, binarize
 mask_clean=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-${mask_name}Clean_mask.nii.gz
 if [ ! -f $mask_clean ]; then
     echo -e "\n\tMaking: $mask_clean"
     mask_raw=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-${mask_name}_mask.nii.gz
+
     c3d \
         $group_mask $mask_raw \
         -reslice-identity \
         -o $mask_raw
+
     c3d \
         $mask_raw $group_mask \
         -multiply \
         -o $mask_clean
+
     c3d \
         $mask_clean \
         -thresh 0.5 1 1 0 \
@@ -213,7 +215,7 @@ echo -e "\n\tWriting: $out_file ...\n"
 echo -e "Mask\t$mask_name" >$out_file
 
 for subj in ${subj_list[@]}; do
-    ppi_file=${ppi_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
+    ppi_file=${ppi_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc
 
     # find sub-brick for behavior coefficient
     brick_list=()

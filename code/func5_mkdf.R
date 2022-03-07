@@ -7,16 +7,16 @@ library("stringr")
 #
 # Requires OneDrive access for EMU summary dataset.
 #
-# Writes: 
+# Writes:
 #   <data_dir>/df_<ppi_seed>-ROI.csv
 #
 # Receives three positional arguments:
 #   [1] = ppi seed (amgL)
 #   [2] = sub-brick behavior string (SnegLF)
 #   [3] = sub-brick behavior string (SneuLF)
-# 
+#
 # Usage:
-#   Rscript func4_mkdf.R amgL SnegLF SneuLF
+#   Rscript func5_mkdf.R amgL SnegLF SneuLF
 
 # Receive Args ----
 get_args <- commandArgs(trailingOnly = T)
@@ -38,7 +38,7 @@ make_dataframe <- function(
   raw_file, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
   ) {
   # Organize func3_roiAnalysis output, make dataframes.
-  # 
+  #
   # Added values are: age in month, sex, PARS-6, Child's SCARED,
   # Parent's SCARED, PARS/SCARED groups, primary diagnosis, diagonsis groups.
   #
@@ -86,7 +86,7 @@ make_dataframe <- function(
     df_out[ind_out, ]$pscared <- df_summary[ind_summ, ]$scaredp_sum
     df_out[ind_out, ]$cscared <- df_summary[ind_summ, ]$scaredc_sum
     df_out[ind_out, ]$lgi <- df_summary[ind_summ, ]$lgi_all_1WK
-    
+
     # Get diagnoses:
     #   GAD = GAD is dx 1, or dx GAD but SAD is not dx 1
     #   SAD = SAD, contains separation/social strings
@@ -97,10 +97,10 @@ make_dataframe <- function(
       df_summary[ind_summ,]$adis_r_diag3,
       df_summary[ind_summ,]$adis_r_diag4
     )
-    
+
     gad_prim <- grepl("Gen", df_dx[1, 1])
     gad_occur <- sum(grep("Gen", df_dx[1, ])) != 0
-    
+
     sad_str <- c("Separation", "Social")
     sad_pos <- grep(paste(sad_str, collapse = "|"), df_dx[1,])
     sad_prim <- sad_occur <- F
@@ -108,7 +108,7 @@ make_dataframe <- function(
       sad_occur <- T
       sad_prim <- sad_occur[1] == 1
     }
-    
+
     if(gad_prim){
       h_dx <- "GAD"
     } else if (gad_occur & !sad_prim){
@@ -119,7 +119,7 @@ make_dataframe <- function(
       h_dx <- "Con"
     }
     df_out[ind_out, ]$dx <- h_dx
-    
+
     # dx group - control or patient
     df_out[ind_out, ]$dx_group <- ifelse(h_dx == "Con", "Con", "Pat")
   }
@@ -135,7 +135,7 @@ make_dataframe <- function(
 
 # Make dataframes ----
 one_dir <- paste(
-  Sys.getenv("HOME"), 
+  Sys.getenv("HOME"),
   "Florida International University",
   "EMU Study - Documents",
   "EMU Data",

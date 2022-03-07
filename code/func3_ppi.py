@@ -12,7 +12,7 @@ sbatch --job-name=p1234 \\
     --partition=IB_44C_512G \\
     --account=iacc_madlab \\
     --qos=pq_madlab \\
-    func2_ppi.py \\
+    func3_ppi.py \\
     -s sub-1234 \\
     -d decon_task-test_UniqueBehs \\
     -r LHC \\
@@ -29,9 +29,6 @@ import subprocess
 import pandas as pd
 import textwrap
 from argparse import ArgumentParser, RawTextHelpFormatter
-
-
-# TODO multiply seed mask by group intersection mask
 
 
 def submit_hpc_subprocess(bash_command):
@@ -590,25 +587,13 @@ def mot_files(subj_out, afni_data):
         # determine BIDS string, write tsvs, make sure
         # output value is float (not scientific notation)
         df_mean_cat.to_csv(
-            mean_str,
-            sep="\t",
-            index=False,
-            header=False,
-            float_format="%.6f",
+            mean_str, sep="\t", index=False, header=False, float_format="%.6f",
         )
         df_deriv_cat.to_csv(
-            deriv_str,
-            sep="\t",
-            index=False,
-            header=False,
-            float_format="%.6f",
+            deriv_str, sep="\t", index=False, header=False, float_format="%.6f",
         )
         df_censor_cat.to_csv(
-            cens_str,
-            sep="\t",
-            index=False,
-            header=False,
-            columns=["sum"],
+            cens_str, sep="\t", index=False, header=False, columns=["sum"],
         )
 
     # update afni_data
@@ -911,11 +896,7 @@ def get_args():
 
     required_args = parser.add_argument_group("Required Arguments")
     required_args.add_argument(
-        "-s",
-        "--subj",
-        help="BIDS subject str (sub-1234)",
-        type=str,
-        required=True,
+        "-s", "--subj", help="BIDS subject str (sub-1234)", type=str, required=True,
     )
     required_args.add_argument(
         "-d",
@@ -986,7 +967,7 @@ def main():
             os.makedirs(h_dir)
 
     # get required files produced by
-    # github.com/emu-project/func_processing/cli/run_afni.py
+    # github.com/emu-project/func_processing/cli/run_afni_subj.py
     afni_data = {}
     afni_data["scaled_files"] = sorted(
         glob.glob(f"{subj_data}/*desc-scaled_bold.nii.gz")
