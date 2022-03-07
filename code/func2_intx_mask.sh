@@ -150,8 +150,10 @@ for subj in ${subj_list_all[@]}; do
 done
 
 # make group intersection mask
-echo -e "Starting:\n\t${maskCmd[@]}"
-"${maskCmd[@]}"
+if [ ! -f $intx_mask ]; then
+    echo -e "Starting:\n\t${maskCmd[@]}"
+    "${maskCmd[@]}"
+fi
 
 # multiply seed mask by intersection mask
 if [ ${#seed_list[@]} -gt 0 ]; then
