@@ -31,6 +31,9 @@ import textwrap
 from argparse import ArgumentParser, RawTextHelpFormatter
 
 
+# TODO multiply seed mask by group intersection mask
+
+
 def submit_hpc_subprocess(bash_command):
     """Submit quick job as subprocess.
 

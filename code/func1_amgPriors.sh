@@ -5,8 +5,8 @@
 # posteriors.
 #
 # Receives three positional argument from make_amgPriors_submit.sh:
-#   [1] <outDir> = location of final output
-#   [2] <fsDir> = location of FreeSurer posteriors
+#   [1] <out_dir> = location of final output
+#   [2] <fs_dir> = location of FreeSurer posteriors
 #   [3] <atlas> = template/atlas
 
 #SBATCH --qos pq_madlab
@@ -24,8 +24,8 @@ module load c3d-1.0.0-gcc-8.2.0
 module load freesurfer-7.1
 
 # receive args
-outDir=$1
-fsDir=$2
+out_dir=$1
+fs_dir=$2
 atlas=$3
 
 # roi values
@@ -35,18 +35,18 @@ arrLabel=(18 54)
 jlfCmd=(antsJointLabelFusion.sh
     -d 3
     -t $atlas
-    -o ${outDir}/JLF_
-    -p ${outDir}/priors_amg/label_%04d.nii.gz
+    -o ${out_dir}/JLF_
+    -p ${out_dir}/priors_amg/label_%04d.nii.gz
     -c 5
     -j 10
 )
 
-# orient in fsDir
-cd $fsDir
+# orient in fs_dir
+cd $fs_dir
 for subj in sub-*; do
 
     # set output dir
-    subj_out=${outDir}/$subj
+    subj_out=${out_dir}/$subj
     mkdir $subj_out
 
     # set fs, out files
