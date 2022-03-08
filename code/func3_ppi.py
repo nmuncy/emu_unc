@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 
-"""Title
+"""Conduct PPI Analysis.
 
-Desc.
+Find averaged timeseries of seed, solve for RHS to get
+neural timeseries, make behavior vectors, then convolve
+to get behavior timeseries of seed.
+
+Supports coordinates for seed construction, or passed
+ROI masks.
 
 Examples
 --------
@@ -17,6 +22,18 @@ sbatch --job-name=p1234 \\
     -d decon_task-test_UniqueBehs \\
     -r LHC \\
     -i "-24 -12 -22"
+
+sbatch --job-name=p1234 \\
+    --output=p1234 \\
+    --mem-per-cpu=4000 \\
+    --partition=IB_44C_512G \\
+    --account=iacc_madlab \\
+    --qos=pq_madlab \\
+    func3_ppi.py \\
+    -s sub-1234 \\
+    -d decon_task-test_UniqueBehs \\
+    -r amgL \\
+    -i "/path/to/amgL_mask.ni.gz"
 """
 
 # %%
@@ -587,13 +604,25 @@ def mot_files(subj_out, afni_data):
         # determine BIDS string, write tsvs, make sure
         # output value is float (not scientific notation)
         df_mean_cat.to_csv(
-            mean_str, sep="\t", index=False, header=False, float_format="%.6f",
+            mean_str,
+            sep="\t",
+            index=False,
+            header=False,
+            float_format="%.6f",
         )
         df_deriv_cat.to_csv(
-            deriv_str, sep="\t", index=False, header=False, float_format="%.6f",
+            deriv_str,
+            sep="\t",
+            index=False,
+            header=False,
+            float_format="%.6f",
         )
         df_censor_cat.to_csv(
-            cens_str, sep="\t", index=False, header=False, columns=["sum"],
+            cens_str,
+            sep="\t",
+            index=False,
+            header=False,
+            columns=["sum"],
         )
 
     # update afni_data
@@ -896,7 +925,11 @@ def get_args():
 
     required_args = parser.add_argument_group("Required Arguments")
     required_args.add_argument(
-        "-s", "--subj", help="BIDS subject str (sub-1234)", type=str, required=True,
+        "-s",
+        "--subj",
+        help="BIDS subject str (sub-1234)",
+        type=str,
+        required=True,
     )
     required_args.add_argument(
         "-d",
@@ -939,11 +972,6 @@ def main():
     # decon_str = f"decon_{task}_UniqueBehs"
     # seed_name = "blaL"
     # seed_info = "/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz"
-
-    # check for correct conda env
-    assert (
-        "emuR01_unc_env" in sys.executable
-    ), "Please activate emuR01_unc conda environment."
 
     # get passed args
     args = get_args().parse_args()
@@ -1009,4 +1037,9 @@ def main():
 
 # %%
 if __name__ == "__main__":
+    env_found = [x for x in sys.path if "emuR01_unc" in x]
+    if not env_found:
+        print("\nERROR: madlab conda emuR01_unc_env required.")
+        print("\tHint: $madlab_env emuR01_unc\n")
+        sys.exit()
     main()

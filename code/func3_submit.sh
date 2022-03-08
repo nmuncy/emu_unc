@@ -17,18 +17,20 @@ function Usage {
         -w <scratch_directory> = path to scratch/working directory
 
     Example Usage:
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
+            -d \$deriv_dir \\
             -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
-            -r blaL \\
-            -i /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz \\
+            -r amgL \\
+            -i \${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
             -n 8
 
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
+            -d \$deriv_dir \\
             -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
             -r LHC \\
@@ -174,7 +176,7 @@ for subj in ${subj_all[@]}; do
     fi
 done
 
-# patch - remove subjs w/missing data
+# patch - remove subjs w/missing data, redeclare array
 problem_list=(sub-4{011,020,021,055,056,063,090,172,197})
 ind_problem=()
 for ind in ${!subj_list[@]}; do
@@ -198,7 +200,7 @@ mkdir -p $out_dir
 cat <<-EOF
     Submitting sbatch job
 
-        func2_ppi.py \\
+        func3_ppi.py \\
             -s <subj> \\
             -d $decon_str \\
             -r $seed_name \\
@@ -221,7 +223,7 @@ while [ $c -lt $num_subj ]; do
         --partition=IB_44C_512G \
         --account=iacc_madlab \
         --qos=pq_madlab \
-        func2_ppi.py \
+        func3_ppi.py \
         -s $subj \
         -d $decon_str \
         -r $seed_name \
