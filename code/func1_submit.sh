@@ -5,19 +5,19 @@ function Usage {
 
     Wrapper script for func1_amgPriors.sh, which uses FreeSurfer posteriors
     to create template priors via Joint Label Fusion. Stderr/out of
-    func1_amgPriors.sh captured in <outDir>/Slurm_out/amgJLF_<timestamp>.
+    func1_amgPriors.sh captured in <out_dir>/Slurm_out/amgJLF_<timestamp>.
 
     Usage:
         $0 --run y
 
     Optional Arguments:
         --run = [y/N] whether to run or print this help
-        -o <outDir> = path to output directory
-            default: /scratch/madlab/McMakin_EMUR01/derivatives/amgJLF
-        -f <fsDir> = path to FreeSurfer derivatives
+        -o <out_dir> = path to output directory
+            default: /scratch/madlab/McMakin_EMUR01/derivatives/emu_unc/template
+        -f <fs_dir> = path to FreeSurfer derivatives
             default: /home/data/madlab/McMakin_EMUR01/derivatives/freesurfer
         -t <template> = path to template
-            default: \${outDir}/tpl-MNIPediatricAsym/cohort-5/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
+            default: \${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
 
 USAGE
 }
@@ -29,18 +29,18 @@ fi
 
 # set defaults
 run=n
-outDir=/scratch/madlab/McMakin_EMUR01/derivatives/amgJLF
-fsDir=/home/data/madlab/McMakin_EMUR01/derivatives/freesurfer
-atlas=${outDir}/tpl-MNIPediatricAsym/cohort-5/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
+out_dir=/scratch/madlab/McMakin_EMUR01/derivatives/emu_unc/template
+fs_dir=/home/data/madlab/McMakin_EMUR01/derivatives/freesurfer
+atlas=${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz
 
 # Check options
 while (($# >= 1)); do
     case $1 in
     -f)
-        fsDir=$2
+        fs_dir=$2
         ;;
     -o)
-        outDir=$2
+        out_dir=$2
         ;;
     -t)
         atlas=$2
@@ -65,14 +65,14 @@ while (($# >= 1)); do
     fi
 done
 
-# check for atlas, fsDir
+# check for atlas, fs_dir
 if [ ! -f $atlas ]; then
     echo -e "\n\n ERROR: option \"-t\" template not detected." >&2
     Usage
     exit 1
 fi
 
-if [ ! -d $fsDir ]; then
+if [ ! -d $fs_dir ]; then
     echo -e "\n\n ERROR: option \"-f\" directory not detected." >&2
     Usage
     exit 1
@@ -81,15 +81,15 @@ fi
 # set up
 codeDir=$(pwd)
 time=$(date '+%Y-%m-%d_%H:%M')
-slurmDir=${outDir}/Slurm_out/amgJLF_$time
+slurmDir=${out_dir}/Slurm_out/amgJLF_$time
 
 # print feedback
 cat <<-EOF
 
     ${codeDir}/func1_amgPriors.sh will use
     following parameters (use "--run y" to start job):
-        -o <outDir> = $outDir
-        -f <fsDir> = $fsDir
+        -o <out_dir> = $out_dir
+        -f <fs_dir> = $fs_dir
         -t <template> = $atlas
 
 EOF
@@ -101,5 +101,5 @@ if [ $run == "y" ]; then
     sbatch \
         -e ${slurmDir}/err_amgJLF.txt \
         -o ${slurmDir}/out_amgJLF.txt \
-        ${codeDir}/func1_amgPriors.sh $outDir $fsDir $atlas
+        ${codeDir}/func1_amgPriors.sh $out_dir $fs_dir $atlas
 fi

@@ -2,23 +2,18 @@ library(tools)
 
 # General Notes ----
 #
-#
+# Generate dataframe by adding demographic, group info to
+# AFQ output.
+# 
+# Usage:
+#   Rscript diff3_mkdf.R
 
 make_dataframe <- function(one_dir, data_dir) {
   # Add demographic, participant info to AFQ dataframe.
   # 
-  # Added values are: age in month, sex, PARS-6, and
-  # Parent's SCARED values.
-  #
-  # PARS-6 groups:
-  #   Low <= 3
-  #   3 < Med <= 12
-  #   High > 12
-  #
-  # Parent's SCARED groups:
-  #   Low <= 10
-  #   10 < Med < 25
-  #   High >= 25
+  # Added values are: age in month, sex, PARS-6,
+  # Parent's/Child's SCARED, PARS/SCARED groups, 
+  # primary diagnosis, diagnosis group.
   #
   # Arguments:
   #   one_dir (str) = path to directory containing emuR01_summary_latest.csv
@@ -31,13 +26,15 @@ make_dataframe <- function(one_dir, data_dir) {
   #   data_dir/AFQ_dataframe.csv
 
   # get summary and afq dataframes
-  df_summary <- read.csv(paste0(one_dir, "emuR01_summary_latest.csv"))
+  df_summary <- read.csv(paste0(one_dir, "/emuR01_summary_latest.csv"))
   df_afq <- read.csv(paste0(data_dir, "/tract_profiles.csv"))
 
   # start age, sex, pds, parent's scared columns
   df_afq$age <- df_afq$sex <- df_afq$pds <-
     df_afq$pars6 <- df_afq$pars6_group <-
-    df_afq$pscared <- df_afq$pscared_group <- df_afq$cscared <- NA
+    df_afq$pscared <- df_afq$pscared_group <- 
+    df_afq$cscared <- df_afq$dx <- df_afq$dx_group <-
+    df_afq$lgi_neg <- df_afq$lgi_neu <- NA
 
   # get list of afq subjects
   subj_list <- unique(df_afq$subjectID)
@@ -55,10 +52,12 @@ make_dataframe <- function(one_dir, data_dir) {
       next
     }
 
-    # fill age, sex, pds
+    # fill age, sex, pds, lgi
     df_afq[ind_afq, ]$age <- df_summary[ind_summ, ]$pinf_age_mo
     df_afq[ind_afq, ]$sex <- df_summary[ind_summ, ]$pinf_gender
     df_afq[ind_afq, ]$pds <- df_summary[ind_summ, ]$pds_shirtcliff
+    df_afq[ind_afq, ]$lgi_neg <- df_summary[ind_summ, ]$lgi_neg_1WK
+    df_afq[ind_afq, ]$lgi_neu <- df_summary[ind_summ, ]$lgi_neu_1WK
 
     # get, determine parent's scared number, group
     num_pscared <- df_summary[ind_summ, ]$scaredp_sum
@@ -90,24 +89,62 @@ make_dataframe <- function(one_dir, data_dir) {
     # fill pars info
     df_afq[ind_afq, ]$pars6 <- num_pars6
     df_afq[ind_afq, ]$pars6_group <- group_pars6
+    
+    # Get diagnoses:
+    #   GAD = GAD is dx 1, or dx GAD but SAD is not dx 1
+    #   SAD = SAD, contains separation/social strings
+    #   Con = No dx
+    df_dx <- cbind(
+      df_summary[ind_summ,]$adis_r_diag1,
+      df_summary[ind_summ,]$adis_r_diag2,
+      df_summary[ind_summ,]$adis_r_diag3,
+      df_summary[ind_summ,]$adis_r_diag4
+    )
+    
+    gad_prim <- grepl("Gen", df_dx[1, 1])
+    gad_occur <- sum(grep("Gen", df_dx[1, ])) != 0
+    
+    sad_str <- c("Separation", "Social")
+    sad_pos <- grep(paste(sad_str, collapse = "|"), df_dx[1,])
+    sad_prim <- sad_occur <- F
+    if (length(sad_pos) != 0){
+      sad_occur <- T
+      sad_prim <- sad_occur[1] == 1
+    }
+    
+    if(gad_prim){
+      h_dx <- "GAD"
+    } else if (gad_occur & !sad_prim){
+      h_dx <- "GAD"
+    } else if (sad_occur){
+      h_dx <- "SAD"
+    }else{
+      h_dx <- "Con"
+    }
+    df_afq[ind_afq, ]$dx <- h_dx
+    
+    # Set diagnosis group:
+    #   Con = No dx
+    #   Pat = GAD/SAD
+    df_afq[ind_afq, ]$dx_group <- ifelse(h_dx == "Con", "Con", "Pat")
   }
-  
-  # set factors
-  #   sex: 1 = F, 2 = M
-  #   pscared_group: 1 = High, 2 = Low, 3 = Med
-  #   pars6_group: 1 = High, 2 = Low, 3 = Med
-  df_afq$sex <- factor(df_afq$sex)
-  df_afq$pscared_group <- factor(df_afq$pscared_group)
-  df_afq$pars6_group <- factor(df_afq$pars6_group)
 
-  # save df
+  # save df, return for review
   write_out <- paste0(data_dir, "/AFQ_dataframe.csv")
   write.table(df_afq, write_out, sep = ",", row.names = F)
-
   return(df_afq)
 }
 
 # Make dataframe ----
-one_dir <- "/Users/nmuncy/Florida International University/EMU Study - Documents/EMU Data/current_working_data/datasets/_full_working_dataset/"
+one_dir <- paste(
+  Sys.getenv("HOME"), 
+  "Florida International University",
+  "EMU Study - Documents",
+  "EMU Data",
+  "current_working_data",
+  "datasets",
+  "_full_working_dataset",
+  sep = "/"
+)
 data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 df_afq <- make_dataframe(one_dir, data_dir)

@@ -2,7 +2,6 @@
 
 function Usage {
     cat <<USAGE
-
     Wrapper for func0_masks.py. Checks for which subjects have
     kmeans amygdala masks and not a resampled BLA mask in template
     space. Submits sbatch jobs for N subjects meeting checks.
@@ -14,7 +13,7 @@ function Usage {
         -n <number> = number of subjects to submit jobs
 
     Example Usage:
-        $0 \\
+        ./func0_submit.sh \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -w /scratch/madlab/emu_unc \\
             -s ses-S2 \\
@@ -27,19 +26,9 @@ while getopts ":d:f:n:s:w:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
-        if [ ! -d $deriv_dir ]; then
-            echo -e "\n\t ERROR: -d directory not found." >&2
-            Usage
-            exit 1
-        fi
         ;;
     n)
         num_subj=${OPTARG}
-        if [ $num_subj -lt 1 ]; then
-            echo -e "\n\t ERROR: -n arg must be greater than 0." >&2
-            Usage
-            exit 1
-        fi
         ;;
     s)
         sess=${OPTARG}
@@ -51,13 +40,8 @@ while getopts ":d:f:n:s:w:h" OPT; do
         Usage
         exit 0
         ;;
-    :)
-        echo -e "\n\t ERROR: option '$OPTARG' missing argument." >&2
-        Usage
-        exit 1
-        ;;
     \?)
-        echo -e "\n\t ERROR: invalid option '$OPTARG'." >&2
+        echo -e "\n \t ERROR: invalid option." >&2
         Usage
         exit 1
         ;;
@@ -70,36 +54,30 @@ if [ $OPTIND == 1 ]; then
     exit 0
 fi
 
-# make sure required args have values - determine which (first) arg is empty
-function emptyArg {
-    case $1 in
-    deriv_dir)
-        h_ret="-d"
-        ;;
-    num_subj)
-        h_ret="-n"
-        ;;
-    sess)
-        h_ret="-s"
-        ;;
-    scratch_dir)
-        h_ret="-w"
-        ;;
-    *)
-        echo -n "Unknown option."
-        ;;
-    esac
-    echo -e "\n\n\t ERROR: Missing input parameter for \"${h_ret}\"." >&2
+# check args
+if [ $num_subj -lt 1 ]; then
+    echo -e "\n\t ERROR: -n value must be greater than 0.\n" >&2
     Usage
     exit 1
-}
+fi
 
-for opt in deriv_dir num_subj sess scratch_dir; do
-    h_opt=$(eval echo \${$opt})
-    if [ -z $h_opt ]; then
-        emptyArg $opt
-    fi
-done
+if [ ! -d $deriv_dir ]; then
+    echo -e "\n\t ERROR: -d directory not found.\n" >&2
+    Usage
+    exit 1
+fi
+
+if [ -z $scratch_dir ]; then
+    echo -e "\n\t ERROR: please specify -w directory.\n" >&2
+    Usage
+    exit 1
+fi
+
+if [ -z $sess ]; then
+    echo -e "\n\t ERROR: please specify -s session.\n" >&2
+    Usage
+    exit 1
+fi
 
 # check for conda env
 which python | grep "emuR01_unc" >/dev/null 2>&1
@@ -111,7 +89,7 @@ fi
 # print report
 cat <<-EOF
 
-    Checks passed, options captured:
+    Success! Checks passed, starting work with the following variables:
         -w : $scratch_dir
         -d : $deriv_dir
         -s : $sess
@@ -120,7 +98,6 @@ cat <<-EOF
 EOF
 
 # find subjects missing kmeans masks
-echo -e "Building subject lists ...\n"
 subj_list=()
 kmeans_dir=${deriv_dir}/kmeans
 afni_dir=${deriv_dir}/afni
@@ -137,17 +114,8 @@ time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${scratch_dir}/slurm_out/kmean_${time}
 mkdir -p $out_dir
 
-cat <<-EOF
-    Submitting sbatch job
-
-        func0_masks.py \\
-            -s <subj>
-
-    with the following subjects:
-
-        ${subj_list[@]:0:$num_subj}
-
-EOF
+echo "Submitting jobs for:"
+echo -e "\t${subj_list[@]:0:$num_subj}\n"
 
 c=0
 while [ $c -lt $num_subj ]; do

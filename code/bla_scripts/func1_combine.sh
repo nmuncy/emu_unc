@@ -17,7 +17,7 @@ function Usage {
     thresholding the summation at some level (20), and then splitting the resulting
     binarized mask into left/right by the origin.
 
-    Final masks are written to -d <project_derivatives>/afni.
+    Final masks are written to -w <scratch working dir>.
 
     Visual inspection revealed registration problems for a number of subjects
     (possibly due to issues with distortion correction), these are excluded
@@ -36,7 +36,6 @@ function Usage {
             -d /home/data/madlab/McMakin_EMUR01/derivatives \\
             -w /scratch/madlab/emu_unc/derivatives/kmeans_warp \\
             -s ses-S2
-
 USAGE
 }
 
@@ -45,34 +44,19 @@ while getopts ":d:s:w:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
-        if [ ! -d $deriv_dir ]; then
-            echo -e "\n\t ERROR: $deriv_dir not found." >&2
-            Usage
-            exit 1
-        fi
         ;;
     s)
         sess=${OPTARG}
         ;;
     w)
         scratch_dir=${OPTARG}
-        if [ ! -d $scratch_dir ]; then
-            echo -e "\n\t ERROR: $scratch_dir not found." >&2
-            Usage
-            exit 1
-        fi
         ;;
     h)
         Usage
         exit 0
         ;;
-    :)
-        echo -e "\n\t ERROR: option '$OPTARG' missing argument." >&2
-        Usage
-        exit 1
-        ;;
     \?)
-        echo -e "\n\t ERROR: invalid option '$OPTARG'." >&2
+        echo -e "\n\t ERROR: invalid option." >&2
         Usage
         exit 1
         ;;
@@ -85,43 +69,24 @@ if [ $OPTIND == 1 ]; then
     exit 0
 fi
 
-# make sure required args have values - determine which (first) arg is empty
-function emptyArg {
-    case $1 in
-    deriv_dir)
-        h_ret="-d"
-        ;;
-    sess)
-        h_ret="-s"
-        ;;
-    scratch_dir)
-        h_ret="-w"
-        ;;
-    *)
-        echo -n "Unknown option."
-        ;;
-    esac
-    echo -e "\n\n \t ERROR: Missing input parameter for \"${h_ret}\"." >&2
+# check args
+if [ ! -d $deriv_dir ]; then
+    echo -e "\n\t ERROR: -d directory not found.\n" >&2
     Usage
     exit 1
-}
+fi
 
-for opt in deriv_dir sess scratch_dir; do
-    h_opt=$(eval echo \${$opt})
-    if [ -z $h_opt ]; then
-        emptyArg $opt
-    fi
-done
+if [ -z $scratch_dir ]; then
+    echo -e "\n\t ERROR: please specify -w directory.\n" >&2
+    Usage
+    exit 1
+fi
 
-# print report
-cat <<-EOF
-
-    Checks passed, options captured:
-        -d : $deriv_dir
-        -w : $scratch_dir
-        -s : $sess
-
-EOF
+if [ -z $sess ]; then
+    echo -e "\n\t ERROR: please specify -s session.\n" >&2
+    Usage
+    exit 1
+fi
 
 # load required modules (c3d)
 module load c3d-1.0.0-gcc-8.2.0
@@ -132,7 +97,6 @@ afni_dir=${deriv_dir}/afni
 out_dir=${deriv_dir}/emu_unc
 
 # find subjects with func0_masks.py mask
-echo -e "Building subject lists ...\n"
 subj_all=($(ls $afni_dir | grep "sub-*"))
 file_list=()
 subj_list=()
@@ -146,7 +110,6 @@ for subj in ${subj_all[@]}; do
 done
 
 # find index of subjects w/registration problems
-echo -e "Cleaning subject lists ...\n"
 problem_list=(sub-4{008,012,019,038,057,065,082,083,091,108,110,114,118,119,125,142,144})
 ind_problem=()
 for ind in ${!subj_list[@]}; do
@@ -166,7 +129,6 @@ declare -a subj_list=(${subj_list[@]})
 declare -a file_list=(${file_list[@]})
 
 # forcibly solve space/origin issue - use first subject as reference
-echo -e "Reslicing subject files ...\n"
 ref_file=${file_list[0]}
 mask_list=($ref_file)
 c=1
@@ -188,7 +150,7 @@ done
 
 # combine masks
 if [ ! -f ${scratch_dir}/bla_mask_sum.nii.gz ]; then
-    echo -e "\nBuilding ${scratch_dir}/bla_mask_sum.nii.gz"
+    echo -e "\n\t Stitching together ${scratch_dir}/bla_mask_sum.nii.gz"
     c3d \
         ${mask_list[@]} \
         -accum -add -endaccum \
@@ -196,7 +158,7 @@ if [ ! -f ${scratch_dir}/bla_mask_sum.nii.gz ]; then
 fi
 
 # thresh
-echo -e "\nMaking ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-bla<L|R>_mask.nii.gz"
+echo -e "\n\t Making binary ${scratch_dir}/bla_mask_<left/right>.nii.gz"
 c3d \
     ${scratch_dir}/bla_mask_sum.nii.gz \
     -thresh 20 inf 1 0 \
