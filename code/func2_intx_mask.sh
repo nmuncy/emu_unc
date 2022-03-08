@@ -22,6 +22,9 @@ function Usage {
     of each subject (ref resources.afni.masks.make_intersect_mask from
     github.com/emu-project/func_processing.git).
 
+    Optionally, multiply seed masks by intersection mask to generate foo_*Clean_mask.nii.gz.
+    These masks will be resampled into dimension of intersection mask. BIDS filename required.
+
     Required Arguments:
         -d </path/to/dir> = location of project derivatives directory, should contain
             both afni and emu_unc sub-directories.
@@ -41,8 +44,8 @@ function Usage {
             -d \$deriv_dir \\
             -s ses-S2 \\
             -t task-test \\
-            \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgL_mask.nii.gz \\
-            \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgR_mask.nii.gz
+            \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-1_desc-amgL_mask.nii.gz \\
+            \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-1_desc-amgR_mask.nii.gz
 
 USAGE
 }
@@ -154,19 +157,42 @@ if [ ! -f $intx_mask ]; then
     echo -e "Starting:\n\t${maskCmd[@]}"
     "${maskCmd[@]}"
 fi
-exit
 
 # multiply seed mask by intersection mask
 if [ ${#seed_list[@]} -gt 0 ]; then
     for seed in ${seed_list[@]}; do
-        seed_clean="${seed/_mask.nii.gz/Clean_mask.nii.gz}"
+
+        # separate $seed into path, file
+        seed_file="$(basename $seed)"
+        seed_dir="$(dirname $seed)"
+
+        # determine input, ref resolution from BIDs string
+        seed_res=res-$(echo $seed | grep -o -P '(?<=res-).(?=_)')
+        ref_res=res-$(echo $intx_mask | grep -o -P '(?<=res-).(?=_)')
+
+        # setup output string
+        seed_new_res="${seed_file/$seed_res/$ref_res}"
+        seed_clean=${seed_dir}/"${seed_new_res/_mask.nii.gz/Clean_mask.nii.gz}"
         echo -e "\n\t Making $seed_clean"
 
-        # TODO resample seed here
+        # resample
+        tmp_res=${seed_dir}/tmp-res_${seed_new_res}
+        3dresample \
+            -master $intx_mask \
+            -rmode NN \
+            -input $seed \
+            -prefix $tmp_res
+
+        # multiply and binarize
+        tmp_mult=${seed_dir}/tmp-mult_${seed_new_res}
+        c3d \
+            $intx_mask $tmp_res \
+            -multiply \
+            -o $tmp_mult
 
         c3d \
-            $intx_mask $seed \
-            -multiply \
-            -o $seed_clean
+            $tmp_mult \
+            -thresh 0.3 1 1 0 \
+            -o $seed_clean && rm $tmp_res $tmp_mult
     done
 fi
