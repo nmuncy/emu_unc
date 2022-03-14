@@ -27,7 +27,7 @@ function Usage {
             afni and emu_unc sub-directories.
         -g <group_intx_mask> = group intersection mask
         -m <mask_name> = identifying mask name
-            (e.g. NSdmpfcL to find <mask_dir>/tpl-MNIPediatricAsym_cohort-5_res-2_desc-NSdmpfcL_mask.nii.gz)
+            (e.g. NSlacc to find <mask_dir>/tpl-MNIPediatricAsym_cohort-5_res-2_desc-NSlacc_mask.nii.gz)
         -n <decon_name> = identifying deconvolution name
         -p <ppi_seed> = identifying PPI seed name
             (e.g. amgL to find <data_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
@@ -42,7 +42,7 @@ function Usage {
         sbatch func4_roiAnalysis.sh \\
             -d $deriv_dir \\
             -g ${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz \\
-            -m NSdmpfcL \\
+            -m NSlacc \\
             -n UniqueBehs \\
             -p amgL \\
             -s $sess \\
