@@ -40,20 +40,20 @@ function Usage {
         sess=ses-S2
         task=task-test
         sbatch func4_roiAnalysis.sh \\
-            -d $deriv_dir \\
-            -g ${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz \\
+            -d \$deriv_dir \\
+            -g \${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_\${sess}_\${task}_desc-grpIntx_mask.nii.gz \\
             -m NSlacc \\
             -n UniqueBehs \\
             -p amgL \\
-            -s $sess \\
-            -t $task \\
+            -s \$sess \\
+            -t \$task \\
             SnegLF SneuLF
 
 USAGE
 }
 
 # receive args
-while getopts ":d:m:n:p:s:t:h" OPT; do
+while getopts ":d:g:m:n:p:s:t:h" OPT; do
     case $OPT in
     d)
         proj_dir=${OPTARG}
@@ -175,6 +175,7 @@ afni_dir=${proj_dir}/afni
 ppi_dir=${proj_dir}/emu_unc
 mask_dir=${ppi_dir}/template
 analysis_dir=${ppi_dir}/analyses
+mkdir -p $analysis_dir
 
 # find subjs with PPI output
 subj_list_all=($(ls $ppi_dir | grep "sub-*"))
