@@ -167,6 +167,7 @@ etacCmd=(3dttest++
     -prefix $out_str
     -prefix_clustsim ${out_str}_clustsim
     -ETAC
+    -ETAC_blur 4 8
     -ETAC_opt NN=2:sid=2:hpow=0:pthr=0.01,0.005,0.002,0.001:name=etac
 )
 
