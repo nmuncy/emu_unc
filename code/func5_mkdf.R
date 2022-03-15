@@ -3,7 +3,7 @@ library("stringr")
 
 # General Notes ----
 #
-# Make dataframes of PPI coefficients referencing output of func3_roiAnalysis.
+# Make dataframes of PPI coefficients referencing output of func4_roiAnalysis.
 #
 # Requires OneDrive access for EMU summary dataset.
 #
@@ -37,7 +37,7 @@ beh_B <- get_args[3]
 make_dataframe <- function(
   raw_file, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
   ) {
-  # Organize func3_roiAnalysis output, make dataframes.
+  # Organize func4_roiAnalysis output, make dataframes.
   #
   # Added values are: age in month, sex, PARS-6, Child's SCARED,
   # Parent's SCARED, PARS/SCARED groups, primary diagnosis, diagonsis groups.
@@ -146,12 +146,10 @@ one_dir <- paste(
 )
 data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
-vmpfc_file <- paste0(data_dir, "/Coefs_", ppi_seed, "-NSvmpfcL.txt")
-df_out <- make_dataframe(
-  vmpfc_file, beh_A, beh_B, ppi_seed, "lvmPFC", one_dir, data_dir
-)
-
-dmpfc_file <- paste0(data_dir, "/Coefs_", ppi_seed, "-NSdmpfcL.txt")
-df_out <- make_dataframe(
-  dmpfc_file, beh_A, beh_B, ppi_seed, "ldmPFC", one_dir, data_dir
-)
+roi_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
+for(roi in roi_list){
+  coef_file <- paste0(data_dir, "/Coefs_", ppi_seed, "-", roi, ".txt")
+  df_out <- make_dataframe(
+    coef_file, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
+  )
+}
