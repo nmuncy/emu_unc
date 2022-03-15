@@ -18,10 +18,10 @@ function Usage {
     cat <<USAGE
     Generate and run paired t-test via 3dttest++ ETAC.
 
-    Find subjects who have PPI output (ref func2_ppi.py), then build ETAC
+    Find subjects who have PPI output (ref func3_ppi.py), then build ETAC
     command for subjects who have both input behaviors. Assumes example
     strings/locations described in required args, and requires group
-    intersection mask produced by func3_roiAnalysis.sh.
+    intersection mask produced by func4_roiAnalysis.sh.
 
     Generates an ETAC script in project derivatives/emu_unc called etac_<ppi_seed>.sh,
     and output written to same directory.
@@ -30,7 +30,7 @@ function Usage {
         -d </path/to/dir> = location of project derivatives directory, should contain both
             afni and emu_unc sub-directories.
         -p <ppi_seed> = identifying PPI seed name
-            (e.g. amgL to find <data_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
+            (e.g. amgL to find <deriv_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
         -s <session> = BIDS session string
         <behaviors> = remaining args are sub-brick behaviors to extract (ref 3dinfo -verb)
             note - exactly 2 must be given
@@ -142,15 +142,16 @@ EOF
 # beh_list=(SnegLF SneuLF)
 
 # set up
-out_dir=${proj_dir}/emu_unc
-data_dir=${proj_dir}/afni
-group_mask=${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_desc-grpIntx_mask.nii.gz
+deriv_dir=${proj_dir}/emu_unc
+template_dir=${deriv_dir}/template
+analysis_dir=${deriv_dir}/analyses
+group_mask=${template_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_ses-S2_task-test_desc-grpIntx_mask.nii.gz
 
 # find subjs with PPI output
-subj_list_all=($(ls $data_dir | grep "sub-*"))
+subj_list_all=($(ls $deriv_dir | grep "sub-*"))
 subj_list=()
 for subj in ${subj_list_all[@]}; do
-    check_file=${data_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
+    check_file=${deriv_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
     if [ -f $check_file ]; then
         subj_list+=($subj)
     fi
@@ -173,7 +174,7 @@ etacCmd=(3dttest++
 setA=()
 setB=()
 for subj in ${subj_list[@]}; do
-    ppi_file=${data_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
+    ppi_file=${deriv_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
     beh_arr=()
     for beh in ${beh_list[@]}; do
         h_brick=$(3dinfo -label2index "${beh}#0_Coef" $ppi_file)
@@ -192,7 +193,7 @@ etacCmd+=(-setA ${beh_list[0]} ${setA[@]})
 etacCmd+=(-setB ${beh_list[1]} ${setB[@]})
 
 # print etac command for review, run
-echo "${etacCmd[@]}" >${out_dir}/etac_${ppi_seed}.sh
+echo "${etacCmd[@]}" >${analysis_dir}/etac_${ppi_seed}.sh
 echo -e "Starting ETAC ..."
-cd $out_dir
+cd $analysis_dir
 "${etacCmd[@]}"
