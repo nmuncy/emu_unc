@@ -54,8 +54,9 @@ switch_roi <- function(h_str) {
   #
   h_roi <- switch(
     h_str,
-    "lvmPFC" = "vmPFC",
-    "ldmPFC" = "dmPFC",
+    "NSlacc" = "ACC",
+    "NSldmpfc" = "dmPFC",
+    "NSlsfs" = "SFS",
   )
   return(h_roi)
 }
@@ -199,8 +200,8 @@ anova_plot <- function(df_long, roi, beh_list, data_dir){
 data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
 
-# amgL vmPFC, dmPFC ----
-roi_list <- c("lvmPFC", "ldmPFC")
+# amgL NSlacc, NSldmpfc, NSlsfs ----
+roi_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
 beh_list <- c("SnegLF", "SneuLF")
 
 # omnibus
@@ -208,11 +209,14 @@ df_a <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[1], ".csv"))
 df_a$roi <- roi_list[1]
 df_b <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[2], ".csv"))
 df_b$roi <- roi_list[2]
+df_c <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[3], ".csv"))
+df_c$roi <- roi_list[3]
 for(beh in beh_list){
   df_a <- adjust_outliers(df_a, beh)
   df_b <- adjust_outliers(df_b, beh)
+  df_c <- adjust_outliers(df_c, beh)
 }
-df_master <- rbind(df_a, df_b)
+df_master <- rbind(df_a, df_b, df_c)
 df_master <- na.omit(df_master)
 
 num_roi <- length(roi_list)
@@ -226,7 +230,7 @@ df_long <- as.data.frame(
 colnames(df_long) <- col_names
 
 df_long$subj <- rep(subj_list, each = num_roi * num_beh)
-df_long$roi <- rep(roi_list, each = num_roi, times = num_subj)
+df_long$roi <- rep(roi_list, each = num_beh, times = num_subj)
 df_long$beh <- rep(beh_list, times = num_roi * num_subj)
 for(subj in subj_list){
   for(roi in roi_list){
