@@ -43,19 +43,19 @@ gam.check(lunc_gaus, rep = 1000)
 summary(lunc_gaus)
 plot(lunc_gaus)
 
-# TODO verify PDS has no effect
+# pds effect
 lunc_pds <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
-    s(nodeID, bs = "cr", k = 50) +
-    s(pds, by = sex),
-  data = df_tract,
-  family = gaussian(),
-  method = "fREML"
-  )
+  s(nodeID, bs = "cr", k = 50) +
+  s(pds, by = sex),
+data = df_tract,
+family = gaussian(),
+method = "fREML"
+)
 gam.check(lunc_pds, rep = 1000)
 summary(lunc_pds)
 plot(lunc_pds)
-compareML(lunc_gaus, lunc_pds)
+compareML(lunc_gaus, lunc_pds) # gaus preferred
 
 # L. Unc: GS
 lunc_dxGS <- bam(dti_fa ~ sex +
@@ -149,27 +149,29 @@ p + annotate(
   xmax = c(d_rect$x_end),
   ymin = c(d_rect$y_start),
   ymax = c(d_rect$y_end),
-  alpha = 0.1,
+  alpha = 0.2,
   fill = "red"
 ) +
   ggtitle("Difference Smooth, Patient-Control") +
-  ylab("Est. Difference")
+  ylab("Est. Difference") +
+  xlab("Tract Node")
 
-# L. Unc: GS intx LGI
+# L. Unc: GS intx neg LGI
+# s(nodeID, bs = "cr", k = 50, m = 2) +
 # s(nodeID, dx_group, bs = "fs", k = 50, m = 2) +
 lunc_dxGS_neg <- bam(dti_fa ~ sex +
-       s(subjectID, bs = "re") +
-       te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-       t2(
-         nodeID, lgi_neg, dx_group, 
-         bs = c("cr", "tp", "re"), 
-         k = c(50, 10, 2), 
-         m = 2, 
-         full = TRUE
-         ),
-     data = df_tract,
-     family = gaussian(),
-     method = "fREML"
+  s(subjectID, bs = "re") +
+  te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+  t2(
+    nodeID, lgi_neg, dx_group,
+    bs = c("cr", "tp", "re"),
+    k = c(50, 10, 2),
+    m = 2,
+    full = TRUE
+  ),
+data = df_tract,
+family = gaussian(),
+method = "fREML"
 )
 gam.check(lunc_dxGS_neg, rep = 1000)
 compareML(lunc_dxGS, lunc_dxGS_neg)
@@ -178,26 +180,114 @@ plot(lunc_dxGS_neg)
 plot_lunc_dxGS_neg <- getViz(lunc_dxGS_neg)
 plot(sm(plot_lunc_dxGS_neg, 2))
 
+
 df_pred <- transform(
-  df_tract, dxGS_neg = predict(lunc_dxGS_neg, type = "response")
+  df_tract,
+  dxGS_neg = predict(lunc_dxGS_neg, type = "response")
 )
 ggplot(
-    data = df_pred, 
-    aes(
-      x = nodeID, 
-      y = lgi_neg, 
-      fill = dxGS_neg, 
-      color = dxGS_neg, 
-      height = lgi_neg
-    )
-  ) +
+  data = df_pred,
+  aes(
+    x = nodeID,
+    y = lgi_neg,
+    fill = dxGS_neg,
+    color = dxGS_neg,
+    height = lgi_neg
+  )
+) +
   geom_tile() +
-  facet_wrap(~dx_group, ncol=2) +
+  facet_wrap(~dx_group, ncol = 2) +
   scale_fill_viridis("dti_fa") +
   scale_color_viridis("dti_fa") +
-  scale_x_continuous(expand=c(0, 0), breaks=c(0, 50, 99)) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 50, 99)) +
   labs(x = "nodeID", y = "Negative LGI") +
-  theme(legend.position="right")
+  theme(legend.position = "right")
+
+# L. Unc: GS intx neg LGI, decompose tract curve
+lunc_dxGS_neg_decomp <- bam(dti_fa ~ sex +
+  s(subjectID, bs = "re") +
+  s(nodeID, bs = "cr", k = 50) +
+  s(lgi_neg) +
+  te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+  t2(
+    nodeID, lgi_neg, dx_group,
+    bs = c("cr", "tp", "re"),
+    k = c(50, 10, 2),
+    m = 2,
+    full = TRUE
+  ),
+data = df_tract,
+family = gaussian(),
+method = "fREML"
+)
+gam.check(lunc_dxGS_neg_decomp, rep = 1000)
+summary(lunc_dxGS_neg_decomp)
+plot(lunc_dxGS_neg_decomp)
+plot_lunc_dxGS_neg_decomp <- getViz(lunc_dxGS_neg_decomp)
+plot(sm(plot_lunc_dxGS_neg_decomp, 4))
+
+# L. Unc: GS intx neu LGI
+lunc_dxGS_neu <- bam(dti_fa ~ sex +
+   s(subjectID, bs = "re") +
+   te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+   t2(
+     nodeID, lgi_neu, dx_group,
+     bs = c("cr", "tp", "re"),
+     k = c(50, 10, 2),
+     m = 2,
+     full = TRUE
+   ),
+ data = df_tract,
+ family = gaussian(),
+ method = "fREML"
+)
+gam.check(lunc_dxGS_neu, rep = 1000)
+summary(lunc_dxGS_neu)
+plot(lunc_dxGS_neu)
+plot_lunc_dxGS_neu <- getViz(lunc_dxGS_neu)
+plot(sm(plot_lunc_dxGS_neu, 2))
+
+df_pred <- transform(
+  df_tract,
+  dxGS_neu = predict(lunc_dxGS_neu, type = "response")
+)
+ggplot(
+  data = df_pred,
+  aes(
+    x = nodeID,
+    y = lgi_neg,
+    fill = dxGS_neu,
+    color = dxGS_neu,
+    height = lgi_neu
+  )
+) +
+  geom_tile() +
+  facet_wrap(~dx_group, ncol = 2) +
+  scale_fill_viridis("dti_fa") +
+  scale_color_viridis("dti_fa") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 50, 99)) +
+  labs(x = "nodeID", y = "Neutral LGI") +
+  theme(legend.position = "right")
+
+# L. Unc: GS intx neu LGI, decompose tract curve
+lunc_dxGS_neu_decomp <- bam(dti_fa ~ sex +
+  s(subjectID, bs = "re") +
+  s(nodeID, bs = "cr", k = 50) +
+  s(lgi_neu) +
+  te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+  t2(
+    nodeID, lgi_neu, dx_group,
+    bs = c("cr", "tp", "re"),
+    k = c(50, 10, 2),
+    m = 2,
+    full = TRUE
+  ),
+data = df_tract,
+family = gaussian(),
+method = "fREML"
+)
+gam.check(lunc_dxGS_neu_decomp, rep = 1000)
+summary(lunc_dxGS_neu_decomp)
 
 
 # R. Unc ----
