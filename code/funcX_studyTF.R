@@ -156,7 +156,7 @@ for (run in run_list) {
     } else {
       row_out <- round(df_run[ind_beh, ]$onset, 1)
     }
-    out_file <- paste0(write_dir, "/", "tf_task-study_", beh, ".txt")
+    out_file <- paste0(write_dir, "/", "tf_task-study_desc-", beh, "_events.txt")
     cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
   }
 }

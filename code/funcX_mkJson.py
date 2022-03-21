@@ -70,11 +70,15 @@ def main():
 
     # make json files as specified by workflow.control_afni.control_deconvolution
     for subj in subj_list:
-        file_list = [x for x in os.listdir(os.path.join(work_dir, subj, sess)) if fnmatch.fnmatch(x, "tf_*.txt")]
+        file_list = [
+            x
+            for x in os.listdir(os.path.join(work_dir, subj, sess))
+            if fnmatch.fnmatch(x, "tf_*.txt")
+        ]
         file_list.sort()
         subj_dict = {name: {}}
         for h_file in file_list:
-            beh = h_file.split("_")[-1].split(".")[0]
+            beh = h_file.split("desc-")[1].split("_")[0]
             subj_dict[name][beh] = os.path.join(hpc_path, subj, sess, h_file)
         with open(os.path.join(work_dir, f"{subj}_{name}.json"), "w") as jf:
             json.dump(subj_dict, jf)
