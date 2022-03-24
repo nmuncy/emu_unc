@@ -1,2 +1,2 @@
-"NR"	"noTest"	"PneuTH"	"PnegTH"	"PneuTM"	"PNR"	"PnegTM"
-5	126	10	13	9	6	6
+"NR"	"PNR"	"noTest"	"PneuTH"	"PnegLC"	"PnegTH"	"PneuLC"	"PneuTM"	"PnegTM"	"PnegLF"	"PneuLF"
+5	23	44	10	30	13	28	9	6	3	4
