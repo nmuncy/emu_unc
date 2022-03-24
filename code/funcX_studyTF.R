@@ -36,15 +36,15 @@ test_list[1] <- args[6]
 test_list[2] <- args[7]
 test_list[3] <- args[8]
 
-# For testing
-proj_dir <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset"
-subj <- "sub-4212"
-write_dir <- "/Users/nmuncy/Projects/emu_unc/data/timing_files/sub-4212/ses-S1"
-study_list[1] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S1/func/sub-4212_ses-S1_task-study_run-1_events.tsv"
-study_list[2] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S1/func/sub-4212_ses-S1_task-study_run-2_events.tsv"
-test_list[1] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-1_events.tsv"
-test_list[2] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-2_events.tsv"
-test_list[3] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-3_events.tsv"
+# # For testing
+# proj_dir <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset"
+# subj <- "sub-4212"
+# write_dir <- "/Users/nmuncy/Projects/emu_unc/data/timing_files/sub-4212/ses-S1"
+# study_list[1] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S1/func/sub-4212_ses-S1_task-study_run-1_events.tsv"
+# study_list[2] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S1/func/sub-4212_ses-S1_task-study_run-2_events.tsv"
+# test_list[1] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-1_events.tsv"
+# test_list[2] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-2_events.tsv"
+# test_list[3] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-3_events.tsv"
 
 switch_string <- function(h_str) {
   # Switch string to AFNI length.
