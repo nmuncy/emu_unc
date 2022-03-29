@@ -668,31 +668,27 @@ draw_group_diff(plot_lcgc_dxGS_OF, 3, "CGC_L")
 #   1) Investigate tract-group-negLGI intx
 #   2) Investigate tract-group-neuLGI intx
 
-
-### Step 1 taking quite a time, revisit
-
-
-# # 1) L. Cing GS neg LGI dx intx
-# lcgc_dxGS_neg <- bam(dti_fa ~ sex +
-#  s(subjectID, bs = "re") +
-#  te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-#  t2(
-#    nodeID, lgi_neg, dx_group,
-#    bs = c("cr", "tp", "re"),
-#    k = c(50, 10, 2),
-#    m = 2,
-#    full = TRUE
-#  ),
-# data = df_tract,
-# family = Gamma(link = "logit"),
-# method = "fREML"
-# )
-# gam.check(lcgc_dxGS_neg, rep = 1000)
-# compareML(lcgc_dxGS, lcgc_dxGS_neg) # lcgc_dxGS_neg preferred, again
-# summary(lcgc_dxGS_neg)
-# plot(lcgc_dxGS_neg)
-# plot_lcgc_dxGS_neg <- getViz(lcgc_dxGS_neg)
-# plot(sm(plot_lcgc_dxGS_neg, 2))
+# 1) L. Cing GS neg LGI dx intx
+lcgc_dxGS_neg <- bam(dti_fa ~ sex +
+ s(subjectID, bs = "re") +
+ te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+ t2(
+   nodeID, lgi_neg, dx_group,
+   bs = c("cr", "tp", "re"),
+   k = c(50, 10, 2),
+   m = 2,
+   full = TRUE
+ ),
+data = df_tract,
+family = Gamma(link = "logit"),
+method = "fREML"
+)
+gam.check(lcgc_dxGS_neg, rep = 1000)
+compareML(lcgc_dxGS, lcgc_dxGS_neg) # lcgc_dxGS_neg preferred, again
+summary(lcgc_dxGS_neg)
+plot(lcgc_dxGS_neg)
+plot_lcgc_dxGS_neg <- getViz(lcgc_dxGS_neg)
+plot(sm(plot_lcgc_dxGS_neg, 2))
 
 
 
