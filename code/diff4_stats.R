@@ -744,7 +744,6 @@ method = "fREML"
 )
 # gam.check(lcgc_gamma, rep = 1000)
 compareML(lcgc_beta, lcgc_gamma) # going with gamma
-# plot(lcgc_gamma)
 summary(lcgc_gamma)
 
 
@@ -759,7 +758,6 @@ method = "fREML"
 )
 # gam.check(lcgc_pds, rep = 1000)
 summary(lcgc_pds)
-# plot(lcgc_pds)
 compareML(lcgc_gamma, lcgc_pds) # lcgc_gamma preferred
 
 
@@ -775,7 +773,6 @@ method = "fREML"
 # gam.check(lcgc_dxGS, rep = 1000)
 compareML(lcgc_gamma, lcgc_dxGS) # lcgc_dxGS preferred
 summary(lcgc_dxGS)
-# plot(lcgc_dxGS)
 
 # GI model by diagnosis
 lcgc_dxGI <- bam(dti_fa ~ sex +
@@ -789,13 +786,13 @@ method = "fREML"
 )
 # gam.check(lcgc_dxGI, rep = 1000)
 summary(lcgc_dxGI)
-# plot(lcgc_dxGI)
 compareML(lcgc_dxGI, lcgc_dxGS) # lcgc_dxGS preferred
 
 # draw
 plot_lcgc_dxGS <- getViz(lcgc_dxGS)
 draw_global_smooth(plot_lcgc_dxGS, 2, "CGC_L", out_dir)
 draw_group_smooth(plot_lcgc_dxGS, 3, "CGC_L", out_dir)
+
 
 # 4) GS dx - identify nodes that differ (make difference smooth)
 lcgc_dxGS_OF <- bam(dti_fa ~ sex +
@@ -807,13 +804,10 @@ family = Gamma(link = "logit"),
 method = "fREML"
 )
 # gam.check(lcgc_dxGS_OF, rep = 1000)
-plot(lcgc_dxGS_OF)
-summary(lcgc_dxGS_OF) # group diff
-plot_lcgc_dxGS_OF <- getViz(lcgc_dxGS_OF)
-plot(sm(plot_lcgc_dxGS_OF, 2))
-plot(sm(plot_lcgc_dxGS_OF, 3))
+summary(lcgc_dxGS_OF)
 
 # draw
+plot_lcgc_dxGS_OF <- getViz(lcgc_dxGS_OF)
 draw_group_diff(plot_lcgc_dxGS_OF, 3, "CGC_L", out_dir)
 
 
@@ -825,6 +819,8 @@ draw_group_diff(plot_lcgc_dxGS_OF, 3, "CGC_L", out_dir)
 #   2) Investigate tract-group-neuLGI intx
 
 # 1) L. Cing GS neg LGI dx intx
+
+# model never converges?
 lcgc_dxGS_neg <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
   te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
@@ -839,12 +835,13 @@ data = df_tract,
 family = Gamma(link = "logit"),
 method = "fREML"
 )
+
 # gam.check(lcgc_dxGS_neg, rep = 1000)
-compareML(lcgc_dxGS, lcgc_dxGS_neg) # lcgc_dxGS_neg preferred, again
-summary(lcgc_dxGS_neg)
-plot(lcgc_dxGS_neg)
-plot_lcgc_dxGS_neg <- getViz(lcgc_dxGS_neg)
-plot(sm(plot_lcgc_dxGS_neg, 2))
+# compareML(lcgc_dxGS, lcgc_dxGS_neg) # lcgc_dxGS_neg preferred, again
+# summary(lcgc_dxGS_neg)
+# plot(lcgc_dxGS_neg)
+# plot_lcgc_dxGS_neg <- getViz(lcgc_dxGS_neg)
+# plot(sm(plot_lcgc_dxGS_neg, 2))
 
 
 
