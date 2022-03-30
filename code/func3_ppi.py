@@ -977,9 +977,7 @@ def main():
 
     # setup paths/dicts
     seed_tuple = (seed_name, seed_info)
-    data_dir = os.path.join(
-        deriv_dir, "emu_unc"
-    )  # changed for new proj org, no time to refactor
+    data_dir = os.path.join(deriv_dir, "emu_unc")
     subj_data = os.path.join(data_dir, subj, sess, "func")
     subj_out = os.path.join(work_dir, subj, sess, "func")
     subj_final = os.path.join(deriv_dir, "emu_unc", subj, sess, "func")

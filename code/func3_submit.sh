@@ -26,7 +26,7 @@ function Usage {
             -f decon_task-study_precTest \\
             -s ses-S1 \\
             -r amgL \\
-            -i \${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
+            -i \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
             -n 8
 
         deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
