@@ -76,7 +76,6 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, out_dir){
   )
 }
 
-
 draw_group_smooth <- function(plot_obj, attr_num, tract, out_dir) {
   # Draw group smooths.
   #
@@ -119,7 +118,6 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, out_dir) {
   )
 }
 
-
 draw_group_diff <- function(plot_obj, attr_num, tract, out_dir) {
   # Draw group difference smooth.
   #
@@ -127,7 +125,7 @@ draw_group_diff <- function(plot_obj, attr_num, tract, out_dir) {
   # which sig differ from 0, draw polygons to ID.
   #
   # Arguments:
-  #   plot_obj_of (object) = plotable object returned by getViz
+  #   plot_obj (object) = plotable object returned by getViz
   #   attr_num (int) = list/attribute number of plot obj that contains
   #                     group difference smooth
   #   tract (str) = AFQ tract string
@@ -207,8 +205,42 @@ draw_group_diff <- function(plot_obj, attr_num, tract, out_dir) {
   )
 }
 
-draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
+draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, out_dir) {
   # Draw beavior-nodeID interactions.
+  #
+  # Arguments:
+  #   plot_obj (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group difference smooth
+  #   tract (str) = AFQ tract string
+  #   y_var (str) = behavior of interest, used for Y-axis
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Intx_<tract>_<beh>.png
+  
+  beh_long <- switch_names(y_var)
+  tract_long <- switch_names(tract)
+  
+  p <- plot(sm(plot_obj, attr_num)) +
+    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    ggtitle(paste0(tract_long, "-Memory Metric Intx")) +
+    ylab(beh_long) +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+  print(p)
+  
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Intx_", tract, "_", y_var, ".png"),
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
+  # Draw behavior-nodeID interactions by group.
   #
   # Plot factorial 3D interaction between nodeID, dti_fa, and behavior
   # as a function of diagnosis group.
@@ -221,7 +253,7 @@ draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
   #   out_dir (str) = path to output location
   #
   # Writes:
-  #   <out_dir>/Plot_GAM_Intx_<tract>.jpg
+  #   <out_dir>/Plot_GAM_Group-Intx_<tract>_<beh>.png
 
   df_pred <- transform(
     df_tract,
@@ -251,14 +283,13 @@ draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
     theme(legend.position = "right")
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_Intx_", tract, ".png"),
+    paste0(out_dir, "/Plot_GAM_Group-Intx_", tract,"_", y_var, ".png"),
     units = "in",
     width = 6,
     height = 6,
     device = "png"
   )
 }
-
 
 
 # Set Up ----
@@ -369,7 +400,7 @@ family = gaussian(),
 method = "fREML"
 )
 # gam.check(lunc_dxGS_OF, rep = 1000)
-plot(lunc_dxGS_OF)
+# plot(lunc_dxGS_OF)
 summary(lunc_dxGS_OF) # group diff
 
 # draw
@@ -402,11 +433,12 @@ method = "fREML"
 # gam.check(lunc_dxGS_neg, rep = 1000)
 compareML(lunc_dxGS, lunc_dxGS_neg) # lunc_dxGS_neg preferred
 summary(lunc_dxGS_neg)
-plot(lunc_dxGS_neg)
-plot_lunc_dxGS_neg <- getViz(lunc_dxGS_neg)
-plot(sm(plot_lunc_dxGS_neg, 2))
+# plot(lunc_dxGS_neg)
 
-# unpack tract-LGI intx by group
+# draw, unpack tract-LGI intx by group
+plot_lunc_dxGS_neg <- getViz(lunc_dxGS_neg)
+# plot(sm(plot_lunc_dxGS_neg, 2))
+draw_smooth_intx(plot_lunc_dxGS_neg, 2, "UNC_L", "lgi_neg", out_dir)
 draw_group_intx(df_tract, lunc_dxGS_neg, "UNC_L", "lgi_neg", out_dir)
 
 # L. Unc GS neg LGI intx, decompose tract curve
@@ -428,7 +460,7 @@ method = "fREML"
 )
 # gam.check(lunc_dxGS_neg_decomp, rep = 1000)
 summary(lunc_dxGS_neg_decomp) # group diff in curvature driving intx above?
-plot(lunc_dxGS_neg_decomp)
+# plot(lunc_dxGS_neg_decomp)
 
 
 # 2) L. Unc GS neu LGI dx intx
@@ -447,13 +479,14 @@ family = gaussian(),
 method = "fREML"
 )
 # gam.check(lunc_dxGS_neu, rep = 1000)
-summary(lunc_dxGS_neu)
-plot(lunc_dxGS_neu)
-plot_lunc_dxGS_neu <- getViz(lunc_dxGS_neu)
-plot(sm(plot_lunc_dxGS_neu, 2)) # lgi_neu linear intx shows nicely
 compareML(lunc_dxGS, lunc_dxGS_neu) # lunc_dxGS_neu preferred
+summary(lunc_dxGS_neu)
+# plot(lunc_dxGS_neu)
 
-# unpack tract-LGI intx by group
+# draw, unpack tract-LGI intx by group
+plot_lunc_dxGS_neu <- getViz(lunc_dxGS_neu)
+# plot(sm(plot_lunc_dxGS_neu, 2)) # lgi_neu linear intx shows nicely
+draw_smooth_intx(plot_lunc_dxGS_neu, 2, "UNC_L", "lgi_neu", out_dir)
 draw_group_intx(df_tract, lunc_dxGS_neu, "UNC_L", "lgi_neu", out_dir)
 
 # L. Unc GS neu LGI intx, decompose tract curve
@@ -475,9 +508,9 @@ method = "fREML"
 )
 # gam.check(lunc_dxGS_neu_decomp, rep = 1000)
 summary(lunc_dxGS_neu_decomp) # strong intx despite controlling for group smooth diff
-plot(lunc_dxGS_neu_decomp)
-plot_lunc_dxGS_neu_decomp <- getViz(lunc_dxGS_neu_decomp)
-plot(sm(plot_lunc_dxGS_neu_decomp, 4))
+# plot(lunc_dxGS_neu_decomp)
+# plot_lunc_dxGS_neu_decomp <- getViz(lunc_dxGS_neu_decomp)
+# plot(sm(plot_lunc_dxGS_neu_decomp, 4))
 
 
 # R. Unc Model Specification ----
