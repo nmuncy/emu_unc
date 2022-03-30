@@ -874,7 +874,7 @@ def copy_data(subj_out, subj_final, decon_ppi):
 
 
 def get_args():
-    """Get and parse arguments"""
+    """Get and parse arguments."""
     parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 
     parser.add_argument(
@@ -962,16 +962,7 @@ def get_args():
 
 # %%
 def main():
-
-    # # For testing
-    # deriv_dir = "/home/data/madlab/McMakin_EMUR01/derivatives"
-    # work_dir = "/scratch/madlab/emu_unc/derivatives/afni_ppi"
-    # subj = "sub-4001"
-    # sess = "ses-S2"
-    # task = "task-test"
-    # decon_str = f"decon_{task}_UniqueBehs"
-    # seed_name = "blaL"
-    # seed_info = "/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/tpl-MNIPediatricAsym_cohort-5_res-2_desc-blaL_mask.nii.gz"
+    """Coordiante work."""
 
     # get passed args
     args = get_args().parse_args()
@@ -986,7 +977,9 @@ def main():
 
     # setup paths/dicts
     seed_tuple = (seed_name, seed_info)
-    data_dir = os.path.join(deriv_dir, "afni")
+    data_dir = os.path.join(
+        deriv_dir, "emu_unc"
+    )  # changed for new proj org, no time to refactor
     subj_data = os.path.join(data_dir, subj, sess, "func")
     subj_out = os.path.join(work_dir, subj, sess, "func")
     subj_final = os.path.join(deriv_dir, "emu_unc", subj, sess, "func")

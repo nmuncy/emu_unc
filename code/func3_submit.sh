@@ -3,8 +3,10 @@
 function Usage {
     cat <<USAGE
 
-    Wrapper for func2_ppi.py. Checks for which subjects do not have
-    PPI output, and submits N sbatch jobs for detected subjects
+    Wrapper for func3_ppi.py. Checks for which subjects do not have
+    PPI output, and submits N sbatch jobs for detected subjects.
+
+    Conda environment emuR01_unc required.
 
     Required Arguments:
         -d <project_derivatives> = path to project derivatives location
@@ -17,17 +19,17 @@ function Usage {
         -w <scratch_directory> = path to scratch/working directory
 
     Example Usage:
-        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d \$deriv_dir \\
-            -f decon_task-test_UniqueBehs \\
-            -s ses-S2 \\
+            -f decon_task-study_precTest \\
+            -s ses-S1 \\
             -r amgL \\
             -i \${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
             -n 8
 
-        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d \$deriv_dir \\
@@ -166,11 +168,9 @@ EOF
 # find subjects missing ppi output
 echo -e "Building subject lists ...\n"
 subj_list=()
-afni_dir=${deriv_dir}/afni
-ppi_dir=${deriv_dir}/emu_unc
-subj_all=($(ls $afni_dir | grep "sub-*"))
+subj_all=($(ls $deriv_dir | grep "sub-*"))
 for subj in ${subj_all[@]}; do
-    ppi_file=${ppi_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
+    ppi_file=${deriv_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
     if [ ! -f $ppi_file ]; then
         subj_list+=($subj)
     fi
