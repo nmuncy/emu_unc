@@ -3,3 +3,6 @@ code/*.log
 code/*.err
 __pycache__
 code/slurm*
+*_cens.txt
+*_vec.txt
+*Cens_events.txt

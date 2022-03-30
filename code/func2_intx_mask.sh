@@ -27,10 +27,9 @@ function Usage {
 
     Required Arguments:
         -d </path/to/dir> = location of project derivatives directory, should contain
-            both afni and emu_unc sub-directories.
+            the sub-directory "template".
         -s <session> = BIDS session string
         -t <task> = BIDS task string
-        <behaviors> = remaining args are sub-brick behaviors to extract (ref 3dinfo -verb)
 
     Optional Arguments:
         <list of seeds> = extra args can be supplied as a list of seed files
@@ -38,12 +37,12 @@ function Usage {
             group intersection mask.
 
     Example Usage:
-        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
-        seed_dir=\${deriv_dir}/emu_unc/template
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
+        seed_dir=\${deriv_dir}/template
         sbatch func2_intx_mask.sh \\
             -d \$deriv_dir \\
-            -s ses-S2 \\
-            -t task-test \\
+            -s ses-S1 \\
+            -t task-study \\
             \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-1_desc-amgL_mask.nii.gz \\
             \${seed_dir}/tpl-MNIPediatricAsym_cohort-5_res-1_desc-amgR_mask.nii.gz
 
@@ -54,9 +53,9 @@ USAGE
 while getopts ":d:s:t:h" OPT; do
     case $OPT in
     d)
-        proj_dir=${OPTARG}
-        if [ ! -d ${proj_dir}/afni ] || [ ! -d ${proj_dir}/emu_unc ]; then
-            echo -e "\n\t ERROR: did not detect $proj_dir or required sub-directories." >&2
+        deriv_dir=${OPTARG}
+        if [ ! -d $deriv_dir ] || [ ! -d ${deriv_dir}/template ]; then
+            echo -e "\n\t ERROR: did not detect $deriv_dir." >&2
             Usage
             exit 1
         fi
@@ -93,11 +92,14 @@ fi
 # get remaning args as seed list
 shift "$((OPTIND - 1))"
 seed_list=("$@")
+if [ ${#seed_list[@]} -eq 0 ]; then
+    unset seed_list && seed_list=("None")
+fi
 
 # make sure required args have values - determine which (first) arg is empty
 function emptyArg {
     case $1 in
-    proj_dir)
+    deriv_dir)
         h_ret="-d"
         ;;
     sess)
@@ -115,7 +117,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in proj_dir sess task; do
+for opt in deriv_dir sess task; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -126,19 +128,15 @@ done
 cat <<-EOF
 
     Checks passed, options captured:
-        -d : $proj_dir
+        -d : $deriv_dir
         -s : $sess
         -t : $task
         seed : ${seed_list[@]}
 
 EOF
 
-# set up
-afni_dir=${proj_dir}/afni
-mask_dir=${proj_dir}/emu_unc/template
-
 # start command
-intx_mask=${mask_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz
+intx_mask=${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz
 maskCmd=(3dmask_tool
     -frac 1
     -prefix $intx_mask
@@ -146,9 +144,9 @@ maskCmd=(3dmask_tool
 )
 
 # find subjs with epi-anat intx mask
-subj_list_all=($(ls $afni_dir | grep "sub-*"))
+subj_list_all=($(ls $deriv_dir | grep "sub-*"))
 for subj in ${subj_list_all[@]}; do
-    mask_file=${afni_dir}/${subj}/${sess}/anat/${subj}_${sess}_${task}_space-MNIPediatricAsym_cohort-5_res-2_desc-intersect_mask.nii.gz
+    mask_file=${deriv_dir}/${subj}/${sess}/anat/${subj}_${sess}_${task}_space-MNIPediatricAsym_cohort-5_res-2_desc-intersect_mask.nii.gz
     [ -f $mask_file ] && maskCmd+=($mask_file)
 done
 
@@ -159,40 +157,39 @@ if [ ! -f $intx_mask ]; then
 fi
 
 # multiply seed mask by intersection mask
-if [ ${#seed_list[@]} -gt 0 ]; then
-    for seed in ${seed_list[@]}; do
+[ ${seed_list[0]} == "None" ] && exit 0
+for seed in ${seed_list[@]}; do
 
-        # separate $seed into path, file
-        seed_file="$(basename $seed)"
-        seed_dir="$(dirname $seed)"
+    # separate $seed into path, file
+    seed_file="$(basename $seed)"
+    seed_dir="$(dirname $seed)"
 
-        # determine input, ref resolution from BIDs string
-        seed_res=res-$(echo $seed | grep -o -P '(?<=res-).(?=_)')
-        ref_res=res-$(echo $intx_mask | grep -o -P '(?<=res-).(?=_)')
+    # determine input, ref resolution from BIDs string
+    seed_res=res-$(echo $seed | grep -o -P '(?<=res-).(?=_)')
+    ref_res=res-$(echo $intx_mask | grep -o -P '(?<=res-).(?=_)')
 
-        # setup output string
-        seed_new_res="${seed_file/$seed_res/$ref_res}"
-        seed_clean=${seed_dir}/"${seed_new_res/_mask.nii.gz/Clean_mask.nii.gz}"
-        echo -e "\n\t Making $seed_clean"
+    # setup output string
+    seed_new_res="${seed_file/$seed_res/$ref_res}"
+    seed_clean=${seed_dir}/"${seed_new_res/_mask.nii.gz/Clean_mask.nii.gz}"
+    echo -e "\n\t Making $seed_clean"
 
-        # resample
-        tmp_res=${seed_dir}/tmp-res_${seed_new_res}
-        3dresample \
-            -master $intx_mask \
-            -rmode NN \
-            -input $seed \
-            -prefix $tmp_res
+    # resample
+    tmp_res=${seed_dir}/tmp-res_${seed_new_res}
+    3dresample \
+        -master $intx_mask \
+        -rmode NN \
+        -input $seed \
+        -prefix $tmp_res
 
-        # multiply and binarize
-        tmp_mult=${seed_dir}/tmp-mult_${seed_new_res}
-        c3d \
-            $intx_mask $tmp_res \
-            -multiply \
-            -o $tmp_mult
+    # multiply and binarize
+    tmp_mult=${seed_dir}/tmp-mult_${seed_new_res}
+    c3d \
+        $intx_mask $tmp_res \
+        -multiply \
+        -o $tmp_mult
 
-        c3d \
-            $tmp_mult \
-            -thresh 0.3 1 1 0 \
-            -o $seed_clean && rm $tmp_res $tmp_mult
-    done
-fi
+    c3d \
+        $tmp_mult \
+        -thresh 0.3 1 1 0 \
+        -o $seed_clean && rm $tmp_res $tmp_mult
+done
