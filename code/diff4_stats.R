@@ -473,24 +473,45 @@ draw_group_intx(df_tract, lunc_dxGS_neg, "UNC_L", "lgi_neg", out_dir)
 #   color = "terrain"
 # )
 
-lunc_dxGS_neg2 <- bam(dti_fa ~ sex +
- s(subjectID, bs = "re") +
- te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), by = dx_group),
-data = df_tract,
-family = gaussian(),
-method = "fREML"
-)
+# lunc_dxGS_neg2 <- bam(dti_fa ~ sex +
+#  s(subjectID, bs = "re") +
+#  te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), by = dx_group),
+# data = df_tract,
+# family = gaussian(),
+# method = "fREML"
+# )
+# 
+# plot(lunc_dxGS_neg2)
+# plot_diff2(
+#   lunc_dxGS_neg2,
+#   view = c("nodeID", "lgi_neg"),
+#   comp = list(dx_group=c("Pat", "Con")),
+#   zlim = NULL,
+#   se = 1.96,
+#   color = "topo",
+#   show.diff = T
+# )
 
-plot(lunc_dxGS_neg2)
-plot_diff2(
-  lunc_dxGS_neg2,
-  view = c("nodeID", "lgi_neg"),
-  comp = list(dx_group=c("Pat", "Con")),
-  zlim = NULL,
-  se = 1.96,
-  color = "topo",
-  show.diff = T
+lunc_dxGS_negOF <- bam(dti_fa ~ sex +
+   s(subjectID, bs = "re") +
+   te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+   t2(
+     nodeID, lgi_neg, 
+     by = dx_groupOF,
+     bs = c("cr", "tp"),
+     k = c(50, 10),
+     m = 2,
+     full = TRUE
+   ),
+ data = df_tract,
+ family = gaussian(),
+ method = "fREML"
 )
+summary(lunc_dxGS_negOF)
+plot(lunc_dxGS_negOF)
+plot_lunc_dxGS_negOF <- getViz(lunc_dxGS_negOF)
+plot(sm(plot_lunc_dxGS_negOF, 2))
+plot(sm(plot_lunc_dxGS_negOF, 3))
 
 
 # 2) L. Unc GS neu LGI dx intx
@@ -537,6 +558,27 @@ plot_diff2(
   color = "topo",
   show.diff = T
 )
+
+lunc_dxGS_neuOF <- bam(dti_fa ~ sex +
+ s(subjectID, bs = "re") +
+ te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+ t2(
+   nodeID, lgi_neu, 
+   by = dx_groupOF,
+   bs = c("cr", "tp"),
+   k = c(50, 10),
+   m = 2,
+   full = TRUE
+ ),
+data = df_tract,
+family = gaussian(),
+method = "fREML"
+)
+summary(lunc_dxGS_neuOF)
+plot(lunc_dxGS_neuOF)
+plot_lunc_dxGS_neuOF <- getViz(lunc_dxGS_neuOF)
+plot(sm(plot_lunc_dxGS_neuOF, 2))
+plot(sm(plot_lunc_dxGS_neuOF, 3))
 
 
 # R. Unc Model Specification ----

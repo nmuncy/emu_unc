@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Conduct PPI Analysis.
+r"""Conduct PPI Analysis.
 
 Find averaged timeseries of seed, solve for RHS to get
 neural timeseries, make behavior vectors, then convolve
@@ -11,28 +11,28 @@ ROI masks.
 
 Examples
 --------
-sbatch --job-name=p1234 \\
-    --output=p1234 \\
-    --mem-per-cpu=4000 \\
-    --partition=IB_44C_512G \\
-    --account=iacc_madlab \\
-    --qos=pq_madlab \\
-    func3_ppi.py \\
-    -s sub-1234 \\
-    -d decon_task-test_UniqueBehs \\
-    -r LHC \\
+sbatch --job-name=p1234 \
+    --output=p1234 \
+    --mem-per-cpu=4000 \
+    --partition=IB_44C_512G \
+    --account=iacc_madlab \
+    --qos=pq_madlab \
+    func3_ppi.py \
+    -s sub-1234 \
+    -d decon_task-study_precTest \
+    -r LHC \
     -i "-24 -12 -22"
 
-sbatch --job-name=p1234 \\
-    --output=p1234 \\
-    --mem-per-cpu=4000 \\
-    --partition=IB_44C_512G \\
-    --account=iacc_madlab \\
-    --qos=pq_madlab \\
-    func3_ppi.py \\
-    -s sub-1234 \\
-    -d decon_task-test_UniqueBehs \\
-    -r amgL \\
+sbatch --job-name=p1234 \
+    --output=p1234 \
+    --mem-per-cpu=4000 \
+    --partition=IB_44C_512G \
+    --account=iacc_madlab \
+    --qos=pq_madlab \
+    func3_ppi.py \
+    -s sub-1234 \
+    -d decon_task-test_UniqueBehs \
+    -r amgL \
     -i "/path/to/amgL_mask.ni.gz"
 """
 
@@ -43,7 +43,6 @@ import glob
 import fnmatch
 import shutil
 import subprocess
-import pandas as pd
 import textwrap
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -136,7 +135,7 @@ def submit_hpc_sbatch(command, wall_hours, mem_gig, num_proc, job_name, out_dir)
     return (job_name, job_id)
 
 
-def clean_data(subj, subj_out, afni_data):
+def clean_data(subj, subj_work, afni_data):
     """Construct Clean Data.
 
     Concatenate pre-processed EPI files and remove
@@ -144,13 +143,13 @@ def clean_data(subj, subj_out, afni_data):
     sub-bricks beginning with "Run" or "mot" (these are
     the polynomial and motion baseline regressors).
 
-    Writes <subj_out>/CleanData+tlrc
+    Writes <subj_work>/CleanData+tlrc
 
     Parameters
     ----------
     subj : str
         BIDS-formatted subject string
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
     afni_data : dict
         contains the fields decon_file, decon_matrix, and
@@ -164,9 +163,8 @@ def clean_data(subj, subj_out, afni_data):
     Raises
     ------
     AssertionError
-        missing <subj_out>/CleanData+tlrc.HEAD
+        missing <subj_work>/CleanData+tlrc.HEAD
     """
-
     # get TR
     h_cmd = f"3dinfo -tr {afni_data['scaled_files'][0]}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
@@ -185,7 +183,7 @@ def clean_data(subj, subj_out, afni_data):
     len_right = int(len_wrong) - 2
 
     # make clean_data
-    clean_file = os.path.join(subj_out, "CleanData+tlrc.HEAD")
+    clean_file = os.path.join(subj_work, "CleanData+tlrc.HEAD")
     if not os.path.exists(clean_file):
         print(f"Making clean_data for {subj}")
 
@@ -205,7 +203,7 @@ def clean_data(subj, subj_out, afni_data):
         # strip extra sub-brick, make clean_data by removing
         #   effects of no interest from concatenated runs
         h_cmd = f"""
-            cd {subj_out}
+            cd {subj_work}
 
             3dTcat \
                 -prefix tmp_cbucket \
@@ -231,7 +229,7 @@ def clean_data(subj, subj_out, afni_data):
                 -prefix CleanData && rm tmp_*
         """
         subj_num = subj.split("-")[1]
-        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}cle", subj_out)
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}cle", subj_work)
 
     assert os.path.exists(clean_file), "CleanData not found."
     afni_data["len_tr"] = len_tr
@@ -239,17 +237,17 @@ def clean_data(subj, subj_out, afni_data):
     return afni_data
 
 
-def hrf_model(subj_out, afni_data, dur=2):
+def hrf_model(subj_work, afni_data, dur=2):
     """Create HRF model.
 
     Generate an idealized HRF function using the same
     basis function used in the deconvolution (2GAM).
 
-    Writes <subj_out>/HRF_model.1D
+    Writes <subj_work>/HRF_model.1D
 
     Parameters
     ----------
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
     afni_data : dict
         contains the fields len_tr
@@ -265,12 +263,11 @@ def hrf_model(subj_out, afni_data, dur=2):
     Raises
     ------
     AssertionError
-        missing <subj_out>/HRF_model.1D
+        missing <subj_work>/HRF_model.1D
     """
-
     # make ideal HRF, use same model as deconvolution
     len_tr = afni_data["len_tr"]
-    hrf_file = os.path.join(subj_out, "HRF_model.1D")
+    hrf_file = os.path.join(subj_work, "HRF_model.1D")
     if not os.path.exists(hrf_file):
         print("\nMaking ideal HRF")
         h_cmd = f"""
@@ -289,7 +286,7 @@ def hrf_model(subj_out, afni_data, dur=2):
     return afni_data
 
 
-def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
+def seed_timeseries(subj, subj_work, afni_data, seed_tuple):
     """Get the seed timeseries.
 
     Extract an averaged timeseries for the voxels labeled
@@ -297,13 +294,13 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
     are supplied. The modeled HRF is then deconvolved from the
     timeseries.
 
-    Writes <subj_out>/Seed_<seed>_<timeSeries|neural>.1D
+    Writes <subj_work>/Seed_<seed>_<timeSeries|neural>.1D
 
     Parameters
     ----------
     subj : str
         BIDS-formatted subject string
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
     afni_data : dict
         contains the fields hrf_model, clean_data
@@ -319,9 +316,8 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
     Raises
     ------
     AssertionError
-        missing <subj_out>/Seed_<seed>+tlrc.HEAD
+        missing <subj_work>/Seed_<seed>+tlrc.HEAD
     """
-
     hrf_file = afni_data["hrf_model"]
     clean_data = afni_data["clean_data"]
     seed = seed_tuple[0]
@@ -329,24 +325,24 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
 
     seed_out = {}
     seed_out[seed] = {"seed_ts": "", "seed_neural": ""}
-    seed_ts = os.path.join(subj_out, f"Seed_{seed}_timeSeries.1D")
-    seed_neural = os.path.join(subj_out, f"Seed_{seed}_neural.1D")
+    seed_ts = os.path.join(subj_work, f"Seed_{seed}_timeSeries.1D")
+    seed_neural = os.path.join(subj_work, f"Seed_{seed}_neural.1D")
     if not os.path.exists(seed_ts) or not os.path.exists(seed_neural):
 
         # make seed if coordinates supplied as seed_info
         if len(seed_info.split(" ")) != 1:
-            seed_file = os.path.join(subj_out, f"Seed_{seed}+tlrc.HEAD")
+            seed_file = os.path.join(subj_work, f"Seed_{seed}+tlrc.HEAD")
             if not os.path.exists(seed_file):
                 h_cmd = f"""
                     echo {seed_info} | 3dUndump \
                         -xyz \
                         -srad 3 \
                         -master {clean_data} \
-                        -prefix {subj_out}/Seed_{seed} -
+                        -prefix {subj_work}/Seed_{seed} -
                 """
                 subj_num = subj.split("-")[1]
                 h_out, h_err = submit_hpc_sbatch(
-                    h_cmd, 1, 1, 1, f"{subj_num}mksd", subj_out
+                    h_cmd, 1, 1, 1, f"{subj_num}mksd", subj_work
                 )
         else:
             seed_file = seed_info
@@ -355,7 +351,7 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
         # get timeseries
         print(f"\nMaking seed timeseries for {subj} - {seed}")
         h_cmd = f"""
-            cd {subj_out}
+            cd {subj_work}
 
             3dmaskave \
                 -quiet \
@@ -372,7 +368,7 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
                 rm tmp.1D
         """
         subj_num = subj.split("-")[1]
-        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}mksd", subj_out)
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}mksd", subj_work)
 
     # update seed_out with upsampled seed
     seed_out[seed]["seed_ts"] = seed_ts
@@ -383,7 +379,7 @@ def seed_timeseries(subj, subj_out, afni_data, seed_tuple):
     return afni_data
 
 
-def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
+def behavior_timeseries(subj, sess, subj_work, afni_data, stim_dur=2):
     """Extract behavior timeseries.
 
     Convert timing files to binary vectors, with one binary value for each
@@ -391,7 +387,7 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
     neural timeseries, and then convolve with HRF model to get seed-behavior
     HRF timeseries.
 
-    Writes <subj_out>/Final_<seed>_<behavior>_timeSeries.1D
+    Writes <subj_work>/Final_<seed>_<behavior>_timeSeries.1D
 
     Parameters
     ----------
@@ -399,7 +395,7 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
         BIDS-formatted subject string
     sess : str
         BIDS-formatted session string
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
     afni_data : dict
         contains the fields len_tr, seed_files, timing_files,
@@ -416,10 +412,9 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
     Raises
     ------
     AssertionError
-        missing <subj_out>/Beh_<behavior>_bin.1D
-        missing <subj_out>/Final_<seed>_<behavior>_timeSeries.1D
+        missing <subj_work>/Beh_<behavior>_bin.1D
+        missing <subj_work>/Final_<seed>_<behavior>_timeSeries.1D
     """
-
     # get afni_data values
     len_tr = afni_data["len_tr"]
     seed_out = afni_data["seed_files"]
@@ -445,8 +440,8 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
     for timing_file in tf_list:
 
         # get binary behavior file, in TR time
-        h_beh = timing_file.split("desc-")[1].split("_")[0]
-        beh_file = os.path.join(subj_out, f"Beh_{h_beh}_bin.1D")
+        h_beh = timing_file.split("desc-")[1].split("Cens_")[0]
+        beh_file = os.path.join(subj_work, f"Beh_{h_beh}_bin.1D")
         if not os.path.exists(beh_file):
             print(f"\nMaking behavior files for {h_beh}")
             h_cmd = f"""
@@ -464,13 +459,13 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
         # multiply beh_file by neural seed ts to get interaction term
         for seed_name in seed_out:
             final_file = os.path.join(
-                subj_out, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
+                subj_work, f"Final_{seed_name}_{h_beh}_timeSeries.1D"
             )
             if not os.path.exists(final_file):
                 print(f"\nMaking {final_file}")
                 seed_neural = seed_out[seed_name]["seed_neural"]
                 h_cmd = f"""
-                    cd {subj_out}
+                    cd {subj_work}
 
                     1deval \
                         -a {seed_neural} \
@@ -488,7 +483,7 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
                 """
                 subj_num = subj.split("-")[1]
                 h_out, h_err = submit_hpc_sbatch(
-                    h_cmd, 1, 4, 1, f"{subj_num}final", subj_out
+                    h_cmd, 1, 4, 1, f"{subj_num}final", subj_work
                 )
             assert os.path.exists(final_file), f"Failed to make {final_file}"
             final_dict[seed_name][f"{seed_name}_{h_beh}"] = final_file
@@ -497,143 +492,7 @@ def behavior_timeseries(subj, sess, subj_out, afni_data, stim_dur=2):
     return afni_data
 
 
-def mot_files(subj_out, afni_data):
-    """Constuct motion and censor files.
-
-    Mine <fMRIprep>_desc-confounds_timeseries.tsv for motion events, make
-    motion files for mean (6df) and derivative (6df) motion events. Also,
-    create motion censor file. Volume preceding a motion event is also
-    censored. Finally, report the number of censored volumes.
-
-    I'm not sure if motion is demeaned or not, given that
-    it is output by fMRIprep (mined from confounds.tsv file).
-
-    Parameters
-    ----------
-    subj_out : str
-        Path to subject scratch directory
-    afni_data : dict
-        contains field conf_files
-
-    Returns
-    -------
-    afni_data : dict
-        updated with names of motion files
-        mot-mean = motion mean file
-        mot-deriv = motion derivative file
-        mot-censor = binary censory vector
-
-    Notes
-    -----
-    As runs do not have an equal number of volumes, motion/censor files
-    for each run are concatenated into a single file rather than managing
-    zero padding.
-
-    Writes 1D files - AFNI reads tsv as containing a header!
-    """
-
-    # determine relevant col labels
-    mean_labels = [
-        "trans_x",
-        "trans_y",
-        "trans_z",
-        "rot_x",
-        "rot_y",
-        "rot_z",
-    ]
-
-    drv_labels = [
-        "trans_x_derivative1",
-        "trans_y_derivative1",
-        "trans_z_derivative1",
-        "rot_x_derivative1",
-        "rot_y_derivative1",
-        "rot_z_derivative1",
-    ]
-
-    # get list of confound timeseries files, set output strings
-    mot_list = afni_data["conf_files"]
-    mot_str = os.path.join(subj_out, mot_list[0].split("/")[-1].replace("run-1_", ""))
-    mean_str = f"""{mot_str.replace("confounds", "mean").replace(".tsv", ".1D")}"""
-    deriv_str = f"""{mot_str.replace("confounds", "deriv").replace(".tsv", ".1D")}"""
-    cens_str = f"""{mot_str.replace("confounds", "censor").replace(".tsv", ".1D")}"""
-
-    if not os.path.exists(cens_str):
-        print("Making motion mean, derivative, censor files ...")
-
-        # start empty lists to append
-        mean_cat = []
-        deriv_cat = []
-        censor_cat = []
-
-        # each confound/motion file
-        for mot_file in mot_list:
-
-            # read in data
-            df_all = pd.read_csv(mot_file, sep="\t")
-
-            # make motion mean file, round to 6 sig figs
-            df_mean = df_all[mean_labels].copy()
-            df_mean = df_mean.round(6)
-            mean_cat.append(df_mean)
-
-            # make motion deriv file
-            df_drv = df_all[drv_labels].copy()
-            df_drv = df_drv.fillna(0)
-            df_drv = df_drv.round(6)
-            deriv_cat.append(df_drv)
-
-            # make motion censor file - sum columns,
-            # invert binary, exclude preceding volume
-            df_cen = df_all.filter(regex="motion_outlier")
-            df_cen["sum"] = df_cen.iloc[:, :].sum(1)
-            df_cen = df_cen.astype(int)
-            df_cen = df_cen.replace({0: 1, 1: 0})
-            zero_pos = df_cen.index[df_cen["sum"] == 0].tolist()
-            zero_fill = [x - 1 for x in zero_pos]
-            if -1 in zero_fill:
-                zero_fill.remove(-1)
-            df_cen.loc[zero_fill, "sum"] = 0
-            censor_cat.append(df_cen)
-
-        # cat files into singule file rather than pad zeros for e/run
-        df_mean_cat = pd.concat(mean_cat, ignore_index=True)
-        df_deriv_cat = pd.concat(deriv_cat, ignore_index=True)
-        df_censor_cat = pd.concat(censor_cat, ignore_index=True)
-
-        # determine BIDS string, write tsvs, make sure
-        # output value is float (not scientific notation)
-        df_mean_cat.to_csv(
-            mean_str,
-            sep="\t",
-            index=False,
-            header=False,
-            float_format="%.6f",
-        )
-        df_deriv_cat.to_csv(
-            deriv_str,
-            sep="\t",
-            index=False,
-            header=False,
-            float_format="%.6f",
-        )
-        df_censor_cat.to_csv(
-            cens_str,
-            sep="\t",
-            index=False,
-            header=False,
-            columns=["sum"],
-        )
-
-    # update afni_data
-    afni_data["mot-mean"] = mean_str
-    afni_data["mot-deriv"] = deriv_str
-    afni_data["mot-censor"] = cens_str
-
-    return afni_data
-
-
-def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
+def write_ppi_decon(subj, decon_ppi, subj_work, seed, afni_data, dur=2):
     """Generate deconvolution script.
 
     Write a deconvolution script using the pre-processed data, motion, PPI, and
@@ -652,7 +511,7 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
     decon_ppi : str
         prefix of output PPI deconvolved file,
         e.g. decon_<task-name>_<deconName>_PPI-<seed>
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
     seed : str
         name of seed
@@ -672,15 +531,14 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
     Raises
     ------
     AssertionError
-        missing <subj_out>/<decon_ppi>_stats.REML_cmd
+        missing <subj_work>/<decon_ppi>_stats.REML_cmd
     """
-
     print("\nBuilding decon script")
 
     # make timing file dict
     tf_dict = {}
     for tf in afni_data["timing_files"]:
-        beh = tf.split("/")[-1].split("desc-")[1].split("_")[0]
+        beh = tf.split("/")[-1].split("desc-")[1].split("Cens_")[0]
         tf_dict[beh] = tf
 
     # set regressors - baseline
@@ -689,27 +547,21 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
         f"""-ortvec {afni_data["mot-deriv"]} mot_deriv""",
     ]
 
-    # set regressors - behavior
+    # set inverted censor as baseline regressor, start regressor count
+    c_beh = 1
+    reg_cens = [f"-stim_file {c_beh} {afni_data['mot-censorInv']}"]
+    reg_cens.append(f"-stim_base {c_beh}")
+    reg_cens.append(f"-stim_label {c_beh} mot_cens")
+
+    # set behavior regressors
     reg_beh = []
-    for c_beh, beh in enumerate(tf_dict):
-
-        # add stim_time info, order is
-        #   -stim_times 1 tf_beh.txt basisFunction
-        reg_beh.append("-stim_times")
-        reg_beh.append(f"{c_beh + 1}")
-        reg_beh.append(f"{tf_dict[beh]}")
-        reg_beh.append(f"'TWOGAMpw(4,5,0.2,12,7,{dur})'")
-
-        # add stim_label info, order is
-        #   -stim_label 1 beh
-        reg_beh.append("-stim_label")
-        reg_beh.append(f"{c_beh + 1}")
-        reg_beh.append(beh)
-
-    # increase behavior counter for 0-indexing, use with ppi files
-    c_beh += 2
+    for h_beh, h_tf in tf_dict.items():
+        c_beh += 1
+        reg_beh.append(f"-stim_file {c_beh} {h_tf}")
+        reg_beh.append(f"-stim_label {c_beh} {h_beh}")
 
     # set regressors - seed timeseries
+    c_beh += 1
     seed_ts = afni_data["seed_files"][seed]["seed_ts"]
     reg_beh.append(f"-stim_file {c_beh} {seed_ts}")
     reg_beh.append(f"-stim_label {c_beh} Seed_ts")
@@ -730,32 +582,34 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
             -x1D_stop \\
             -GOFORIT \\
             -input {" ".join(epi_list)} \\
-            -censor {afni_data["mot-censor"]} \\
             {" ".join(reg_base)} \\
             -polort A \\
             -float \\
             -local_times \\
             -num_stimts {c_beh} \\
+            {" ".join(reg_cens)} \\
             {" ".join(reg_beh)} \\
             -jobs 1 \\
-            -x1D {subj_out}/X.{decon_ppi}.xmat.1D \\
-            -xjpeg {subj_out}/X.{decon_ppi}.jpg \\
-            -x1D_uncensored {subj_out}/X.{decon_ppi}.nocensor.xmat.1D \\
-            -bucket {subj_out}/{decon_ppi}_stats \\
-            -errts {subj_out}/{decon_ppi}_errts
+            -x1D {subj_work}/X.{decon_ppi}.xmat.1D \\
+            -xjpeg {subj_work}/X.{decon_ppi}.jpg \\
+            -x1D_uncensored {subj_work}/X.{decon_ppi}.nocensor.xmat.1D \\
+            -bucket {subj_work}/{decon_ppi}_stats \\
+            -errts {subj_work}/{decon_ppi}_errts
     """
 
     # write for review
-    decon_script = os.path.join(subj_out, f"{decon_ppi}.sh")
+    decon_script = os.path.join(subj_work, f"{decon_ppi}.sh")
     with open(decon_script, "w") as script:
         script.write(cmd_decon)
 
     # generate x-matrices, reml command
-    out_file = os.path.join(subj_out, f"{decon_ppi}_stats.REML_cmd")
+    out_file = os.path.join(subj_work, f"{decon_ppi}_stats.REML_cmd")
     if not os.path.exists(out_file):
         print(f"Running 3dDeconvolve for {decon_ppi}")
         subj_num = subj.split("-")[1]
-        h_out, h_err = submit_hpc_sbatch(cmd_decon, 1, 4, 1, f"{subj_num}dcn", subj_out)
+        h_out, h_err = submit_hpc_sbatch(
+            cmd_decon, 1, 4, 1, f"{subj_num}dcn", subj_work
+        )
 
     # check, update afni_data
     assert os.path.exists(out_file), f"Failed to write {out_file}"
@@ -763,19 +617,19 @@ def write_ppi_decon(subj, decon_ppi, subj_out, seed, afni_data, dur=2):
     return afni_data
 
 
-def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
+def run_ppi_reml(subj, subj_work, decon_ppi, afni_data):
     """Deconvolve EPI timeseries.
 
     Generate an idea of nuissance signal from the white matter and
     include this in the generated 3dREMLfit command.
 
-    Writes <subj_out>/<decon_ppi>_stats_REML+tlrc
+    Writes <subj_work>/<decon_ppi>_stats_REML+tlrc
 
     Parameters
     ----------
     subj : str
         BIDS-formatted subject string
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
     decon_ppi : str
         prefix of decon PPI file
@@ -792,16 +646,15 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
     Raises
     ------
     AssertionError
-        missing <subj_out>/nuissance file
-        missing <subj_out>/<decon_ppi>_stats_REML+tlrc.HEAD
+        missing <subj_work>/nuissance file
+        missing <subj_work>/<decon_ppi>_stats_REML+tlrc.HEAD
     """
-
     subj_num = subj.split("-")[-1]
     epi_list = afni_data["scaled_files"]
     eroded_mask = afni_data["wme_mask"][0]
     h_nuiss = epi_list[0].split("/")[-1].replace("_run-1", "")
     nuiss_file = os.path.join(
-        subj_out, h_nuiss.replace("desc-scaled", "desc-nuissance")
+        subj_work, h_nuiss.replace("desc-scaled", "desc-nuissance")
     )
 
     # generate WM timeseries (nuissance file) for task
@@ -809,7 +662,7 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
         print(f"Making nuissance file {nuiss_file} ...")
         tcat_file = "tmp_tcat.sub".join(nuiss_file.rsplit("sub", 1))
         h_eroded = eroded_mask.split("/")[-1]
-        epi_eroded = os.path.join(subj_out, f"tmp_epi.{h_eroded}")
+        epi_eroded = os.path.join(subj_work, f"tmp_epi.{h_eroded}")
         h_cmd = f"""
             3dTcat -prefix {tcat_file} {" ".join(epi_list)}
 
@@ -826,7 +679,7 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
                 -prefix {nuiss_file} \
                 {epi_eroded}
         """
-        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}wts", subj_out)
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 1, 4, 1, f"{subj_num}wts", subj_work)
     assert os.path.exists(nuiss_file), f"Failed to write {nuiss_file}"
     afni_data["epi-nuiss"] = nuiss_file
 
@@ -841,13 +694,13 @@ def run_ppi_reml(subj, subj_out, decon_ppi, afni_data):
                 -dsort {afni_data["epi-nuiss"]} \
                 -GOFORIT
         """
-        h_out, h_err = submit_hpc_sbatch(h_cmd, 25, 4, 8, f"{subj_num}rml", subj_out)
+        h_out, h_err = submit_hpc_sbatch(h_cmd, 25, 4, 8, f"{subj_num}rml", subj_work)
     assert os.path.exists(reml_out), f"Failed to write {reml_out}"
     afni_data[f"rml-{decon_ppi}"] = reml_out.split(".")[0]
     return afni_data
 
 
-def copy_data(subj_out, subj_final, decon_ppi):
+def copy_data(subj_work, subj_func, decon_ppi):
     """Copy final files to storage.
 
     Move only the final files to storage, those with
@@ -855,9 +708,9 @@ def copy_data(subj_out, subj_final, decon_ppi):
 
     Parameters
     ----------
-    subj_out : str
+    subj_work : str
         Path to subject scratch directory
-    subj_final : str
+    subj_func : str
         Path to subect's project derivative directory
     decon_ppi : str
         prefix of deconvolved file
@@ -865,12 +718,12 @@ def copy_data(subj_out, subj_final, decon_ppi):
     Raises
     ------
     AssertionError
-        missing <subj_final>/<decon_ppi>_stats_REML+tlrc.HEAD
+        missing <subj_func>/<decon_ppi>_stats_REML+tlrc.HEAD
     """
-    h_cmd = f"cp {subj_out}/{{,X.}}{decon_ppi}* {subj_final}"
+    h_cmd = f"cp {subj_work}/{{,X.}}{decon_ppi}* {subj_func}"
     h_out, h_err = submit_hpc_subprocess(h_cmd)
-    check_file = os.path.join(subj_final, f"{decon_ppi}_stats_REML+tlrc.HEAD")
-    assert os.path.exists(check_file), f"Missing PPI decon file in {subj_final}"
+    check_file = os.path.join(subj_func, f"{decon_ppi}_stats_REML+tlrc.HEAD")
+    assert os.path.exists(check_file), f"Missing PPI decon file in {subj_func}"
 
 
 def get_args():
@@ -880,7 +733,7 @@ def get_args():
     parser.add_argument(
         "--deriv-dir",
         type=str,
-        default="/home/data/madlab/McMakin_EMUR01/derivatives",
+        default="/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc",
         help=textwrap.dedent(
             """\
             Path to BIDS-formatted derivatives directory containing output
@@ -901,23 +754,13 @@ def get_args():
         ),
     )
     parser.add_argument(
-        "--sess",
+        "--timing-dir",
         type=str,
-        default="ses-S2",
+        default=None,
         help=textwrap.dedent(
             """\
-            BIDS-formatted session string
-            (default : %(default)s)
-            """
-        ),
-    )
-    parser.add_argument(
-        "--task",
-        type=str,
-        default="task-test",
-        help=textwrap.dedent(
-            """\
-            BIDS-formatted task string
+            Path to subject timing files, if they are not
+            located in derivatives/foo/subj-1234/ses-1/func.
             (default : %(default)s)
             """
         ),
@@ -925,11 +768,13 @@ def get_args():
 
     required_args = parser.add_argument_group("Required Arguments")
     required_args.add_argument(
-        "-s",
-        "--subj",
-        help="BIDS subject str (sub-1234)",
-        type=str,
-        required=True,
+        "-p", "--subj", help="BIDS subject str (sub-1234)", type=str, required=True,
+    )
+    required_args.add_argument(
+        "-s", "--sess", type=str, help="BIDS-formatted session string", required=True
+    )
+    required_args.add_argument(
+        "-t", "--task", type=str, help="BIDS-formatted task string", required=True
     )
     required_args.add_argument(
         "-d",
@@ -963,11 +808,11 @@ def get_args():
 # %%
 def main():
     """Coordiante work."""
-
     # get passed args
     args = get_args().parse_args()
     deriv_dir = args.deriv_dir
     work_dir = args.work_dir
+    timing_dir = args.timing_dir
     subj = args.subj
     sess = args.sess
     task = args.task
@@ -976,30 +821,30 @@ def main():
     seed_info = args.seed_info
 
     # setup paths/dicts
-    seed_tuple = (seed_name, seed_info)
-    data_dir = os.path.join(deriv_dir, "emu_unc")
-    subj_data = os.path.join(data_dir, subj, sess, "func")
-    subj_out = os.path.join(work_dir, subj, sess, "func")
-    subj_final = os.path.join(deriv_dir, "emu_unc", subj, sess, "func")
-    for h_dir in [subj_out, subj_final]:
-        if not os.path.exists(h_dir):
-            os.makedirs(h_dir)
+    subj_func = os.path.join(deriv_dir, subj, sess, "func")
+    subj_anat = os.path.join(deriv_dir, subj, sess, "anat")
+    subj_work = os.path.join(work_dir, subj, sess, "func")
+    subj_time = timing_dir if timing_dir else subj_func
+    if not os.path.exists(subj_work):
+        os.makedirs(subj_work)
 
-    # get required files produced by
+    # Get required files produced by
     # github.com/emu-project/func_processing/cli/run_afni_subj.py
+    # using deconvolve.write_new_decon function.
     afni_data = {}
+    afni_data["timing_files"] = glob.glob(f"{subj_time}/*_{task}_desc-*Cens_events.*")
     afni_data["scaled_files"] = sorted(
-        glob.glob(f"{subj_data}/*desc-scaled_bold.nii.gz")
+        glob.glob(f"{subj_func}/*{sess}_{task}*desc-scaled_bold.nii.gz")
     )
-    afni_data["decon_file"] = f"{subj_data}/{decon_str}_cbucket_REML+tlrc.HEAD"
-    afni_data["decon_matrix"] = f"{subj_data}/X.{decon_str}.xmat.1D"
-    afni_data["timing_files"] = glob.glob(
-        f"{subj_data}/{subj}_{sess}_{task}_desc-*_events.1D"
-    )
-    afni_data["conf_files"] = sorted(
-        glob.glob(f"{subj_data}/*_run-*_desc-confounds_timeseries.tsv")
-    )
-    subj_anat = os.path.join(data_dir, subj, sess, "anat")
+    afni_data["decon_file"] = f"{subj_func}/{decon_str}_cbucket_REML+tlrc.HEAD"
+    afni_data["decon_matrix"] = f"{subj_func}/X.{decon_str}.xmat.1D"
+    afni_data["mot-mean"] = f"{subj_func}/{subj}_{sess}_{task}_desc-mean_timeseries.1D"
+    afni_data[
+        "mot-deriv"
+    ] = f"{subj_func}/{subj}_{sess}_{task}_desc-deriv_timeseries.1D"
+    afni_data[
+        "mot-censorInv"
+    ] = f"{subj_func}/{subj}_{sess}_{task}_desc-censorInv_timeseries.1D"
     afni_data["wme_mask"] = glob.glob(f"{subj_anat}/*desc-WMe_mask.nii.gz")
 
     # check that required files exist
@@ -1010,17 +855,17 @@ def main():
             assert os.path.exists(h_file), f"Missing file for {h_type}: {h_file}"
 
     # generate timeseries files
-    afni_data = clean_data(subj, subj_out, afni_data)
-    afni_data = hrf_model(subj_out, afni_data)
-    afni_data = seed_timeseries(subj, subj_out, afni_data, seed_tuple)
-    afni_data = behavior_timeseries(subj, sess, subj_out, afni_data)
+    seed_tuple = (seed_name, seed_info)
+    afni_data = clean_data(subj, subj_work, afni_data)
+    afni_data = hrf_model(subj_work, afni_data)
+    afni_data = seed_timeseries(subj, subj_work, afni_data, seed_tuple)
+    afni_data = behavior_timeseries(subj, sess, subj_work, afni_data)
 
     # do decons for each seed
-    afni_data = mot_files(subj_out, afni_data)
     decon_ppi = f"{decon_str}_PPI-{seed_name}"
-    afni_data = write_ppi_decon(subj, decon_ppi, subj_out, seed_name, afni_data)
-    afni_data = run_ppi_reml(subj, subj_out, decon_ppi, afni_data)
-    copy_data(subj_out, subj_final, decon_ppi)
+    afni_data = write_ppi_decon(subj, decon_ppi, subj_work, seed_name, afni_data)
+    afni_data = run_ppi_reml(subj, subj_work, decon_ppi, afni_data)
+    copy_data(subj_work, subj_func, decon_ppi)
 
     # clean up
     shutil.rmtree(os.path.join(work_dir, subj))

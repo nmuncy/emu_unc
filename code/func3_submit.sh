@@ -16,6 +16,7 @@ function Usage {
         -n <number> = number of subjects to submit jobs
         -r <seed_name> = seed\'s name, for writing files, sub-bricks
         -s <session> = BIDS session string
+        -t <task> = BIDS task string
         -w <scratch_directory> = path to scratch/working directory
 
     Example Usage:
@@ -25,6 +26,7 @@ function Usage {
             -d \$deriv_dir \\
             -f decon_task-study_precTest \\
             -s ses-S1 \\
+            -t task-study \\
             -r amgL \\
             -i \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
             -n 8
@@ -35,6 +37,7 @@ function Usage {
             -d \$deriv_dir \\
             -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
+            -t task-study \\
             -r LHC \\
             -i "-24 -12 -22" \\
             -n 8
@@ -43,7 +46,7 @@ USAGE
 }
 
 # capture arguments
-while getopts ":d:f:i:n:r:s:w:h" OPT; do
+while getopts ":d:f:i:n:r:s:t:w:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
@@ -77,6 +80,9 @@ while getopts ":d:f:i:n:r:s:w:h" OPT; do
         ;;
     s)
         sess=${OPTARG}
+        ;;
+    t)
+        task=${OPTARG}
         ;;
     w)
         scratch_dir=${OPTARG}
@@ -125,6 +131,9 @@ function emptyArg {
     sess)
         h_ret="-s"
         ;;
+    task)
+        h_ret="-t"
+        ;;
     scratch_dir)
         h_ret="-w"
         ;;
@@ -137,7 +146,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in deriv_dir decon_str seed_info num_subj seed_name sess scratch_dir; do
+for opt in deriv_dir decon_str seed_info num_subj seed_name sess task scratch_dir; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -159,6 +168,7 @@ cat <<-EOF
         -d : $deriv_dir
         -f : $decon_str
         -s : $sess
+        -t : $task
         -n : $num_subj
         -r : $seed_name
         -i : $seed_info
@@ -201,7 +211,9 @@ cat <<-EOF
     Submitting sbatch job
 
         func3_ppi.py \\
-            -s <subj> \\
+            -p <subj> \\
+            -s $sess \\
+            -t $task \\
             -d $decon_str \\
             -r $seed_name \\
             -i "$seed_info"
@@ -224,7 +236,9 @@ while [ $c -lt $num_subj ]; do
         --account=iacc_madlab \
         --qos=pq_madlab \
         func3_ppi.py \
-        -s $subj \
+        -p $subj \
+        -s $sess \
+        -t $task \
         -d $decon_str \
         -r $seed_name \
         -i "$seed_info"
