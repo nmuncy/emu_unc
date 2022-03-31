@@ -440,7 +440,7 @@ def behavior_timeseries(subj, sess, subj_work, afni_data, stim_dur=2):
     for timing_file in tf_list:
 
         # get binary behavior file, in TR time
-        h_beh = timing_file.split("desc-")[1].split("Cens_")[0]
+        h_beh = timing_file.split("desc-")[1].split("_")[0]
         beh_file = os.path.join(subj_work, f"Beh_{h_beh}_bin.1D")
         if not os.path.exists(beh_file):
             print(f"\nMaking behavior files for {h_beh}")
@@ -537,7 +537,7 @@ def write_ppi_decon(subj, decon_ppi, subj_work, seed, afni_data, dur=2):
 
     # make timing file dict
     tf_dict = {}
-    for tf in afni_data["timing_files"]:
+    for tf in afni_data["timing_waves"]:
         beh = tf.split("/")[-1].split("desc-")[1].split("Cens_")[0]
         tf_dict[beh] = tf
 
@@ -768,7 +768,11 @@ def get_args():
 
     required_args = parser.add_argument_group("Required Arguments")
     required_args.add_argument(
-        "-p", "--subj", help="BIDS subject str (sub-1234)", type=str, required=True,
+        "-p",
+        "--subj",
+        help="BIDS subject str (sub-1234)",
+        type=str,
+        required=True,
     )
     required_args.add_argument(
         "-s", "--sess", type=str, help="BIDS-formatted session string", required=True
@@ -825,6 +829,7 @@ def main():
     subj_anat = os.path.join(deriv_dir, subj, sess, "anat")
     subj_work = os.path.join(work_dir, subj, sess, "func")
     subj_time = timing_dir if timing_dir else subj_func
+    print(subj_time)
     if not os.path.exists(subj_work):
         os.makedirs(subj_work)
 
@@ -832,7 +837,13 @@ def main():
     # github.com/emu-project/func_processing/cli/run_afni_subj.py
     # using deconvolve.write_new_decon function.
     afni_data = {}
-    afni_data["timing_files"] = glob.glob(f"{subj_time}/*_{task}_desc-*Cens_events.*")
+    timing_all = sorted(glob.glob(f"{subj_time}/*_{task}_desc-*_events.*"))
+    afni_data["timing_files"] = [
+        x for x in timing_all if not fnmatch.fnmatch(x, "*Cens_events.txt")
+    ]
+    afni_data["timing_waves"] = sorted(
+        glob.glob(f"{subj_time}/*_{task}_desc-*Cens_events.*")
+    )
     afni_data["scaled_files"] = sorted(
         glob.glob(f"{subj_func}/*{sess}_{task}*desc-scaled_bold.nii.gz")
     )

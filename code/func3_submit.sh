@@ -187,7 +187,8 @@ for subj in ${subj_all[@]}; do
 done
 
 # patch - remove subjs w/missing data, redeclare array
-problem_list=(sub-4{011,020,021,055,056,063,090,172,197})
+# problem_list=(sub-4{011,020,021,055,056,063,090,172,197})  # for test
+problem_list=(sub-4001) # for study
 ind_problem=()
 for ind in ${!subj_list[@]}; do
     for prob in ${problem_list[@]}; do
@@ -207,6 +208,9 @@ time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${scratch_dir}/slurm_out/ppi_${time}
 mkdir -p $out_dir
 
+# reference subj timing dir
+parent_dir="$(dirname $(pwd))"
+
 cat <<-EOF
     Submitting sbatch job
 
@@ -216,7 +220,8 @@ cat <<-EOF
             -t $task \\
             -d $decon_str \\
             -r $seed_name \\
-            -i "$seed_info"
+            -i "$seed_info" \\
+            --timing-dir ${parent_dir}/data/timing_files/<subj>/$sess
 
     with the following subjects:
 
@@ -228,6 +233,7 @@ c=0
 while [ $c -lt $num_subj ]; do
 
     subj=${subj_list[$c]}
+    subj_time=${parent_dir}/data/timing_files/${subj}/$sess
     sbatch \
         --job-name=p${subj#*-} \
         --output=${out_dir}/${subj}.out \
@@ -241,7 +247,8 @@ while [ $c -lt $num_subj ]; do
         -t $task \
         -d $decon_str \
         -r $seed_name \
-        -i "$seed_info"
+        -i "$seed_info" \
+        --timing-dir $subj_time
 
     sleep 1
     let c+=1
