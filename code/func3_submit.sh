@@ -3,8 +3,10 @@
 function Usage {
     cat <<USAGE
 
-    Wrapper for func2_ppi.py. Checks for which subjects do not have
-    PPI output, and submits N sbatch jobs for detected subjects
+    Wrapper for func3_ppi.py. Checks for which subjects do not have
+    PPI output, and submits N sbatch jobs for detected subjects.
+
+    Conda environment emuR01_unc required.
 
     Required Arguments:
         -d <project_derivatives> = path to project derivatives location
@@ -14,25 +16,28 @@ function Usage {
         -n <number> = number of subjects to submit jobs
         -r <seed_name> = seed\'s name, for writing files, sub-bricks
         -s <session> = BIDS session string
+        -t <task> = BIDS task string
         -w <scratch_directory> = path to scratch/working directory
 
     Example Usage:
-        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d \$deriv_dir \\
-            -f decon_task-test_UniqueBehs \\
-            -s ses-S2 \\
+            -f decon_task-study_precTest \\
+            -s ses-S1 \\
+            -t task-study \\
             -r amgL \\
-            -i \${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
+            -i \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_desc-amgLClean_mask.nii.gz \\
             -n 8
 
-        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives
+        deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d \$deriv_dir \\
             -f decon_task-test_UniqueBehs \\
             -s ses-S2 \\
+            -t task-study \\
             -r LHC \\
             -i "-24 -12 -22" \\
             -n 8
@@ -41,7 +46,7 @@ USAGE
 }
 
 # capture arguments
-while getopts ":d:f:i:n:r:s:w:h" OPT; do
+while getopts ":d:f:i:n:r:s:t:w:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
@@ -75,6 +80,9 @@ while getopts ":d:f:i:n:r:s:w:h" OPT; do
         ;;
     s)
         sess=${OPTARG}
+        ;;
+    t)
+        task=${OPTARG}
         ;;
     w)
         scratch_dir=${OPTARG}
@@ -123,6 +131,9 @@ function emptyArg {
     sess)
         h_ret="-s"
         ;;
+    task)
+        h_ret="-t"
+        ;;
     scratch_dir)
         h_ret="-w"
         ;;
@@ -135,7 +146,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in deriv_dir decon_str seed_info num_subj seed_name sess scratch_dir; do
+for opt in deriv_dir decon_str seed_info num_subj seed_name sess task scratch_dir; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -157,6 +168,7 @@ cat <<-EOF
         -d : $deriv_dir
         -f : $decon_str
         -s : $sess
+        -t : $task
         -n : $num_subj
         -r : $seed_name
         -i : $seed_info
@@ -166,18 +178,17 @@ EOF
 # find subjects missing ppi output
 echo -e "Building subject lists ...\n"
 subj_list=()
-afni_dir=${deriv_dir}/afni
-ppi_dir=${deriv_dir}/emu_unc
-subj_all=($(ls $afni_dir | grep "sub-*"))
+subj_all=($(ls $deriv_dir | grep "sub-*"))
 for subj in ${subj_all[@]}; do
-    ppi_file=${ppi_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
+    ppi_file=${deriv_dir}/${subj}/${sess}/func/${decon_str}_PPI-${seed_name}_stats_REML+tlrc.HEAD
     if [ ! -f $ppi_file ]; then
         subj_list+=($subj)
     fi
 done
 
 # patch - remove subjs w/missing data, redeclare array
-problem_list=(sub-4{011,020,021,055,056,063,090,172,197})
+# problem_list=(sub-4{011,020,021,055,056,063,090,172,197})  # for test
+problem_list=(sub-4001) # for study
 ind_problem=()
 for ind in ${!subj_list[@]}; do
     for prob in ${problem_list[@]}; do
@@ -197,14 +208,20 @@ time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${scratch_dir}/slurm_out/ppi_${time}
 mkdir -p $out_dir
 
+# reference subj timing dir
+parent_dir="$(dirname $(pwd))"
+
 cat <<-EOF
     Submitting sbatch job
 
         func3_ppi.py \\
-            -s <subj> \\
+            -p <subj> \\
+            -s $sess \\
+            -t $task \\
             -d $decon_str \\
             -r $seed_name \\
-            -i "$seed_info"
+            -i "$seed_info" \\
+            --timing-dir ${parent_dir}/data/timing_files/<subj>/$sess
 
     with the following subjects:
 
@@ -216,6 +233,7 @@ c=0
 while [ $c -lt $num_subj ]; do
 
     subj=${subj_list[$c]}
+    subj_time=${parent_dir}/data/timing_files/${subj}/$sess
     sbatch \
         --job-name=p${subj#*-} \
         --output=${out_dir}/${subj}.out \
@@ -224,10 +242,13 @@ while [ $c -lt $num_subj ]; do
         --account=iacc_madlab \
         --qos=pq_madlab \
         func3_ppi.py \
-        -s $subj \
+        -p $subj \
+        -s $sess \
+        -t $task \
         -d $decon_str \
         -r $seed_name \
-        -i "$seed_info"
+        -i "$seed_info" \
+        --timing-dir $subj_time
 
     sleep 1
     let c+=1
