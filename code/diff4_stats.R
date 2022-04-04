@@ -59,7 +59,7 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, out_dir) {
   ggplot(data = p_data, aes(x = nodeID, y = est)) +
     geom_line() +
     geom_ribbon(aes(ymin = lb, ymax = ub), alpha = 0.2) +
-    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(paste(tract_long, "Smooth")) +
     ylab("Fit Est.") +
     xlab("Tract Node") +
@@ -101,7 +101,7 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, out_dir) {
   ggplot(data = p_data, aes(x = nodeID, y = est, group = Group)) +
     geom_line(aes(color = Group)) +
     scale_y_continuous(limits = c(-0.2, 0.2)) +
-    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(paste(tract_long, "Group Smooths")) +
     ylab("Fit Est.") +
     xlab("Tract Node") +
@@ -143,10 +143,11 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, out_dir) {
   # find sig nodes
   p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
   p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
-  sig_nodes <- which(
+  sig_rows <- which(
     (p_data$est < 0 & p_data$ub < 0) |
       (p_data$est > 0 & p_data$lb > 0)
   )
+  sig_nodes <- p_data[sig_rows, ]$nodeID
 
   # find start, end points of sig regions
   vec_start <- sig_nodes[1]
@@ -164,15 +165,15 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, out_dir) {
   }
   vec_end <- append(vec_end, sig_nodes[num_nodes])
 
-  # make df for drawing rectangles, adjust for 0-index nodeID
+  # make df for drawing rectangles
   d_rect <- data.frame(
     x_start = vec_start,
     x_end = vec_end,
     y_start = rep(y_min, length(vec_start)),
     y_end = rep(0, length(vec_start))
   )
-  d_rect$x_start <- d_rect$x_start - 1
-  d_rect$x_end <- d_rect$x_end - 1
+  d_rect$x_start <- d_rect$x_start
+  d_rect$x_end <- d_rect$x_end
 
   # get tract name
   tract_long <- switch_names(tract)
@@ -194,7 +195,7 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, out_dir) {
       alpha = 0.2,
       fill = "red"
     ) +
-    scale_x_continuous(breaks = c(seq(0, 99, by = 10))) +
+    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(paste(tract_long, "Exp-Con Difference Smooth")) +
     ylab("Est. Difference") +
     xlab("Tract Node") +
@@ -228,10 +229,13 @@ draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, out_dir) {
 
   beh_long <- switch_names(y_var)
   tract_long <- switch_names(tract)
+  h_title <- ifelse(
+    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
+  )
 
   p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
-    ggtitle(paste0(tract_long, "-Memory Metric Intx")) +
+    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+    ggtitle(paste0(tract_long, " Node-FA-", h_title, " Smooth")) +
     ylab(beh_long) +
     xlab("Tract Node") +
     theme(text = element_text(family = "Times New Roman"))
@@ -269,6 +273,9 @@ draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
 
   beh_long <- switch_names(y_var)
   tract_long <- switch_names(tract)
+  h_title <- ifelse(
+    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
+  )
 
   ggplot(
     data = df_pred,
@@ -284,9 +291,9 @@ draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
     facet_wrap(~dx_group, ncol = 2) +
     scale_fill_viridis("dti_fa") +
     scale_color_viridis("dti_fa") +
-    scale_x_continuous(expand = c(0, 0), breaks = c(0, 50, 99)) +
+    scale_x_continuous(expand = c(0, 0), breaks = c(10, 50, 89)) +
     labs(x = "Tract Node", y = beh_long) +
-    ggtitle(paste0(tract_long, "-Memory Metric Intx by Group")) +
+    ggtitle(paste0(tract_long, " Node-FA-", h_title, " Smooth by Group")) +
     theme(
       legend.position = "right",
       text = element_text(family = "Times New Roman")
@@ -294,6 +301,47 @@ draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
 
   ggsave(
     paste0(out_dir, "/Plot_GAM_Group-Intx_", tract, "_", y_var, ".png"),
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+draw_group_intx_ref <- function(plot_obj, attr_num, tract, y_var, out_dir) {
+  # Draw group interaction reference (control) 3D smooth.
+  #
+  # Using the output of an ordered-factor group interaction
+  # model, draw how the reference group A interacts with continuous
+  # metric, nodeID, and predicted FA (s(x)).
+  #
+  # Arguments:
+  #   plot_obj (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group difference smooth
+  #   tract (str) = AFQ tract name
+  #   y_var (str) = behavior of interest, used for Y-axis
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Group-Intx-Ref_<tract>_<beh>.png
+
+  beh_long <- switch_names(y_var)
+  tract_long <- switch_names(tract)
+  h_title <- ifelse(
+    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
+  )
+
+  p <- plot(sm(plot_obj, attr_num)) +
+    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+    ggtitle(paste0(tract_long, " Control Node-FA-", h_title, " Smooth")) +
+    ylab(beh_long) +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+  print(p)
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Group-Intx-Ref_", tract, "_", y_var, ".png"),
     units = "in",
     width = 6,
     height = 6,
@@ -321,10 +369,15 @@ draw_group_intx_diff <- function(plot_obj, attr_num, tract, y_var, out_dir) {
 
   beh_long <- switch_names(y_var)
   tract_long <- switch_names(tract)
+  h_title <- ifelse(
+    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
+  )
 
   p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
-    ggtitle(paste(tract_long, "Exp-Con Intx Difference Smooth")) +
+    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+    ggtitle(paste0(
+      tract_long, " Experiment Node-FA-", h_title, " Difference Smooth"
+    )) +
     ylab(beh_long) +
     xlab("Tract Node") +
     theme(text = element_text(family = "Times New Roman"))
@@ -354,9 +407,19 @@ capture.output(sessionInfo(), file = paste0(data_dir, "/R_session_info.txt"))
 # import data, setup factors
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
 df_afq$sex <- factor(df_afq$sex)
+ind_exp <- which(df_afq$dx_group == "Pat")
+df_afq[ind_exp, ]$dx_group <- "Exp"
 df_afq$dx_group <- factor(df_afq$dx_group)
 df_afq$subjectID <- factor(df_afq$subjectID)
 df_afq$dx_groupOF <- factor(df_afq$dx_group, ordered = T)
+
+# clip tails
+ind_keep <- which(
+  df_afq$nodeID >= 10 & df_afq$nodeID <= 89
+)
+df_afq <- df_afq[ind_keep, ]
+rm(ind_keep)
+rm(ind_exp)
 
 
 # L. Unc Model Specification ----
@@ -365,6 +428,10 @@ df_afq$dx_groupOF <- factor(df_afq$dx_group, ordered = T)
 # 2) Determine role of PDS
 # 3) Assess GS vs GI fit
 # 4) Identify nodes which differ
+#
+# Steps will be commented for L. Unc models
+# but then repeated with basic comments for 
+# other tracts.
 
 # subset df_afq, take complete cases
 df_tract <- df_afq[which(df_afq$tractID == "UNC_L"), ]
@@ -372,19 +439,17 @@ df_tract <- df_tract[complete.cases(df_tract), ]
 
 # 1) determine distribution
 hist(df_tract$dti_fa)
-descdist(df_tract$dti_fa, discrete = F)
+descdist(df_tract$dti_fa, discrete = F) # likely gamma disst
 
-# build gam
-lunc_gaus <- bam(dti_fa ~ sex +
+# build gam with Gamma dist
+lunc_gamma <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
   s(nodeID, bs = "cr", k = 50),
 data = df_tract,
-family = gaussian(),
+family = Gamma(link = "logit"),
 method = "fREML"
 )
-# gam.check(lunc_gaus, rep = 1000)
-summary(lunc_gaus)
-# plot(lunc_gaus)
+gam.check(lunc_gamma, rep = 1000)
 
 
 # 2) pds effect
@@ -393,50 +458,52 @@ lunc_pds <- bam(dti_fa ~ sex +
   s(nodeID, bs = "cr", k = 50) +
   s(pds, by = sex),
 data = df_tract,
-family = gaussian(),
+family = Gamma(link = "logit"),
 method = "fREML"
 )
-# gam.check(lunc_pds, rep = 1000)
-summary(lunc_pds)
-# plot(lunc_pds)
-compareML(lunc_gaus, lunc_pds) # gaus preferred
+
+gam.check(lunc_pds, rep = 1000)
+summary(lunc_pds) # no pds effect
+compareML(lunc_gamma, lunc_pds) # adding pds does not help
+rm(lunc_pds) # keep env trim by removing losing  model
 
 
-# 3) GS model by diagnosis
+# 3) GS model by diagnosis (dxGS)
 lunc_dxGS <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
   s(nodeID, bs = "cr", k = 50, m = 2) +
   s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
 data = df_tract,
-family = gaussian(),
+family = Gamma(link = "logit"),
 method = "fREML"
 )
-# gam.check(lunc_dxGS, rep = 1000)
-compareML(lunc_gaus, lunc_dxGS) # lunc_dxGS preferred
-summary(lunc_dxGS)
-# plot(lunc_dxGS)
+gam.check(lunc_dxGS, rep = 1000)
+compareML(lunc_gamma, lunc_dxGS) # lunc_dxGS preferred
+rm(lunc_gamma)
 
-# GI model by diagnosis
+# GI model by diagnosis (dxGI)
 lunc_dxGI <- bam(dti_fa ~ sex +
   s(subjectID, bs = "re") +
   s(dx_group, bs = "re") +
   s(nodeID, bs = "cr", k = 50, m = 2) +
   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
 data = df_tract,
-family = gaussian(),
+family = Gamma(link = "logit"),
 method = "fREML"
 )
-# gam.check(lunc_dxGI, rep = 1000)
-summary(lunc_dxGI)
-# plot(lunc_dxGI)
-compareML(lunc_dxGI, lunc_dxGS) # lunc_dxGS preferred
+gam.check(lunc_dxGI, rep = 1000)
+compareML(lunc_dxGI, lunc_dxGS) # no real diff, continue with dxGS
+rm(lunc_dxGI)
 
-# draw
+# get plot object via getViz
 plot_lunc_dxGS <- getViz(lunc_dxGS)
-# plot(sm(plot_lunc_dxGS, 2))
-# plot(sm(plot_lunc_dxGS, 3))
+plot(sm(plot_lunc_dxGS, 2))
+plot(sm(plot_lunc_dxGS, 3))
+
+# make nice plots
 draw_global_smooth(plot_lunc_dxGS, 2, "UNC_L", out_dir)
 draw_group_smooth(plot_lunc_dxGS, 3, "UNC_L", out_dir)
+rm(plot_lunc_dxGS)
 
 
 # 4) GS dx - identify nodes that differ (make difference smooth)
@@ -445,163 +512,188 @@ lunc_dxGS_OF <- bam(dti_fa ~ sex +
   s(nodeID, bs = "cr", k = 50, m = 2) +
   s(nodeID, by = dx_groupOF, bs = "cr", k = 50, m = 2),
 data = df_tract,
-family = gaussian(),
+family = Gamma(link = "logit"),
 method = "fREML"
 )
-# gam.check(lunc_dxGS_OF, rep = 1000)
-# plot(lunc_dxGS_OF)
-summary(lunc_dxGS_OF) # group diff
+gam.check(lunc_dxGS_OF, rep = 1000)
 
-# draw
+# get stat of group diff
+summary(lunc_dxGS_OF)
+
+# get plot object via getViz
 plot_lunc_dxGS_OF <- getViz(lunc_dxGS_OF)
-# plot(sm(plot_lunc_dxGS_OF, 2))
-# plot(sm(plot_lunc_dxGS_OF, 3))
+plot(sm(plot_lunc_dxGS_OF, 2))
+plot(sm(plot_lunc_dxGS_OF, 3))
+
+# make nice plot, clean up
 draw_group_smooth_diff(plot_lunc_dxGS_OF, 3, "UNC_L", out_dir)
+rm(lunc_dxGS_OF)
+rm(plot_lunc_dxGS_OF)
 
 
 # L. Unc LGI Interaction ----
 #
 # 1) Investigate tract-group-negLGI intx
 # 2) Investigate tract-group-neuLGI intx
+#
+# Save interaction models as they take a while to generate
 
-# 1) L. Unc GS neg LGI dx intx
-lunc_dxGS_neg <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-  t2(
-    nodeID, lgi_neg, dx_group,
-    bs = c("cr", "tp", "re"),
-    k = c(50, 10, 2),
-    m = 2,
-    full = TRUE
-  ),
-data = df_tract,
-family = gaussian(),
-method = "fREML"
-)
-# gam.check(lunc_dxGS_neg, rep = 1000)
+# 1) L. Unc group interaction with negLGI
+# generate model if necessary
+gam_file <- paste0(out_dir, "/lunc_dxGS_neg.Rda")
+if (!file.exists(gam_file)) {
+  h_gam <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    t2(
+      nodeID, lgi_neg, dx_group,
+      bs = c("cr", "tp", "re"),
+      k = c(50, 10, 2),
+      m = 2,
+      full = TRUE
+    ),
+  data = df_tract,
+  family = Gamma(link = "logit"),
+  method = "fREML"
+  )
+  saveRDS(h_gam, file = gam_file)
+  rm(h_gam)
+}
+
+# read in model, get stats
+lunc_dxGS_neg <- readRDS(gam_file)
 compareML(lunc_dxGS, lunc_dxGS_neg) # lunc_dxGS_neg preferred
 summary(lunc_dxGS_neg)
-# plot(lunc_dxGS_neg)
 
 # draw, unpack tract-LGI intx by group
 plot_lunc_dxGS_neg <- getViz(lunc_dxGS_neg)
-# plot(sm(plot_lunc_dxGS_neg, 2))
 draw_smooth_intx(plot_lunc_dxGS_neg, 2, "UNC_L", "lgi_neg", out_dir)
 draw_group_intx(df_tract, lunc_dxGS_neg, "UNC_L", "lgi_neg", out_dir)
 
 # test if experiment group differs from control (reference group)
-lunc_dxGS_negOF <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-  t2(
-    nodeID, lgi_neg,
-    by = dx_groupOF,
-    bs = c("cr", "tp"),
-    k = c(50, 10),
-    m = 2,
-    full = TRUE
-  ),
-data = df_tract,
-family = gaussian(),
-method = "fREML"
-)
+gam_file <- paste0(out_dir, "/lunc_dxGS_neuOF.Rda")
+if (!file.exists(gam_file)) {
+  h_gam <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    t2(
+      nodeID, lgi_neg,
+      by = dx_groupOF,
+      bs = c("cr", "tp"),
+      k = c(50, 10),
+      m = 2,
+      full = TRUE
+    ),
+  data = df_tract,
+  family = Gamma(link = "logit"),
+  method = "fREML"
+  )
+  saveRDS(h_gam, file = gam_file)
+  rm(h_gam)
+}
+
+# read in model, get stats
+lunc_dxGS_negOF <- readRDS(gam_file)
 summary(lunc_dxGS_negOF)
-# plot(lunc_dxGS_negOF)
+
+# draw reference, difference interaction smooths
 plot_lunc_dxGS_negOF <- getViz(lunc_dxGS_negOF)
-# plot(sm(plot_lunc_dxGS_negOF, 2))
-# plot(sm(plot_lunc_dxGS_negOF, 3))
+draw_group_intx_ref(plot_lunc_dxGS_negOF, 2, "UNC_L", "lgi_neg", out_dir)
 draw_group_intx_diff(plot_lunc_dxGS_negOF, 3, "UNC_L", "lgi_neg", out_dir)
 
-# # validate/double-check OF method
-# lunc_dxGS_neg2 <- bam(dti_fa ~ sex +
+# clean up
+rm(lunc_dxGS_neg)
+rm(plot_lunc_dxGS_neg)
+rm(lunc_dxGS_negOF)
+rm(plot_lunc_dxGS_negOF)
+
+
+# 2) L. Unc group interaction with negLGI
+# 
+# Same as above, but with neutral stimuli.
+gam_file <- paste0(out_dir, "/lunc_dxGS_neu.Rda")
+if (!file.exists(gam_file)) {
+   h_gam<- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    t2(
+      nodeID, lgi_neu, dx_group,
+      bs = c("cr", "tp", "re"),
+      k = c(50, 10, 2),
+      m = 2,
+      full = TRUE
+    ),
+  data = df_tract,
+  family = Gamma(link = "logit"),
+  method = "fREML"
+  )
+  saveRDS(h_gam, file = gam_file)
+  rm(h_gam)
+}
+lunc_dxGS_neu <- readRDS(gam_file)
+compareML(lunc_dxGS, lunc_dxGS_neu) # lunc_dxGS_neu preferred
+summary(lunc_dxGS_neu)
+
+# draw, unpack tract-LGI intx by group
+plot_lunc_dxGS_neu <- getViz(lunc_dxGS_neu)
+draw_smooth_intx(plot_lunc_dxGS_neu, 2, "UNC_L", "lgi_neu", out_dir)
+draw_group_intx(df_tract, lunc_dxGS_neu, "UNC_L", "lgi_neu", out_dir)
+
+# test if experiment group differs from control (reference group)
+gam_file <- paste0(out_dir, "/lunc_dxGS_neuOF.Rda")
+if (!file.exists(gam_file)) {
+  h_gam <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    t2(
+      nodeID, lgi_neu,
+      by = dx_groupOF,
+      bs = c("cr", "tp"),
+      k = c(50, 10),
+      m = 2,
+      full = TRUE
+    ),
+  data = df_tract,
+  family = Gamma(link = "logit"),
+  method = "fREML"
+  )
+  saveRDS(h_gam, file = gam_file)
+  rm(h_gam)
+}
+
+# read in model, get stats, draw plots
+lunc_dxGS_neuOF <- readRDS(gam_file)
+summary(lunc_dxGS_neuOF)
+plot_lunc_dxGS_neuOF <- getViz(lunc_dxGS_neuOF)
+draw_group_intx_ref(plot_lunc_dxGS_neuOF, 2, "UNC_L", "lgi_neu", out_dir)
+draw_group_intx_diff(plot_lunc_dxGS_neuOF, 3, "UNC_L", "lgi_neu", out_dir)
+
+# clean up
+rm(lunc_dxGS_neu)
+rm(plot_lunc_dxGS_neu)
+rm(lunc_dxGS_neuOF)
+rm(plot_lunc_dxGS_neuOF)
+rm(lunc_dxGS)
+
+# # double-check OF method with plot_diff2 (which uses GI method)
+# lunc_dxGS_neu2 <- bam(dti_fa ~ sex +
 #   s(subjectID, bs = "re") +
-#   te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), by = dx_group),
+#   te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), by = dx_group),
 # data = df_tract,
 # family = gaussian(),
 # method = "fREML"
 # )
 #
-# plot(lunc_dxGS_neg2)
+# plot(lunc_dxGS_neu2)
 # plot_diff2(
-#   lunc_dxGS_neg2,
-#   view = c("nodeID", "lgi_neg"),
-#   comp = list(dx_group=c("Pat", "Con")),
+#   lunc_dxGS_neu2,
+#   view = c("nodeID", "lgi_neu"),
+#   comp = list(dx_group = c("Pat", "Con")),
 #   zlim = NULL,
 #   se = 1.96,
 #   color = "topo",
 #   show.diff = T
 # )
-
-
-# 2) L. Unc GS neu LGI dx intx
-lunc_dxGS_neu <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-  t2(
-    nodeID, lgi_neu, dx_group,
-    bs = c("cr", "tp", "re"),
-    k = c(50, 10, 2),
-    m = 2,
-    full = TRUE
-  ),
-data = df_tract,
-family = gaussian(),
-method = "fREML"
-)
-# gam.check(lunc_dxGS_neu, rep = 1000)
-compareML(lunc_dxGS, lunc_dxGS_neu) # lunc_dxGS_neu preferred
-summary(lunc_dxGS_neu)
-# plot(lunc_dxGS_neu)
-
-# draw, unpack tract-LGI intx by group
-plot_lunc_dxGS_neu <- getViz(lunc_dxGS_neu)
-# plot(sm(plot_lunc_dxGS_neu, 2)) # lgi_neu linear intx shows nicely
-draw_smooth_intx(plot_lunc_dxGS_neu, 2, "UNC_L", "lgi_neu", out_dir)
-draw_group_intx(df_tract, lunc_dxGS_neu, "UNC_L", "lgi_neu", out_dir)
-
-# test if experiment group differs from control (reference group)
-lunc_dxGS_neuOF <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-  t2(
-    nodeID, lgi_neu,
-    by = dx_groupOF,
-    bs = c("cr", "tp"),
-    k = c(50, 10),
-    m = 2,
-    full = TRUE
-  ),
-data = df_tract,
-family = gaussian(),
-method = "fREML"
-)
-summary(lunc_dxGS_neuOF)
-plot(lunc_dxGS_neuOF)
-plot_lunc_dxGS_neuOF <- getViz(lunc_dxGS_neuOF)
-# plot(sm(plot_lunc_dxGS_neuOF, 2))
-# plot(sm(plot_lunc_dxGS_neuOF, 3))
-draw_group_intx_diff(plot_lunc_dxGS_neuOF, 3, "UNC_L", "lgi_neu", out_dir)
-
-# validate/double-check OF method
-lunc_dxGS_neu2 <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  te(nodeID, lgi_neu, bs = c("cr", "tp"), k = c(50, 10), by = dx_group),
-data = df_tract,
-family = gaussian(),
-method = "fREML"
-)
-
-plot(lunc_dxGS_neu2)
-plot_diff2(
-  lunc_dxGS_neu2,
-  view = c("nodeID", "lgi_neu"),
-  comp = list(dx_group = c("Pat", "Con")),
-  zlim = NULL,
-  se = 1.96,
-  color = "topo",
-  show.diff = T
-)
 
 
 # R. Unc Model Specification ----
@@ -881,7 +973,7 @@ method = "fREML"
 
 # L. Cing Troubleshoot ----
 ind_keep <- which(
-  df_tract$nodeID >= 20 & df_tract$nodeID <= 79
+  df_tract$nodeID >= 10 & df_tract$nodeID <= 89
 )
 df_sub <- df_tract[ind_keep, ]
 
