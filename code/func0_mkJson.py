@@ -8,7 +8,7 @@ workflow.control_afni.control_deconvolution.
 
 Example
 -------
-python funcX_mkJson.py \\
+python func0_mkJson.py \\
     -s ses-S1 \\
     -w /Users/nmuncy/Projects/emu_unc/data/timing_files \\
     -p /home/nmuncy/compute/emu_unc/data/timing_files \\

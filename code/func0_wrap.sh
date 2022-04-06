@@ -51,7 +51,10 @@ if [ $OPTIND == 1 ]; then
 fi
 
 # set up - resolve path to data_dir, make timing_files dir
-data_dir=$(builtin cd ../data; pwd)
+data_dir=$(
+    builtin cd ../data
+    pwd
+)
 out_dir=${data_dir}/timing_files
 mkdir $out_dir
 
@@ -77,7 +80,7 @@ for subj in ${subj_list[@]}; do
     # submit R work
     echo "Making TFs for $subj ..."
     mkdir -p $subj_out
-    Rscript funcX_studyTF.R \
+    Rscript func0_studyTF.R \
         $proj_dir \
         $subj \
         $subj_out \
