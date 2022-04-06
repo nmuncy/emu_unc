@@ -41,7 +41,7 @@ function Usage {
         task=task-study
         sbatch func4_roiAnalysis.sh \\
             -d \$deriv_dir \\
-            -g \${deriv_dir}/emu_unc/template/tpl-MNIPediatricAsym_cohort-5_res-2_\${sess}_\${task}_desc-grpIntx_mask.nii.gz \\
+            -g \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_\${sess}_\${task}_desc-grpIntx_mask.nii.gz \\
             -m NSlacc \\
             -n precTest \\
             -p amgL \\
