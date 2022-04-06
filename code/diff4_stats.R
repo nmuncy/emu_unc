@@ -1,406 +1,26 @@
-library("ggplot2")
+# library("ggplot2")
 library("fitdistrplus")
-library("mgcv")
+# library("mgcv")
 library("itsadug")
 library("tidymv")
 library("dplyr")
 library("mgcViz")
 library("tools")
-library("viridis")
+# library("viridis")
 library("cowplot")
 library("tidyr")
 
-
-# Functions ----
-#
-# Switches and plotting functions repeatedly used.
-
-switch_names <- function(name) {
-  # Switch for decoding AFQ tract and behavior names
-  #
-  # Arguments:
-  #   name (str) = AFQ tract, behavior name
-  #
-  # Returns:
-  #   x_name (str) = reformatted name
-
-  x_name <- switch(name,
-    "UNC_L" = "L. Uncinate",
-    "UNC_R" = "R. Uncinate",
-    "CGC_L" = "L. Cingulum",
-    "CGC_R" = "R. Cingulum",
-    "lgi_neg" = "Negative LGI",
-    "lgi_neu" = "Neutral LGI",
-    "NSlacc_SPnegLF" = "LAmg-LACC: Study prec. Negative Lure FA",
-    "NSlacc_SPneuLF" = "LAmg-LACC: Study prec. Neutral Lure FA",
-  )
-  return(x_name)
-}
-
-draw_global_smooth <- function(plot_obj, attr_num, tract, out_dir) {
-  # Draw tract global smooth
-  #
-  # Arguments:
-  #   plot_obj_of (object) = plotable object returned by getViz
-  #   attr_num (int) = list/attribute number of plot obj that contains
-  #                     group smooths
-  #   tract (str) = AFQ tract string
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_Global_<tract>.jpg
-
-  # use plot to extract attribute of interest
-  p <- plot(sm(plot_obj, attr_num))
-  p_data <- as.data.frame(p$data$fit)
-  colnames(p_data) <- c("nodeID", "est", "ty", "se")
-  p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
-  p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
-
-  # draw
-  tract_long <- switch_names(tract)
-  ggplot(data = p_data, aes(x = nodeID, y = est)) +
-    geom_line() +
-    geom_ribbon(aes(ymin = lb, ymax = ub), alpha = 0.2) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(paste(tract_long, "Smooth")) +
-    ylab("Fit Est.") +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Global.png"),
-    plot = last_plot(),
-    units = "in",
-    width = 6,
-    height = 6,
-    dpi = 600,
-    device = "png"
-  )
-}
-
-draw_group_smooth <- function(plot_obj, attr_num, tract, out_dir) {
-  # Draw group smooths.
-  #
-  # Plot group smooths separate from global smooth.
-  #
-  # Arguments:
-  #   plot_obj_of (object) = plotable object returned by getViz
-  #   attr_num (int) = list/attribute number of plot obj that contains
-  #                     group smooths
-  #   tract (str) = AFQ tract string
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_GS_<tract>.jpg
-
-  # use plot to extract attribute of interest
-  p <- plot(sm(plot_obj, attr_num))
-  p_data <- as.data.frame(p$data$fit)
-  colnames(p_data) <- c("nodeID", "est", "ty", "Group")
-
-  # draw
-  tract_long <- switch_names(tract)
-  ggplot(data = p_data, aes(x = nodeID, y = est, group = Group)) +
-    geom_line(aes(color = Group)) +
-    scale_y_continuous(limits = c(-0.2, 0.2)) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(paste(tract_long, "Group Smooths")) +
-    ylab("Fit Est.") +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_GS.png"),
-    plot = last_plot(),
-    units = "in",
-    width = 6,
-    height = 6,
-    dpi = 600,
-    device = "png"
-  )
-}
-
-draw_group_smooth_diff <- function(plot_obj, attr_num, tract, out_dir) {
-  # Draw group difference smooth.
-  #
-  # Plot an A-B difference smooth, identify nodes
-  # which sig differ from 0, draw polygons to ID.
-  #
-  # Arguments:
-  #   plot_obj (object) = plotable object returned by getViz
-  #   attr_num (int) = list/attribute number of plot obj that contains
-  #                     group difference smooth
-  #   tract (str) = AFQ tract string
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_Diff_<tract>.jpg
-
-  # unpack difference smooth data
-  p <- plot(sm(plot_obj, attr_num)) +
-    geom_hline(yintercept = 0)
-  p_data <- as.data.frame(p$data$fit)
-  colnames(p_data) <- c("nodeID", "est", "ty", "se")
-
-  # find sig nodes
-  p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
-  p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
-  sig_rows <- which(
-    (p_data$est < 0 & p_data$ub < 0) |
-      (p_data$est > 0 & p_data$lb > 0)
-  )
-  sig_nodes <- p_data[sig_rows, ]$nodeID
-
-  # find start, end points of sig regions
-  vec_start <- sig_nodes[1]
-  vec_end <- vector()
-  y_min <- min(p_data$lb)
-  num_nodes <- length(sig_nodes)
-  c <- 2
-  while (c < num_nodes) {
-    cc <- c + 1
-    if (sig_nodes[cc] > sig_nodes[c] + 1) {
-      vec_end <- append(vec_end, sig_nodes[c])
-      vec_start <- append(vec_start, sig_nodes[cc])
-    }
-    c <- cc
-  }
-  vec_end <- append(vec_end, sig_nodes[num_nodes])
-
-  # make df for drawing rectangles
-  d_rect <- data.frame(
-    x_start = vec_start,
-    x_end = vec_end,
-    y_start = rep(y_min, length(vec_start)),
-    y_end = rep(0, length(vec_start))
-  )
-  d_rect$x_start <- d_rect$x_start
-  d_rect$x_end <- d_rect$x_end
-
-  # get tract name
-  tract_long <- switch_names(tract)
-
-  # draw
-  ggplot(data = p_data, aes(x = nodeID, y = est)) +
-    geom_hline(yintercept = 0) +
-    geom_line() +
-    geom_ribbon(
-      aes(ymin = lb, ymax = ub),
-      alpha = 0.2
-    ) +
-    annotate(
-      "rect",
-      xmin = c(d_rect$x_start),
-      xmax = c(d_rect$x_end),
-      ymin = c(d_rect$y_start),
-      ymax = c(d_rect$y_end),
-      alpha = 0.2,
-      fill = "red"
-    ) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(paste(tract_long, "Exp-Con Difference Smooth")) +
-    ylab("Est. Difference") +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  # print(p)
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Diff.png"),
-    plot = last_plot(),
-    units = "in",
-    width = 6,
-    height = 6,
-    dpi = 600,
-    device = "png"
-  )
-}
-
-draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, out_dir) {
-  # Draw beavior-nodeID interactions.
-  #
-  # Arguments:
-  #   plot_obj (object) = plotable object returned by getViz
-  #   attr_num (int) = list/attribute number of plot obj that contains
-  #                     group difference smooth
-  #   tract (str) = AFQ tract string
-  #   y_var (str) = behavior of interest, used for Y-axis
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_Intx_<tract>_<beh>.png
-
-  beh_long <- switch_names(y_var)
-  tract_long <- switch_names(tract)
-  h_title <- ifelse(
-    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
-  )
-
-  p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(paste0(tract_long, " Node-FA-", h_title, " Smooth")) +
-    ylab(beh_long) +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  print(p)
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Intx_", y_var, ".png"),
-    units = "in",
-    width = 6,
-    height = 6,
-    device = "png"
-  )
-}
-
-draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
-  # Draw behavior-nodeID interactions by group.
-  #
-  # Plot factorial 3D interaction between nodeID, dti_fa, and behavior
-  # as a function of diagnosis group.
-  #
-  # Arguments:
-  #   df_tract (dataframe) = tract dataframe supplied to GAM
-  #   gam_obj (object) = returned object from GAM/BAM tool
-  #   tract (str) = AFQ tract name
-  #   y_var (str) = behavior of interest, used for Y-axis
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_Group-Intx_<tract>_<beh>.png
-
-  df_pred <- transform(
-    df_tract,
-    h_pred = predict(gam_obj, type = "response")
-  )
-
-  beh_long <- switch_names(y_var)
-  tract_long <- switch_names(tract)
-  h_title <- ifelse(
-    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
-  )
-
-  ggplot(
-    data = df_pred,
-    aes(
-      x = nodeID,
-      y = get(y_var),
-      fill = h_pred,
-      color = h_pred,
-      height = get(y_var)
-    )
-  ) +
-    geom_tile() +
-    facet_wrap(~dx_group, ncol = 2) +
-    scale_fill_viridis("dti_fa") +
-    scale_color_viridis("dti_fa") +
-    scale_x_continuous(expand = c(0, 0), breaks = c(10, 50, 89)) +
-    labs(x = "Tract Node", y = beh_long) +
-    ggtitle(paste0(tract_long, " Node-FA-", h_title, " Smooth by Group")) +
-    theme(
-      legend.position = "right",
-      text = element_text(family = "Times New Roman")
-    )
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Group-Intx_", y_var, ".png"),
-    units = "in",
-    width = 6,
-    height = 6,
-    device = "png"
-  )
-}
-
-draw_group_intx_ref <- function(plot_obj, attr_num, tract, y_var, out_dir) {
-  # Draw group interaction reference (control) 3D smooth.
-  #
-  # Using the output of an ordered-factor group interaction
-  # model, draw how the reference group A interacts with continuous
-  # metric, nodeID, and predicted FA (s(x)).
-  #
-  # Arguments:
-  #   plot_obj (object) = plotable object returned by getViz
-  #   attr_num (int) = list/attribute number of plot obj that contains
-  #                     group difference smooth
-  #   tract (str) = AFQ tract name
-  #   y_var (str) = behavior of interest, used for Y-axis
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_Group-Intx-Ref_<tract>_<beh>.png
-
-  beh_long <- switch_names(y_var)
-  tract_long <- switch_names(tract)
-  h_title <- ifelse(
-    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
-  )
-
-  p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(paste0(tract_long, " Control Node-FA-", h_title, " Smooth")) +
-    ylab(beh_long) +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  print(p)
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Group-Intx-Ref_", y_var, ".png"),
-    units = "in",
-    width = 6,
-    height = 6,
-    device = "png"
-  )
-}
-
-draw_group_intx_diff <- function(plot_obj, attr_num, tract, y_var, out_dir) {
-  # Draw group interaction difference 3D smooth.
-  #
-  # Using the output of an ordered-factor group interaction
-  # model, draw how group B differs in their nodeID-FA-continuous
-  # interaction from the reference group (group A).
-  #
-  # Arguments:
-  #   plot_obj (object) = plotable object returned by getViz
-  #   attr_num (int) = list/attribute number of plot obj that contains
-  #                     group difference smooth
-  #   tract (str) = AFQ tract name
-  #   y_var (str) = behavior of interest, used for Y-axis
-  #   out_dir (str) = path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_GAM_Group-Intx-Diff_<tract>_<beh>.png
-
-  beh_long <- switch_names(y_var)
-  tract_long <- switch_names(tract)
-  h_title <- ifelse(
-    (y_var == "lgi_neg" | y_var == "lgi_neu"), "Memory Metric", "PPI Term"
-  )
-
-  p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(paste0(
-      tract_long, " Experiment Node-FA-", h_title, " Difference Smooth"
-    )) +
-    ylab(beh_long) +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  print(p)
-
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Group-Intx-Diff_", y_var, ".png"),
-    units = "in",
-    width = 6,
-    height = 6,
-    device = "png"
-  )
-}
+library("devtools")
+install_github("nmuncy/emu_unc_R/DiffGamm")
+library("DiffGamm")
 
 
 
 # Set Up ----
 
 # set paths
-proj_dir <- file_path_as_absolute(paste0(getwd(), "/.."))
+# proj_dir <- file_path_as_absolute(paste0(getwd(), "/.."))
+proj_dir <- "/Users/nmuncy/Projects/emu_unc"
 data_dir <- paste0(proj_dir, "/data")
 out_dir <- paste0(proj_dir, "/stats")
 
@@ -469,25 +89,26 @@ hist(df_tract$dti_fa)
 descdist(df_tract$dti_fa, discrete = F)
 
 # build gam with Gamma dist
-lunc_gamma <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  s(nodeID, bs = "cr", k = 50),
-data = df_tract,
-family = Gamma(link = "logit"),
-method = "fREML"
-)
+# lunc_gamma <- bam(dti_fa ~ sex +
+#   s(subjectID, bs = "re") +
+#   s(nodeID, bs = "cr", k = 50),
+# data = df_tract,
+# family = Gamma(link = "logit"),
+# method = "fREML"
+# )
+lunc_gamma <- gam_model(df_tract, "gamma")
 gam.check(lunc_gamma, rep = 1000)
 
-
 # 2) pds effect
-lunc_pds <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  s(nodeID, bs = "cr", k = 50) +
-  s(pds, by = sex),
-data = df_tract,
-family = Gamma(link = "logit"),
-method = "fREML"
-)
+# lunc_pds <- bam(dti_fa ~ sex +
+#   s(subjectID, bs = "re") +
+#   s(nodeID, bs = "cr", k = 50) +
+#   s(pds, by = sex),
+# data = df_tract,
+# family = Gamma(link = "logit"),
+# method = "fREML"
+# )
+lunc_pds <- gam_cov_model(df_tract, "gamma", "pds")
 
 gam.check(lunc_pds, rep = 1000)
 summary(lunc_pds) # no pds effect
@@ -496,28 +117,30 @@ rm(lunc_pds) # keep env trim by removing losing  model
 
 
 # 3) GS model by diagnosis (dxGS)
-lunc_dxGS <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  s(nodeID, bs = "cr", k = 50, m = 2) +
-  s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
-data = df_tract,
-family = Gamma(link = "logit"),
-method = "fREML"
-)
+# lunc_dxGS <- bam(dti_fa ~ sex +
+#   s(subjectID, bs = "re") +
+#   s(nodeID, bs = "cr", k = 50, m = 2) +
+#   s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
+# data = df_tract,
+# family = Gamma(link = "logit"),
+# method = "fREML"
+# )
+lunc_dxGS <- gam_GS_model(df_tract, "gamma", "dx_group")
 gam.check(lunc_dxGS, rep = 1000)
 compareML(lunc_gamma, lunc_dxGS) # lunc_dxGS preferred
 rm(lunc_gamma)
 
 # GI model by diagnosis (dxGI)
-lunc_dxGI <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  s(dx_group, bs = "re") +
-  s(nodeID, bs = "cr", k = 50, m = 2) +
-  s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
-data = df_tract,
-family = Gamma(link = "logit"),
-method = "fREML"
-)
+# lunc_dxGI <- bam(dti_fa ~ sex +
+#   s(subjectID, bs = "re") +
+#   s(dx_group, bs = "re") +
+#   s(nodeID, bs = "cr", k = 50, m = 2) +
+#   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
+# data = df_tract,
+# family = Gamma(link = "logit"),
+# method = "fREML"
+# )
+lunc_dxGI <- gam_GI_model(df_tract, "gamma", "dx_group")
 gam.check(lunc_dxGI, rep = 1000)
 compareML(lunc_dxGI, lunc_dxGS) # no real diff, continue with dxGS
 rm(lunc_dxGI)
@@ -534,14 +157,15 @@ rm(plot_lunc_dxGS)
 
 
 # 4) GS dx - identify nodes that differ (make difference smooth)
-lunc_dxGS_OF <- bam(dti_fa ~ sex +
-  s(subjectID, bs = "re") +
-  s(nodeID, bs = "cr", k = 50, m = 2) +
-  s(nodeID, by = dx_groupOF, bs = "cr", k = 50, m = 2),
-data = df_tract,
-family = Gamma(link = "logit"),
-method = "fREML"
-)
+# lunc_dxGS_OF <- bam(dti_fa ~ sex +
+#   s(subjectID, bs = "re") +
+#   s(nodeID, bs = "cr", k = 50, m = 2) +
+#   s(nodeID, by = dx_groupOF, bs = "cr", k = 50, m = 2),
+# data = df_tract,
+# family = Gamma(link = "logit"),
+# method = "fREML"
+# )
+lunc_dxGS_OF <- gam_GSOF_model(df_tract, "gamma", "dx_groupOF")
 gam.check(lunc_dxGS_OF, rep = 1000)
 
 # get stat of group diff
@@ -569,20 +193,21 @@ rm(plot_lunc_dxGS_OF)
 # generate model if necessary
 gam_file <- paste0(out_dir, "/Data_lunc_dxGS_neg.Rda")
 if (!file.exists(gam_file)) {
-  h_gam <- bam(dti_fa ~ sex +
-    s(subjectID, bs = "re") +
-    te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-    t2(
-      nodeID, lgi_neg, dx_group,
-      bs = c("cr", "tp", "re"),
-      k = c(50, 10, 2),
-      m = 2,
-      full = TRUE
-    ),
-  data = df_tract,
-  family = Gamma(link = "logit"),
-  method = "fREML"
-  )
+  # h_gam <- bam(dti_fa ~ sex +
+  #   s(subjectID, bs = "re") +
+  #   te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+  #   t2(
+  #     nodeID, lgi_neg, dx_group,
+  #     bs = c("cr", "tp", "re"),
+  #     k = c(50, 10, 2),
+  #     m = 2,
+  #     full = TRUE
+  #   ),
+  # data = df_tract,
+  # family = Gamma(link = "logit"),
+  # method = "fREML"
+  # )
+  h_gam <- gam_intx_model(df_tract, "gamma", "dx_group", "lgi_neg")
   saveRDS(h_gam, file = gam_file)
   rm(h_gam)
 }
@@ -600,21 +225,22 @@ draw_group_intx(df_tract, lunc_dxGS_neg, "UNC_L", "lgi_neg", out_dir)
 # test if experiment group differs from control (reference group)
 gam_file <- paste0(out_dir, "/Data_lunc_dxGS_negOF.Rda")
 if (!file.exists(gam_file)) {
-  h_gam <- bam(dti_fa ~ sex +
-    s(subjectID, bs = "re") +
-    te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-    t2(
-      nodeID, lgi_neg,
-      by = dx_groupOF,
-      bs = c("cr", "tp"),
-      k = c(50, 10),
-      m = 2,
-      full = TRUE
-    ),
-  data = df_tract,
-  family = Gamma(link = "logit"),
-  method = "fREML"
-  )
+  # h_gam <- bam(dti_fa ~ sex +
+  #   s(subjectID, bs = "re") +
+  #   te(nodeID, lgi_neg, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+  #   t2(
+  #     nodeID, lgi_neg,
+  #     by = dx_groupOF,
+  #     bs = c("cr", "tp"),
+  #     k = c(50, 10),
+  #     m = 2,
+  #     full = TRUE
+  #   ),
+  # data = df_tract,
+  # family = Gamma(link = "logit"),
+  # method = "fREML"
+  # )
+  h_gam <- gam_intxOF_model(df_tract, "gamma", "dx_groupOF", "lgi_neg")
   saveRDS(h_gam, file = gam_file)
   rm(h_gam)
 }
@@ -737,29 +363,29 @@ adjust_outliers <- function(df_tract){
   # Replace outliers with max/min values.
   #
   # Arguments:
-  #   
+  #
   # Returns:
   #
-  
+
   col_list <- c(
-    "NSlacc_SPnegLF", 
-    "NSlacc_SPneuLF",  
-    "NSldmpfc_SPnegLF", 
-    "NSldmpfc_SPneuLF", 
-    "NSlsfs_SPnegLF", 
+    "NSlacc_SPnegLF",
+    "NSlacc_SPneuLF",
+    "NSldmpfc_SPnegLF",
+    "NSldmpfc_SPneuLF",
+    "NSlsfs_SPnegLF",
     "NSlsfs_SPneuLF"
   )
-  
+
   df <- df_tract[which(df_tract$nodeID == 10), ]
   subj_list <- as.character(df$subjectID)
-  
+
   for(col_name in col_list){
     # find min/max
     h_iqr <- IQR(df[, col_name], na.rm = TRUE)
     h_quant <- quantile(df[, col_name], na.rm = TRUE, names = FALSE)
     h_min <- h_quant[2] - (1.5 * h_iqr)
     h_max <- h_quant[4] + (1.5 * h_iqr)
-    
+
     # detect, replace outliers
     ind_out <- which(df[, col_name] < h_min | df[, col_name] > h_max)
     for(ind in ind_out){
@@ -769,7 +395,7 @@ adjust_outliers <- function(df_tract){
         df[ind, col_name] <- h_min
       }
     }
-    
+
     # fill df_tract with orig/updated values
     for(subj in subj_list){
       ind_df <- which(df$subjectID == subj)
@@ -803,7 +429,7 @@ if (!file.exists(gam_file)) {
   # gam.check(h_gam, rep = 1000)
   # summary(h_gam)
   # plot(h_gam)
-  
+
   saveRDS(h_gam, file = gam_file)
   rm(h_gam)
 }
