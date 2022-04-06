@@ -8,6 +8,7 @@ library("mgcViz")
 library("tools")
 library("viridis")
 library("cowplot")
+library("tidyr")
 
 
 # Functions ----
@@ -30,6 +31,8 @@ switch_names <- function(name) {
     "CGC_R" = "R. Cingulum",
     "lgi_neg" = "Negative LGI",
     "lgi_neu" = "Neutral LGI",
+    "NSlacc_SPnegLF" = "LAmg-LACC: Study prec. Negative Lure FA",
+    "NSlacc_SPneuLF" = "LAmg-LACC: Study prec. Neutral Lure FA",
   )
   return(x_name)
 }
@@ -421,6 +424,29 @@ df_afq <- df_afq[ind_keep, ]
 rm(ind_keep)
 rm(ind_exp)
 
+# incorporate PPI values of ses-S1 task-study
+seed_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
+beh_list <- c("SPnegLF", "SPneuLF")
+subj_list <- as.character(unique(df_afq$subjectID))
+for(seed in seed_list){
+  df_ppi <- read.csv(
+    paste0(data_dir, "/df_ses-S1_task-study_amgL-", seed, ".csv")
+  )
+  for(beh in beh_list){
+    h_col <- paste(seed, beh, sep = "_")
+    df_afq[, h_col] <- NA
+    for(subj in subj_list){
+      ind_afq <- which(df_afq$subjectID == subj)
+      ind_ppi <- which(df_ppi$subj == paste0("sub-", subj))
+      if(length(ind_ppi)==0){
+        next
+      }
+      df_afq[ind_afq, h_col] <- df_ppi[ind_ppi, beh]
+    }
+  }
+}
+rm(df_ppi)
+
 
 # L. Unc Model Specification ----
 #
@@ -433,9 +459,10 @@ rm(ind_exp)
 # but then repeated with basic comments for
 # other tracts.
 
-# subset df_afq, take complete cases
+# subset df_afq, take complete dx cases
 df_tract <- df_afq[which(df_afq$tractID == "UNC_L"), ]
-df_tract <- df_tract[complete.cases(df_tract), ]
+# df_tract <- df_tract[complete.cases(df_tract), ]
+df_tract <- df_tract %>% drop_na(dx)
 
 # 1) determine distribution
 hist(df_tract$dti_fa)
@@ -696,13 +723,148 @@ rm(lunc_dxGS)
 # )
 
 
+# L. Unc NSlacc PPI Interaction ----
+#
+# 1) Investigate tract-group-SPnegLFA intx for NSlacc
+# 2) Investigate tract-group-SPneuLFA intx for NSlacc
+
+# take complete behavior cases
+df_tract <- df_tract %>% drop_na(NSlacc_SPnegLF)
+hist(df_tract$dti_fa)
+descdist(df_tract$dti_fa, discrete = F)
+
+adjust_outliers <- function(df_tract){
+  # Replace outliers with max/min values.
+  #
+  # Arguments:
+  #   
+  # Returns:
+  #
+  
+  col_list <- c(
+    "NSlacc_SPnegLF", 
+    "NSlacc_SPneuLF",  
+    "NSldmpfc_SPnegLF", 
+    "NSldmpfc_SPneuLF", 
+    "NSlsfs_SPnegLF", 
+    "NSlsfs_SPneuLF"
+  )
+  
+  df <- df_tract[which(df_tract$nodeID == 10), ]
+  subj_list <- as.character(df$subjectID)
+  
+  for(col_name in col_list){
+    # find min/max
+    h_iqr <- IQR(df[, col_name], na.rm = TRUE)
+    h_quant <- quantile(df[, col_name], na.rm = TRUE, names = FALSE)
+    h_min <- h_quant[2] - (1.5 * h_iqr)
+    h_max <- h_quant[4] + (1.5 * h_iqr)
+    
+    # detect, replace outliers
+    ind_out <- which(df[, col_name] < h_min | df[, col_name] > h_max)
+    for(ind in ind_out){
+      if(df[ind, col_name] > h_max){
+        df[ind, col_name] <- h_max
+      }else if(df[ind, col_name] < h_min){
+        df[ind, col_name] <- h_min
+      }
+    }
+    
+    # fill df_tract with orig/updated values
+    for(subj in subj_list){
+      ind_df <- which(df$subjectID == subj)
+      ind_tract <- which(df_tract$subjectID == subj)
+      df_tract[ind_tract, col_name] <- df[ind_df, col_name]
+    }
+  }
+  return(df_tract)
+}
+df_tract <- adjust_outliers(df_tract)
+
+
+# 1) L. Unc group interaction with SPnegLFA
+# generate model if necessary
+gam_file <- paste0(out_dir, "/Data_lunc_dxGS_NSlacc-PPIneg.Rda")
+if (!file.exists(gam_file)) {
+  h_gam <- bam(dti_fa ~ sex +
+     s(subjectID, bs = "re") +
+     te(nodeID, NSlacc_SPnegLF, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+     t2(
+       nodeID, NSlacc_SPnegLF, dx_group,
+       bs = c("cr", "tp", "re"),
+       k = c(50, 10, 2),
+       m = 2,
+       full = TRUE
+     ),
+   data = df_tract,
+   family = Gamma(link = "logit"),
+   method = "fREML"
+  )
+  # gam.check(h_gam, rep = 1000)
+  # summary(h_gam)
+  # plot(h_gam)
+  
+  saveRDS(h_gam, file = gam_file)
+  rm(h_gam)
+}
+
+# read in model, get stats
+lunc_dxGS_NSlacc_PPIneg <- readRDS(gam_file)
+summary(lunc_dxGS_NSlacc_PPIneg)
+
+# draw, unpack tract-LGI intx by group
+plot_lunc_dxGS_NSlacc_PPIneg <- getViz(lunc_dxGS_NSlacc_PPIneg)
+plot(sm(plot_lunc_dxGS_NSlacc_PPIneg, 1))
+plot(sm(plot_lunc_dxGS_NSlacc_PPIneg, 2))
+
+draw_smooth_intx(plot_lunc_dxGS_NSlacc_PPIneg, 2, "UNC_L", "NSlacc_SPnegLF", out_dir)
+draw_group_intx(df_tract, lunc_dxGS_NSlacc_PPIneg, "UNC_L", "NSlacc_SPnegLF", out_dir)
+
+# test if experiment group differs from control (reference group)
+gam_file <- paste0(out_dir, "/Data_lunc_dxGS_NSlacc-PPIneg_OF.Rda")
+if (!file.exists(gam_file)) {
+  h_gam <- bam(dti_fa ~ sex +
+     s(subjectID, bs = "re") +
+     te(nodeID, NSlacc_SPnegLF, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+     t2(
+       nodeID, NSlacc_SPnegLF,
+       by = dx_groupOF,
+       bs = c("cr", "tp"),
+       k = c(50, 10),
+       m = 2,
+       full = TRUE
+     ),
+   data = df_tract,
+   family = Gamma(link = "logit"),
+   method = "fREML"
+  )
+  saveRDS(h_gam, file = gam_file)
+  rm(h_gam)
+}
+
+# read in model, get stats
+lunc_dxGS_NSlacc_PPIneg_OF <- readRDS(gam_file)
+summary(lunc_dxGS_NSlacc_PPIneg_OF)
+
+# draw reference, difference interaction smooths
+plot_lunc_dxGS_NSlacc_PPIneg_OF <- getViz(lunc_dxGS_NSlacc_PPIneg_OF)
+draw_group_intx_ref(plot_lunc_dxGS_NSlacc_PPIneg_OF, 2, "UNC_L", "NSlacc_SPnegLF", out_dir)
+draw_group_intx_diff(plot_lunc_dxGS_NSlacc_PPIneg_OF, 3, "UNC_L", "NSlacc_SPnegLF", out_dir)
+
+# # clean up
+# rm(lunc_dxGS_neg)
+# rm(plot_lunc_dxGS_neg)
+# rm(lunc_dxGS_negOF)
+# rm(plot_lunc_dxGS_negOF)
+
+
 # R. Unc Model Specification ----
 #
 # Same as L. Unc Model Specification, but for runc.
 
 # subset df_afq, take complete cases
 df_tract <- df_afq[which(df_afq$tractID == "UNC_R"), ]
-df_tract <- df_tract[complete.cases(df_tract), ]
+df_tract <- df_tract %>% drop_na(dx)
 
 # 1) determine distribution
 hist(df_tract$dti_fa)
@@ -947,7 +1109,7 @@ rm(runc_dxGS)
 
 # subset df_afq, take complete cases
 df_tract <- df_afq[which(df_afq$tractID == "CGC_L"), ]
-df_tract <- df_tract[complete.cases(df_tract), ]
+df_tract <- df_tract %>% drop_na(dx)
 
 # 1) determine distribution
 hist(df_tract$dti_fa)
@@ -1199,7 +1361,7 @@ rm(lcgc_dxGS)
 
 # subset df_afq, take complete cases
 df_tract <- df_afq[which(df_afq$tractID == "CGC_R"), ]
-df_tract <- df_tract[complete.cases(df_tract), ]
+df_tract <- df_tract %>% drop_na(dx)
 
 # 1) determine distribution
 hist(df_tract$dti_fa)

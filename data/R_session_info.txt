@@ -13,10 +13,10 @@ attached base packages:
 [1] tools     stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] cowplot_1.1.1      viridis_0.6.2      viridisLite_0.4.0  mgcViz_0.1.9      
- [5] qgam_1.3.3         dplyr_1.0.7        tidymv_3.2.1       itsadug_2.4       
- [9] plotfunctions_1.4  mgcv_1.8-38        nlme_3.1-153       fitdistrplus_1.1-6
-[13] survival_3.2-13    MASS_7.3-54        ggplot2_3.3.5     
+ [1] tidyr_1.1.4        cowplot_1.1.1      viridis_0.6.2      viridisLite_0.4.0 
+ [5] mgcViz_0.1.9       qgam_1.3.3         dplyr_1.0.7        tidymv_3.2.1      
+ [9] itsadug_2.4        plotfunctions_1.4  mgcv_1.8-38        nlme_3.1-153      
+[13] fitdistrplus_1.1-6 survival_3.2-13    MASS_7.3-54        ggplot2_3.3.5     
 
 loaded via a namespace (and not attached):
  [1] Rcpp_1.0.7         lattice_0.20-45    assertthat_0.2.1   digest_0.6.28     
