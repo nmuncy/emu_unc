@@ -1,0 +1,289 @@
+Mask	NSldmpfc
+sub-4002	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.476796
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.496595
+sub-4005	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4005/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.534714
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4005/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	3.339734
+sub-4008	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4008/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.941459
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4008/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.748608
+sub-4009	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4009/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	1.838898
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4009/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-1.751822
+sub-4012	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4012/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.820808
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4012/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	7.476883
+sub-4019	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4019/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	0[SPnegLF#0]	0.701545
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4019/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	1[SPneuLF#0]	-0.401552
+sub-4020	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4020/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.502135
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4020/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	2.091723
+sub-4021	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4021/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,45]	0[SPnegLF#0]	2.628668
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4021/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,45]	1[SPneuLF#0]	431.224499
+sub-4022	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4022/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-65.526852
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4022/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-267.024215
+sub-4024	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4024/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.183089
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4024/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-0.581000
+sub-4028	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4028/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.158757
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4028/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-0.937098
+sub-4030	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4030/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.299946
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4030/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-0.204782
+sub-4033	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4033/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.988889
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4033/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	3.436463
+sub-4034	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4034/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,41]	0[SPnegLF#0]	-1.370848
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4034/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,41]	1[SPneuLF#0]	2.175248
+sub-4036	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4036/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.592215
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4036/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.019883
+sub-4037	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4037/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,45]	0[SPnegLF#0]	-0.727638
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4037/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,45]	1[SPneuLF#0]	-74.289794
+sub-4038	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4038/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,43]	0[SPnegLF#0]	224.457073
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4038/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,43]	1[SPneuLF#0]	-6.364206
+sub-4042	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4042/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.182950
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4042/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-0.174400
+sub-4043	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4043/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.444433
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4043/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-1.535212
+sub-4044	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4044/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	0[SPnegLF#0]	-0.600469
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4044/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	1[SPneuLF#0]	-1.145623
+sub-4045	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4045/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.417044
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4045/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.568572
+sub-4046	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4046/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.997895
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4046/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.412301
+sub-4049	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4049/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,39]	0[SPnegLF#0]	0.745738
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4049/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,39]	1[SPneuLF#0]	0.011222
+sub-4050	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4050/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[27,35]	0[SPnegLF#0]	0.607980
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4050/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[27,35]	1[SPneuLF#0]	43.490928
+sub-4051	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4051/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.311831
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4051/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.387080
+sub-4052	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4052/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	4.313292
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4052/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	2.034502
+sub-4057	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4057/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	1.111807
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4057/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-0.724737
+sub-4059	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4059/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	8.764577
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4059/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.548729
+sub-4062	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4062/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,41]	0[SPnegLF#0]	-52.958779
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4062/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,41]	1[SPneuLF#0]	-87.343202
+sub-4063	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4063/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-2.479274
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4063/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-0.406483
+sub-4064	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4064/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.628917
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4064/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.805943
+sub-4065	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4065/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	-1.764345
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4065/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-3.106311
+sub-4066	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4066/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	-0.432746
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4066/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	1.915311
+sub-4067	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4067/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.486041
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4067/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.037455
+sub-4070	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4070/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	-0.598770
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4070/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	1.390161
+sub-4077	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4077/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.715295
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4077/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-6.790212
+sub-4080	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4080/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.432714
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4080/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.042550
+sub-4082	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4082/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.159525
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4082/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	17.793913
+sub-4083	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4083/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	0[SPnegLF#0]	-1.413765
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4083/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	1[SPneuLF#0]	1.305044
+sub-4084	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4084/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.364940
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4084/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.932554
+sub-4085	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4085/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.558599
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4085/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.421112
+sub-4086	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4086/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	1.216627
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4086/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	0.542354
+sub-4090	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4090/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-1.634921
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4090/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.621450
+sub-4091	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4091/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.439957
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4091/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.223231
+sub-4096	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4096/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-1.462185
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4096/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-2.207271
+sub-4101	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4101/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	2.077952
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4101/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.839457
+sub-4102	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4102/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	0[SPnegLF#0]	0.378769
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4102/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[31,39]	1[SPneuLF#0]	0.125738
+sub-4104	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4104/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.148583
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4104/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	36.741981
+sub-4106	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4106/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,43]	0[SPnegLF#0]	0.190005
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4106/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,43]	1[SPneuLF#0]	0.950584
+sub-4114	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4114/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	-2.392793
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4114/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-1.148849
+sub-4116	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4116/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,39]	0[SPnegLF#0]	-0.303713
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4116/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,39]	1[SPneuLF#0]	-0.175842
+sub-4118	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4118/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	0.558412
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4118/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-0.288675
+sub-4119	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4119/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-1.786334
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4119/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-1.847028
+sub-4122	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4122/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.129596
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4122/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-1.039599
+sub-4123	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4123/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,39]	0[SPnegLF#0]	0.322378
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4123/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[33,39]	1[SPneuLF#0]	0.707564
+sub-4125	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4125/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,45]	0[SPnegLF#0]	0.240847
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4125/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[37,45]	1[SPneuLF#0]	-0.849079
+sub-4127	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4127/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	0.036433
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4127/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-161.597694
+sub-4129	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4129/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.405252
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4129/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-1346.092432
+sub-4130	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4130/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.238998
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4130/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	1.260147
+sub-4131	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4131/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.367147
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4131/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	9.984785
+sub-4132	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4132/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	0.725656
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4132/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-0.986322
+sub-4138	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4138/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-0.235734
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4138/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-1.153957
+sub-4140	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4140/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	1.453484
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4140/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.221753
+sub-4142	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4142/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	0.403830
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4142/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	0.236285
+sub-4143	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4143/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-1.002777
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4143/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-290.298549
+sub-4144	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4144/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	0[SPnegLF#0]	-1.059582
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4144/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[39,47]	1[SPneuLF#0]	-0.357437
+sub-4146	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4146/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	0[SPnegLF#0]	-0.796336
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4146/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[35,43]	1[SPneuLF#0]	-0.400683
+sub-4149	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4149/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.083998
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4149/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.312583
+sub-4151	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4151/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	0[SPnegLF#0]	0.078807
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4151/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	1[SPneuLF#0]	0.415059
+sub-4152	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4152/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.016379
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4152/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-2.852709
+sub-4153	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4153/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	0[SPnegLF#0]	0.010143
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4153/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	1[SPneuLF#0]	0.022975
+sub-4154	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4154/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.325153
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4154/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	0.845745
+sub-4160	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4160/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,27]	0[SPnegLF#0]	0.268743
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4160/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,27]	1[SPneuLF#0]	-0.076967
+sub-4164	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4164/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.268291
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4164/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.832577
+sub-4165	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4165/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[19,27]	0[SPnegLF#0]	-0.361092
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4165/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[19,27]	1[SPneuLF#0]	2.141643
+sub-4166	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4166/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,27]	0[SPnegLF#0]	-2.490280
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4166/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,27]	1[SPneuLF#0]	13.432662
+sub-4167	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4167/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	0[SPnegLF#0]	-0.122015
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4167/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	1[SPneuLF#0]	-1.350642
+sub-4168	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4168/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.141105
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4168/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	0.005376
+sub-4169	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4169/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[19,27]	0[SPnegLF#0]	-0.120576
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4169/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[19,27]	1[SPneuLF#0]	-0.026747
+sub-4174	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4174/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-1.692885
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4174/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-1.832788
+sub-4175	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4175/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.856940
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4175/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.126360
+sub-4177	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4177/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	1.864156
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4177/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	3.427898
+sub-4184	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4184/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[15,23]	0[SPnegLF#0]	0.936471
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4184/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[15,23]	1[SPneuLF#0]	-0.238131
+sub-4186	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4186/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.039777
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4186/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	0.073333
+sub-4189	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4189/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[15,23]	0[SPnegLF#0]	0.060265
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4189/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[15,23]	1[SPneuLF#0]	-6.669291
+sub-4191	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4191/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.338345
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4191/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.981315
+sub-4192	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4192/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.089825
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4192/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	0.214730
+sub-4193	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4193/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	0.061588
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4193/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-3.495798
+sub-4198	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4198/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[17,25]	0[SPnegLF#0]	-1.457869
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4198/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[17,25]	1[SPneuLF#0]	-0.719829
+sub-4201	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4201/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	0[SPnegLF#0]	0.268564
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4201/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	1[SPneuLF#0]	-0.323156
+sub-4206	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4206/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.560295
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4206/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.473395
+sub-4207	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4207/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.179920
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4207/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.341917
+sub-4209	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4209/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	2.210482
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4209/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-0.375424
+sub-4210	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4210/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.042369
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4210/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-2.044464
+sub-4212	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4212/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	0[SPnegLF#0]	-0.118555
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4212/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[23,31]	1[SPneuLF#0]	-1.007720
+sub-4216	File	Sub-brick	Mean_1  
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4216/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	0[SPnegLF#0]	-0.678445
+/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4216/ses-S1/func/decon_task-study_precTest_PPI-amgL_stats_REML+tlrc[21,29]	1[SPneuLF#0]	1.078531
