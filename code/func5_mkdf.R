@@ -8,42 +8,50 @@ library("stringr")
 # Requires OneDrive access for EMU summary dataset.
 #
 # Writes:
-#   <data_dir>/df_<ppi_seed>-ROI.csv
+#   <data_dir>/df_<sess>_<task>_<ppi_seed>-ROI.csv
 #
 # Receives three positional arguments:
 #   [1] = ppi seed (amgL)
-#   [2] = sub-brick behavior string (SnegLF)
-#   [3] = sub-brick behavior string (SneuLF)
+#   [2] = BIDS session (ses-S1)
+#   [3] = BIDS task (task-study)
+#   [4] = sub-brick behavior string (SnegLF)
+#   [5] = sub-brick behavior string (SneuLF)
 #
 # Usage:
-#   Rscript func5_mkdf.R amgL SnegLF SneuLF
+#   Rscript func5_mkdf.R amgL ses-S1 task-study SPnegLF SPneuLF
 
 # Receive Args ----
 get_args <- commandArgs(trailingOnly = T)
-if(length(get_args) != 3){
+if(length(get_args) != 5){
   stop("Please see General Notes. Exiting.")
 }
 ppi_seed <- get_args[1]
-beh_A <- get_args[2]
-beh_B <- get_args[3]
+sess <- get_args[2]
+task <- get_args[3]
+beh_A <- get_args[4]
+beh_B <- get_args[5]
 
 # # for testing
 # ppi_seed <- "amgL"
+# sess <- "ses-S1"
+# task <- "task-study"
 # beh_A <- "SnegLF"
 # beh_B <- "SneuLF"
 
 
 # Functions ----
 make_dataframe <- function(
-  raw_file, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
+  raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
   ) {
   # Organize func4_roiAnalysis output, make dataframes.
   #
   # Added values are: age in month, sex, PARS-6, Child's SCARED,
-  # Parent's SCARED, PARS/SCARED groups, primary diagnosis, diagonsis groups.
+  # Parent's SCARED, PARS/SCARED groups, primary diagnosis, diagnosis groups.
   #
   # Arguments:
-  #   raw_file (str) = path to output text file of func3_roiAnalysis
+  #   raw_file (str) = path to output text file of func4_roiAnalysis
+  #   sess (str) = BIDS session
+  #   task (str) = BIDS task
   #   beh_A (str) = sub-brick behavior to search
   #   beh_B (str) = sub-brick behavior to search
   #   ppi_seed (str) =  name of seed
@@ -55,7 +63,7 @@ make_dataframe <- function(
   #   df_out (dataframe) = wide-formatted, PPI coefs + summary info
   #
   # Writes:
-  #   data_dir/df_<ppi_seed>-<roi>.csv
+  #   data_dir/df_<sess>_<task>_<ppi_seed>-<roi>.csv
 
   # get ppi coef info
   df_raw <- read.delim(raw_file, header = F, sep = "\t")
@@ -120,12 +128,14 @@ make_dataframe <- function(
     }
     df_out[ind_out, ]$dx <- h_dx
 
-    # dx group - control or patient
-    df_out[ind_out, ]$dx_group <- ifelse(h_dx == "Con", "Con", "Pat")
+    # dx group - control or patient/experimental
+    df_out[ind_out, ]$dx_group <- ifelse(h_dx == "Con", "Con", "Exp")
   }
 
   # save df
-  write_out <- paste0(data_dir, "/df_", ppi_seed, "-", roi, ".csv")
+  write_out <- paste0(
+    data_dir, "/df_", sess, "_", task, "_", ppi_seed, "-", roi, ".csv"
+  )
   write.table(df_out, write_out, sep = ",", row.names = F)
 
   # return for checking
@@ -148,8 +158,10 @@ data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
 roi_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
 for(roi in roi_list){
-  coef_file <- paste0(data_dir, "/Coefs_", ppi_seed, "-", roi, ".txt")
+  coef_file <- paste0(
+    data_dir, "/Coefs_", sess, "_", task, "_", ppi_seed, "-", roi, ".txt"
+  )
   df_out <- make_dataframe(
-    coef_file, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
+    coef_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
   )
 }
