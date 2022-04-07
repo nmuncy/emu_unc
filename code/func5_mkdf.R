@@ -22,7 +22,7 @@ library("stringr")
 
 # Receive Args ----
 get_args <- commandArgs(trailingOnly = T)
-if(length(get_args) != 5){
+if (length(get_args) != 5) {
   stop("Please see General Notes. Exiting.")
 }
 ppi_seed <- get_args[1]
@@ -35,14 +35,20 @@ beh_B <- get_args[5]
 # ppi_seed <- "amgL"
 # sess <- "ses-S1"
 # task <- "task-study"
-# beh_A <- "SnegLF"
-# beh_B <- "SneuLF"
+# beh_A <- "SPnegLF"
+# beh_B <- "SPneuLF"
 
 
 # Functions ----
-make_dataframe <- function(
-  raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
-  ) {
+beh_switch <- function(h_beh) {
+  x_beh <- switch(h_beh,
+    "SPnegLF" = "PnegLF",
+    "SPneuLF" = "PneuLF"
+  )
+  return(x_beh)
+}
+
+make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir) {
   # Organize func4_roiAnalysis output, make dataframes.
   #
   # Added values are: age in month, sex, PARS-6, Child's SCARED,
@@ -76,18 +82,48 @@ make_dataframe <- function(
     behB <- as.numeric(beh_vecB)
   )
   colnames(df_out) <- c("subj", beh_A, beh_B)
+  df_out[, paste0(beh_A, "-", beh_B)] <- NA
+  df_out[, paste0(beh_A, "-", beh_B)] <- df_out[, beh_A] - df_out[, beh_B]
+  rm(df_raw)
 
   # add demographic, measure info
   df_out$sex <- df_out$age <- df_out$pars <- df_out$pscared <-
     df_out$cscared <- df_out$lgi <- df_out$dx <- df_out$dx_group <- NA
   df_summary <- read.csv(paste0(one_dir, "/emuR01_summary_latest.csv"))
   for (subj in subj_list) {
+
+    # censure subjects who had <7 behavior events modeled
+    ind_out <- grep(subj, df_out$subj)
+
+    subj_count <- read.delim(
+      paste(data_dir, "timing_files", subj, sess, "beh_counts.tsv", sep = "/"),
+      header = T,
+      sep = "\t"
+    )
+    h_colA <- beh_switch(beh_A)
+    h_colB <- beh_switch(beh_B)
+
+    # check for behavior columns
+    if (!h_colA %in% colnames(subj_count) || !h_colB %in% colnames(subj_count)) {
+      df_out[ind_out, 2:4] <- NA
+      next
+    } else {
+
+      # count beh events
+      count_A <- as.numeric(subj_count[1, h_colA])
+      count_B <- as.numeric(subj_count[1, h_colB])
+      if (count_A < 7 || count_B < 7) {
+        df_out[ind_out, 2:4] <- NA
+        next
+      }
+    }
+
+    # mine df_summary
     subj_int <- as.integer(gsub("sub-", "", subj))
     ind_summ <- grep(subj_int, df_summary$emu_study_id)
     if (length(ind_summ) == 0) {
       next
     }
-    ind_out <- grep(subj, df_out$subj)
     df_out[ind_out, ]$sex <- df_summary[ind_summ, ]$pinf_gender
     df_out[ind_out, ]$age <- df_summary[ind_summ, ]$pinf_age_mo
     df_out[ind_out, ]$pars <- df_summary[ind_summ, ]$pars_6
@@ -100,30 +136,30 @@ make_dataframe <- function(
     #   SAD = SAD, contains separation/social strings
     #   Con = No dx
     df_dx <- cbind(
-      df_summary[ind_summ,]$adis_r_diag1,
-      df_summary[ind_summ,]$adis_r_diag2,
-      df_summary[ind_summ,]$adis_r_diag3,
-      df_summary[ind_summ,]$adis_r_diag4
+      df_summary[ind_summ, ]$adis_r_diag1,
+      df_summary[ind_summ, ]$adis_r_diag2,
+      df_summary[ind_summ, ]$adis_r_diag3,
+      df_summary[ind_summ, ]$adis_r_diag4
     )
 
     gad_prim <- grepl("Gen", df_dx[1, 1])
     gad_occur <- sum(grep("Gen", df_dx[1, ])) != 0
 
     sad_str <- c("Separation", "Social")
-    sad_pos <- grep(paste(sad_str, collapse = "|"), df_dx[1,])
+    sad_pos <- grep(paste(sad_str, collapse = "|"), df_dx[1, ])
     sad_prim <- sad_occur <- F
-    if (length(sad_pos) != 0){
+    if (length(sad_pos) != 0) {
       sad_occur <- T
       sad_prim <- sad_occur[1] == 1
     }
 
-    if(gad_prim){
+    if (gad_prim) {
       h_dx <- "GAD"
-    } else if (gad_occur & !sad_prim){
+    } else if (gad_occur & !sad_prim) {
       h_dx <- "GAD"
-    } else if (sad_occur){
+    } else if (sad_occur) {
       h_dx <- "SAD"
-    }else{
+    } else {
       h_dx <- "Con"
     }
     df_out[ind_out, ]$dx <- h_dx
@@ -157,7 +193,7 @@ one_dir <- paste(
 data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
 roi_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
-for(roi in roi_list){
+for (roi in roi_list) {
   coef_file <- paste0(
     data_dir, "/Coefs_", sess, "_", task, "_", ppi_seed, "-", roi, ".txt"
   )

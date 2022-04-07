@@ -13,8 +13,9 @@ switch_names <- function(name) {
     "CGC_R" = "R. Cingulum",
     "lgi_neg" = "Negative LGI",
     "lgi_neu" = "Neutral LGI",
-    "NSlacc_SPnegLF" = "LAmg-LACC: Study prec. Negative Lure FA",
-    "NSlacc_SPneuLF" = "LAmg-LACC: Study prec. Neutral Lure FA",
+    "LAmg-LACC_NegLF-NeuLF" = "LAmg-LACC: Study prec. Neg-Neu Lure FA",
+    "LAmg-LdmPFC_NegLF-NeuLF" = "LAmg-LdmPFC: Study prec. Neg-Neu Lure FA",
+    "LAmg-LSFS_NegLF-NeuLF" = "LAmg-LSFS: Study prec. Neg-Neu Lure FA",
   )
   return(x_name)
 }
