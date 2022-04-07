@@ -1,17 +1,15 @@
-# library("ggplot2")
 library("fitdistrplus")
-# library("mgcv")
 library("itsadug")
 library("tidymv")
 library("dplyr")
 library("mgcViz")
 library("tools")
-# library("viridis")
-library("cowplot")
+# library("cowplot")
 library("tidyr")
 
 library("devtools")
-install_github("nmuncy/emu_unc_R/DiffGamm")
+install_local(path = ".")
+# install_github("nmuncy/emu_unc_R/DiffGamm")
 library("DiffGamm")
 
 
