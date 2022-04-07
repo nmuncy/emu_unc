@@ -79,10 +79,11 @@ gam_cov_model <- function(df_tract, dist_fam, cov) {
 #' @import mgcv
 gam_GS_model <- function(df_tract, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
+  names(df_tract)[names(df_tract) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 50, m = 2) +
-    s(nodeID, get(col_group), bs = "fs", k = 50, m = 2),
+    s(nodeID, h_group, bs = "fs", k = 50, m = 2),
   data = df_tract,
   family = h_family,
   method = "fREML"
