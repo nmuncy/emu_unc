@@ -6,7 +6,7 @@ library("mgcViz")
 library("tools")
 library("tidyr")
 library("devtools")
-install_local(path = "./DiffGamm")
+install_local(path = ".")
 library("DiffGamm")
 
 
@@ -115,8 +115,7 @@ adjust_outliers <- function(df_tract) {
 # Set Up ----
 
 # set paths
-proj_dir <- file_path_as_absolute(paste0(getwd(), "/.."))
-# proj_dir <- "/Users/nmuncy/Projects/emu_unc"
+proj_dir <- "/Users/nmuncy/Projects/emu_unc"
 data_dir <- paste0(proj_dir, "/data")
 out_dir <- paste0(proj_dir, "/stats")
 tract_list <- c("UNC_L", "UNC_R", "CGC_L", "CGC_R")
@@ -149,7 +148,7 @@ rm(ind_exp)
 #   a) k=50 was a sufficient basis dimension for all tracts via
 #       gam.check(model, rep = 1000)
 #   b) the required family arguments via
-#       hist(df$dti_fa), fitdistrplus::descdist(df$dti_fa, discrete = F), 
+#       hist(df$dti_fa), fitdistrplus::descdist(df$dti_fa, discrete = F),
 #       and itsadug::compareML(model_A, model_B)
 #   c) PDS did not increase model fit for any tract (compareML),
 #   d) GS fit better than G, GI did not increase fit for all tracts (compareML).
@@ -310,13 +309,13 @@ for (seed in seed_list) {
 }
 
 for (tract in tract_list) {
-  
+
   # match tract to PPI region
   if(tract == "CGC_R" || tract == "UNC_R"){
     next
   }
-  seed_list <- switch(tract, 
-    "UNC_L" = "NSlacc", 
+  seed_list <- switch(tract,
+    "UNC_L" = "NSlacc",
     "CGC_L" = c("NSldmpfc", "NSlsfs")
   )
 
@@ -349,7 +348,7 @@ for (tract in tract_list) {
     }
     tract_intx <- readRDS(gam_file)
     write_gam_stats(tract_intx, out_dir, paste0("GS-", h_name), tract)
-    
+
     # test if experiment group interaction differs from control
     gam_file <- paste0(
       out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
@@ -361,15 +360,15 @@ for (tract in tract_list) {
     }
     tract_intxOF <- readRDS(gam_file)
     write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
-    
-    # # draw
-    # plot_tract_intx <- getViz(tract_intx)
-    # draw_smooth_intx(plot_tract_intx, 2, tract, beh, out_dir)
-    # draw_group_intx(df_tract, tract_intx, tract, beh, out_dir)
+
+    # draw
+    plot_tract_intx <- getViz(tract_intx)
+    draw_smooth_intx(plot_tract_intx, 2, tract, h_name, out_dir)
+    # draw_group_intx(df_seed, tract_intx, tract, h_name, out_dir)
+
     # plot_tract_intxOF <- getViz(tract_intxOF)
     # draw_group_intx_ref(plot_tract_intxOF, 2, tract, beh, out_dir)
     # draw_group_intx_diff(plot_tract_intxOF, 3, tract, beh, out_dir)
-    
 
     rm(df_seed)
   }
