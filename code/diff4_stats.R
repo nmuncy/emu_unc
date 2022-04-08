@@ -6,7 +6,7 @@ library("mgcViz")
 library("tools")
 library("tidyr")
 library("devtools")
-install_local(path = ".")
+install_local(path = ".", force = T)
 library("DiffGamm")
 
 
@@ -29,6 +29,22 @@ tract_fam <- function(tract) {
     "CGC_R" = "gaus",
   )
   return(h_fam)
+}
+
+switch_names <- function(name) {
+  # Switch tract, Y-axis title names
+  x_name <- switch(name,
+    "UNC_L" = "L. Uncinate",
+    "UNC_R" = "R. Uncinate",
+    "CGC_L" = "L. Cingulum",
+    "CGC_R" = "R. Cingulum",
+    "lgi_neg" = "Negative LGI",
+    "lgi_neu" = "Neutral LGI",
+    "NSlacc" = "LAmg-LACC: Study prec. Neg-Neu Lure FA",
+    "NSldmpfc" = "LAmg-LdmPFC: Study prec. Neg-Neu Lure FA",
+    "NSlsfs" = "LAmg-LSFS: Study prec. Neg-Neu Lure FA",
+  )
+  return(x_name)
 }
 
 write_gam_stats <- function(gam_obj, out_dir, gam_type, tract) {
@@ -195,10 +211,29 @@ for (tract in tract_list) {
 
   # draw plots
   plot_tract_GS <- getViz(tract_GS)
-  draw_global_smooth(plot_tract_GS, 2, tract, out_dir)
-  draw_group_smooth(plot_tract_GS, 3, tract, out_dir)
+  draw_global_smooth(
+    plot_obj = plot_tract_GS,
+    attr_num = 2,
+    tract,
+    plot_title = paste(switch_names(tract), "Global Smooth"),
+    out_dir
+  )
+  draw_group_smooth(
+    plot_obj = plot_tract_GS,
+    attr_num = 3,
+    tract,
+    plot_title = paste(switch_names(tract), "Group Smooths"),
+    out_dir
+  )
+
   plot_tract_GSOF <- getViz(tract_GSOF)
-  draw_group_smooth_diff(plot_tract_GSOF, 3, tract, out_dir)
+  draw_group_smooth_diff(
+    plot_obj = plot_tract_GSOF,
+    attr_num = 3,
+    tract,
+    plot_title = paste(switch_names(tract), "Exp-Con Difference Smooth"),
+    out_dir
+  )
 
   # clean env
   rm(tract_G)
@@ -266,11 +301,53 @@ for (tract in tract_list) {
 
     # draw
     plot_tract_intx <- getViz(tract_intx)
-    draw_smooth_intx(plot_tract_intx, 2, tract, beh, out_dir)
-    draw_group_intx(df_tract, tract_intx, tract, beh, out_dir)
+    draw_smooth_intx(
+      plot_obj = plot_tract_intx,
+      attr_num = 2,
+      tract,
+      y_var = beh,
+      y_name = switch_names(beh),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-Memory Interaction"
+      ),
+      out_dir
+    )
+    draw_group_intx(
+      df = df_tract,
+      gam_obj = tract_intx,
+      tract,
+      y_var = beh,
+      y_name = switch_names(beh),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-Memory Interaction, by Group"
+      ),
+      out_dir
+    )
+
     plot_tract_intxOF <- getViz(tract_intxOF)
-    draw_group_intx_ref(plot_tract_intxOF, 2, tract, beh, out_dir)
-    draw_group_intx_diff(plot_tract_intxOF, 3, tract, beh, out_dir)
+    draw_group_intx_ref(
+      plot_obj = plot_tract_intxOF,
+      attr_num = 2,
+      tract,
+      y_var = beh,
+      y_name = switch_names(beh),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-Memory Interaction, Control"
+      ),
+      out_dir
+    )
+    draw_group_intx_diff(
+      plot_obj = plot_tract_intxOF,
+      attr_num = 3,
+      tract,
+      y_var = beh,
+      y_name = switch_names(beh),
+      plot_title = paste(
+        switch_names(tract),
+        "Node-FA-Memory Interaction, Experimental Difference"
+      ),
+      out_dir
+    )
 
     # clean up
     rm(tract_intx)
@@ -311,7 +388,7 @@ for (seed in seed_list) {
 for (tract in tract_list) {
 
   # match tract to PPI region
-  if(tract == "CGC_R" || tract == "UNC_R"){
+  if (tract == "CGC_R" || tract == "UNC_R") {
     next
   }
   seed_list <- switch(tract,
@@ -330,7 +407,7 @@ for (tract in tract_list) {
     h_seed_beh <- paste(seed, beh, sep = "_")
     df_seed <- df_tract %>% drop_na(h_seed_beh)
 
-    # set up better names, used by DiffGamm::switch_names
+    # set up file names
     h_name <- switch(h_seed_beh,
       "NSlacc_SPnegLF.SPneuLF" = "LAmg-LACC_NegLF-NeuLF",
       "NSldmpfc_SPnegLF.SPneuLF" = "LAmg-LdmPFC_NegLF-NeuLF",
@@ -363,13 +440,57 @@ for (tract in tract_list) {
 
     # draw
     plot_tract_intx <- getViz(tract_intx)
-    draw_smooth_intx(plot_tract_intx, 2, tract, h_name, out_dir)
-    # draw_group_intx(df_seed, tract_intx, tract, h_name, out_dir)
+    draw_smooth_intx(
+      plot_obj = plot_tract_intx,
+      attr_num = 2,
+      tract,
+      y_var = h_seed_beh,
+      y_name = switch_names(seed),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-PPI Interaction"
+      ),
+      out_dir
+    )
+    draw_group_intx(
+      df = df_seed,
+      gam_obj = tract_intx,
+      tract,
+      y_var = h_seed_beh,
+      y_name = switch_names(seed),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-PPI Interaction, by Group"
+      ),
+      out_dir
+    )
 
-    # plot_tract_intxOF <- getViz(tract_intxOF)
-    # draw_group_intx_ref(plot_tract_intxOF, 2, tract, beh, out_dir)
-    # draw_group_intx_diff(plot_tract_intxOF, 3, tract, beh, out_dir)
+    plot_tract_intxOF <- getViz(tract_intxOF)
+    draw_group_intx_ref(
+      plot_obj = plot_tract_intxOF,
+      attr_num = 2,
+      tract,
+      y_var = h_seed_beh,
+      y_name = switch_names(seed),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-PPI Interaction, Control"
+      ),
+      out_dir
+    )
+    draw_group_intx_diff(
+      plot_obj = plot_tract_intxOF,
+      attr_num = 3,
+      tract,
+      y_var = h_seed_beh,
+      y_name = switch_names(seed),
+      plot_title = paste(
+        switch_names(tract), "Node-FA-PPI Interaction, Experimental Difference"
+      ),
+      out_dir
+    )
 
     rm(df_seed)
+    rm(tract_intx)
+    rm(tract_intxOF)
+    rm(plot_tract_intx)
+    rm(plot_tract_intxOF)
   }
 }

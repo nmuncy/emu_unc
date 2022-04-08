@@ -4,16 +4,20 @@
 \alias{draw_group_intx}
 \title{Draw behavior-nodeID interactions by group.}
 \usage{
-draw_group_intx(df_tract, gam_obj, tract, y_var, out_dir)
+draw_group_intx(df, gam_obj, tract, y_var, y_name, plot_title, out_dir)
 }
 \arguments{
-\item{df_tract}{Tract dataframe supplied to GAM}
+\item{df}{Tract dataframe supplied to GAM}
 
 \item{gam_obj}{Returned object from GAM/BAM tool}
 
 \item{tract}{AFQ tract name (str)}
 
-\item{y_var}{Behavior of interest, used for Y-axis (str)}
+\item{y_var}{Column name of behavior of interest (str)}
+
+\item{y_name}{Y-axis title (str)}
+
+\item{plot_title}{Title for plot (str)}
 
 \item{out_dir}{Path to output location (str)}
 }

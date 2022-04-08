@@ -4,7 +4,7 @@
 \alias{draw_global_smooth}
 \title{Draw global smooth of AFQ tract.}
 \usage{
-draw_global_smooth(plot_obj, attr_num, tract, out_dir)
+draw_global_smooth(plot_obj, attr_num, tract, plot_title, out_dir)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -14,10 +14,14 @@ global smooth (int)}
 
 \item{tract}{AFQ tract name (str)}
 
+\item{plot_title}{Title of plot (str)}
+
 \item{out_dir}{Path to output location}
 }
 \description{
-Draw global smooth of AFQ tract.
+Draw global smooth resulting from GS model. Use plot(sm(obj, int))
+to extract values, calculate confidence intervals, and ggplot
+on a scaled X-axis.
 }
 \details{
 Writes <out_dir>/Plot_GAM_<tract>_Global.png

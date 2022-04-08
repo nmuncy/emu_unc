@@ -4,7 +4,7 @@
 \alias{draw_smooth_intx}
 \title{Draw behavior-nodeID interactions.}
 \usage{
-draw_smooth_intx(plot_obj, attr_num, tract, y_var, out_dir)
+draw_smooth_intx(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -15,6 +15,10 @@ smooth (int)}
 \item{tract}{AFQ tract name (str)}
 
 \item{y_var}{Behavior of interest, used for Y-axis (str)}
+
+\item{y_name}{Y-axis title (str)}
+
+\item{plot_title}{Title of plot (str)}
 
 \item{out_dir}{Path to output location}
 }

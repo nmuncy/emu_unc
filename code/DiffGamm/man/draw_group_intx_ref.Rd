@@ -2,9 +2,17 @@
 % Please edit documentation in R/plot_gams.R
 \name{draw_group_intx_ref}
 \alias{draw_group_intx_ref}
-\title{Draw group interaction reference (control) 3D smooth.}
+\title{Draw 3D smooth for reference (control) group interaction.}
 \usage{
-draw_group_intx_ref(plot_obj, attr_num, tract, y_var, out_dir)
+draw_group_intx_ref(
+  plot_obj,
+  attr_num,
+  tract,
+  y_var,
+  y_name,
+  plot_title,
+  out_dir
+)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -15,6 +23,10 @@ reference group interaction smooth of reference group (int)}
 \item{tract}{AFQ tract name (str)}
 
 \item{y_var}{Behavior of interest, used for Y-axis (str)}
+
+\item{y_name}{Y-axis title (str)}
+
+\item{plot_title}{Title of plot (str)}
 
 \item{out_dir}{Path to output location}
 }

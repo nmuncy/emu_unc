@@ -2,9 +2,9 @@
 % Please edit documentation in R/plot_gams.R
 \name{draw_group_smooth_diff}
 \alias{draw_group_smooth_diff}
-\title{Draw difference of group smooths.}
+\title{Draw difference of group smooths of AFQ tract.}
 \usage{
-draw_group_smooth_diff(plot_obj, attr_num, tract, out_dir)
+draw_group_smooth_diff(plot_obj, attr_num, tract, plot_title, out_dir)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -13,6 +13,8 @@ draw_group_smooth_diff(plot_obj, attr_num, tract, out_dir)
 difference smooth (int)}
 
 \item{tract}{AFQ tract name (str)}
+
+\item{plot_title}{Title of plot (str)}
 
 \item{out_dir}{Path to output location}
 }

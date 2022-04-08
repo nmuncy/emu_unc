@@ -2,9 +2,9 @@
 % Please edit documentation in R/plot_gams.R
 \name{draw_group_smooth}
 \alias{draw_group_smooth}
-\title{Draw group smooths.}
+\title{Draw group smooths of AFQ tract.}
 \usage{
-draw_group_smooth(plot_obj, attr_num, tract, out_dir)
+draw_group_smooth(plot_obj, attr_num, tract, plot_title, out_dir)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -14,10 +14,13 @@ group smooths (int)}
 
 \item{tract}{AFQ tract name (str)}
 
+\item{plot_title}{Title of plot (str)}
+
 \item{out_dir}{Path to output location}
 }
 \description{
-Draw group smooths resulting from a GS model.
+Draw group smooths resulting from a GS model. Use plot(sm(obj, int))
+to extract values and ggplot on a scaled Y- and X-axis.
 }
 \details{
 Writes <out_dir>/Plot_GAM_<tract>_GS.png
