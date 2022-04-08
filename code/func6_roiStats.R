@@ -3,6 +3,7 @@ library("dplyr")
 library("ggplot2")
 library("ez")
 
+
 # functions ----
 adjust_outliers <- function(df, col_name){
   # Replace outliers with max/min values.
@@ -72,6 +73,8 @@ switch_beh <- function(h_str) {
     h_str,
     "SnegLF" = "Negative",
     "SneuLF" = "Neutral",
+    "SPnegLF" = "Prec. Negative",
+    "SPneuLF" = "Prec. Neutral",
   )
   return(h_beh)
 }
@@ -202,15 +205,24 @@ data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
 # amgL NSlacc, NSldmpfc, NSlsfs ----
 roi_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
-beh_list <- c("SnegLF", "SneuLF")
+beh_list <- c("SPnegLF", "SPneuLF")
+sess <- "ses-S1"
+task <- "task-study"
 
 # omnibus
-df_a <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[1], ".csv"))
+df_a <- read.csv(
+  paste0(data_dir, "/df_", sess, "_", task, "_", "amgL-", roi_list[1], ".csv")
+)
 df_a$roi <- roi_list[1]
-df_b <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[2], ".csv"))
+df_b <- read.csv(
+  paste0(data_dir, "/df_", sess, "_", task, "_", "amgL-", roi_list[2], ".csv")
+)
 df_b$roi <- roi_list[2]
-df_c <- read.csv(paste0(data_dir, "/df_amgL-", roi_list[3], ".csv"))
+df_c <- read.csv(
+  paste0(data_dir, "/df_", sess, "_", task, "_", "amgL-", roi_list[3], ".csv")
+)
 df_c$roi <- roi_list[3]
+
 for(beh in beh_list){
   df_a <- adjust_outliers(df_a, beh)
   df_b <- adjust_outliers(df_b, beh)
@@ -218,6 +230,9 @@ for(beh in beh_list){
 }
 df_master <- rbind(df_a, df_b, df_c)
 df_master <- na.omit(df_master)
+rm(df_a)
+rm(df_b)
+rm(df_c)
 
 num_roi <- length(roi_list)
 num_beh <- length(beh_list)
@@ -260,7 +275,9 @@ ggplot(df_long, aes(x = beh, y = value, fill = group)) +
 for(roi in roi_list){
   
   # get data
-  df <- read.csv(paste0(data_dir, "/df_amgL-", roi, ".csv"))
+  df <- read.csv(
+    paste0(data_dir, "/df_", sess, "_", task, "_", "amgL-", roi, ".csv")
+  )
   df$dx_group <- factor(df$dx_group)
   df <- na.omit(df)
   
@@ -280,4 +297,3 @@ for(roi in roi_list){
     linear_plot(df, roi, beh, data_dir)
   }
 }
-

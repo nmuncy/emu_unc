@@ -27,40 +27,49 @@ function Usage {
     and output written to same directory.
 
     Required Arguments:
-        -d </path/to/dir> = location of project derivatives directory, should contain both
-            afni and emu_unc sub-directories.
+        -d </path/to/dir> = location of project derivatives directory
+        -n <decon_name> = identifying deconvolution name
         -p <ppi_seed> = identifying PPI seed name
             (e.g. amgL to find <deriv_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
         -s <session> = BIDS session string
+        -t <task> = BIDS task string
         <behaviors> = remaining args are sub-brick behaviors to extract (ref 3dinfo -verb)
             note - exactly 2 must be given
 
     Example Usage:
         sbatch func7_expAnalysis.sh \\
-            -d /home/data/madlab/McMakin_EMUR01/derivatives \\
+            -d /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc \\
+            -n precTest \\
             -p amgL \\
-            -s ses-S2 \\
-            SnegLF SneuLF
+            -s ses-S1 \\
+            -t task-study \\
+            SPnegLF SPneuLF
 
 USAGE
 }
 
 # receive args
-while getopts ":d:p:s:h" OPT; do
+while getopts ":d:n:p:s:t:h" OPT; do
     case $OPT in
     d)
-        proj_dir=${OPTARG}
-        if [ ! -d ${proj_dir}/afni ] || [ ! -d ${proj_dir}/emu_unc ]; then
-            echo -e "\n\t ERROR: did not detect $proj_dir or required sub-directories." >&2
+        deriv_dir=${OPTARG}
+        if [ ! -d ${deriv_dir} ]; then
+            echo -e "\n\t ERROR: did not detect -d $deriv_dir." >&2
             Usage
             exit 1
         fi
+        ;;
+    n)
+        decon_name=${OPTARG}
         ;;
     p)
         ppi_seed=${OPTARG}
         ;;
     s)
         sess=${OPTARG}
+        ;;
+    t)
+        task=${OPTARG}
         ;;
     h)
         Usage
@@ -92,11 +101,17 @@ beh_list=("$@")
 # make sure required args have values - determine which (first) arg is empty
 function emptyArg {
     case $1 in
-    proj_dir)
+    deriv_dir)
         h_ret="-d"
+        ;;
+    decon_name)
+        h_ret="-n"
         ;;
     sess)
         h_ret="-s"
+        ;;
+    task)
+        h_ret="-t"
         ;;
     ppi_seed)
         h_ret="-p"
@@ -110,7 +125,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in proj_dir sess ppi_seed; do
+for opt in deriv_dir decon_name sess task ppi_seed; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -128,30 +143,25 @@ fi
 cat <<-EOF
 
     Checks passed, options captured:
-        -d : $proj_dir
+        -d : $deriv_dir
+        -n : $decon_name
         -p : $ppi_seed
         -s : $sess
+        -t : $task
         beh : ${beh_list[@]}
 
 EOF
 
-# # for testing
-# sess=ses-S2
-# ppi_seed=amgL
-# proj_dir=/home/data/madlab/McMakin_EMUR01/derivatives
-# beh_list=(SnegLF SneuLF)
-
 # set up
-deriv_dir=${proj_dir}/emu_unc
 template_dir=${deriv_dir}/template
 analysis_dir=${deriv_dir}/analyses
-group_mask=${template_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_ses-S2_task-test_desc-grpIntx_mask.nii.gz
+group_mask=${template_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz
 
 # find subjs with PPI output
 subj_list_all=($(ls $deriv_dir | grep "sub-*"))
 subj_list=()
 for subj in ${subj_list_all[@]}; do
-    check_file=${deriv_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
+    check_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
     if [ -f $check_file ]; then
         subj_list+=($subj)
     fi
@@ -160,7 +170,7 @@ echo -e "\nSubject list:\n\t${subj_list[@]}\n"
 
 # build etac structure
 echo -e "Building ETAC command ...\n"
-out_str=FINAL_PPI-${ppi_seed}_${beh_list[0]}-${beh_list[1]}
+out_str=FINAL_${sess}_${task}_PPI-${ppi_seed}_${beh_list[0]}-${beh_list[1]}
 etacCmd=(3dttest++
     -paired
     -mask $group_mask
@@ -175,7 +185,7 @@ etacCmd=(3dttest++
 setA=()
 setB=()
 for subj in ${subj_list[@]}; do
-    ppi_file=${deriv_dir}/${subj}/${sess}/func/decon_task-test_UniqueBehs_PPI-${ppi_seed}_stats_REML+tlrc
+    ppi_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc
     beh_arr=()
     for beh in ${beh_list[@]}; do
         h_brick=$(3dinfo -label2index "${beh}#0_Coef" $ppi_file)
@@ -194,7 +204,7 @@ etacCmd+=(-setA ${beh_list[0]} ${setA[@]})
 etacCmd+=(-setB ${beh_list[1]} ${setB[@]})
 
 # print etac command for review, run
-echo "${etacCmd[@]}" >${analysis_dir}/etac_${ppi_seed}.sh
+echo "${etacCmd[@]}" >${analysis_dir}/etac_${sess}_${task}_${ppi_seed}.sh
 echo -e "Starting ETAC ..."
 cd $analysis_dir
 "${etacCmd[@]}"
