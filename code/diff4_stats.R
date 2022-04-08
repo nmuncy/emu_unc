@@ -90,6 +90,21 @@ write_compare_stats <- function(model_a, model_b, tract, out_dir, out_str) {
   )
 }
 
+switch_names <- function(name) {
+  # Switch tract, Y-axis title names
+  x_name <- switch(name,
+    "UNC_L" = "L. Uncinate",
+    "UNC_R" = "R. Uncinate",
+    "CGC_L" = "L. Cingulum",
+    "CGC_R" = "R. Cingulum",
+    "lgi_neg" = "Negative LGI",
+    "lgi_neu" = "Neutral LGI",
+    "NSlacc" = "LAmg-LACC: Study prec. Neg-Neu Lure FA",
+    "NSldmpfc" = "LAmg-LdmPFC: Study prec. Neg-Neu Lure FA",
+    "NSlsfs" = "LAmg-LSFS: Study prec. Neg-Neu Lure FA",
+  )
+  return(x_name)
+}
 
 # Set Up ----
 #
@@ -213,6 +228,14 @@ for (tract in tract_list) {
   rm(df_tract)
 }
 
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Group-Intx_", tract, "_", y_var, ".png"),
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
 
 # Interaction with LGI ----
 #

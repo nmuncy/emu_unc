@@ -297,4 +297,3 @@ for(roi in roi_list){
     linear_plot(df, roi, beh, data_dir)
   }
 }
-
