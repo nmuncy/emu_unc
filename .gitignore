@@ -8,3 +8,4 @@ code/slurm*
 *_vec.txt
 *Cens_events.txt
 stats/*
+.Rproj.user
