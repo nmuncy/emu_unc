@@ -128,6 +128,337 @@ adjust_outliers <- function(df_tract) {
 }
 
 
+# Functions ----
+#
+# Switches and plotting functions repeatedly used.
+
+switch_names <- function(name) {
+  # Switch for decoding AFQ tract and behavior names
+  #
+  # Arguments:
+  #   name (str) = AFQ tract, behavior name
+  #
+  # Returns:
+  #   x_name (str) = reformatted name
+
+  x_name <- switch(name,
+    "UNC_L" = "L. Uncinate",
+    "UNC_R" = "R. Uncinate",
+    "CGC_L" = "L. Cingulum",
+    "CGC_R" = "R. Cingulum",
+    "lgi_neg" = "Negative LGI",
+    "lgi_neu" = "Neutral LGI",
+  )
+  return(x_name)
+}
+
+draw_global_smooth <- function(plot_obj, attr_num, tract, out_dir) {
+  # Draw tract global smooth
+  #
+  # Arguments:
+  #   plot_obj_of (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group smooths
+  #   tract (str) = AFQ tract string
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Global_<tract>.jpg
+
+  # use plot to extract attribute of interest
+  p <- plot(sm(plot_obj, attr_num))
+  p_data <- as.data.frame(p$data$fit)
+  colnames(p_data) <- c("nodeID", "est", "ty", "se")
+  p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
+  p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
+
+  # draw
+  tract_long <- switch_names(tract)
+  ggplot(data = p_data, aes(x = nodeID, y = est)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = lb, ymax = ub), alpha = 0.2) +
+    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    ggtitle(paste(tract_long, "Smooth")) +
+    ylab("Fit Est.") +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Global_", tract, ".png"),
+    plot = last_plot(),
+    units = "in",
+    width = 6,
+    height = 6,
+    dpi = 600,
+    device = "png"
+  )
+}
+
+draw_group_smooth <- function(plot_obj, attr_num, tract, out_dir) {
+  # Draw group smooths.
+  #
+  # Plot group smooths separate from global smooth.
+  #
+  # Arguments:
+  #   plot_obj_of (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group smooths
+  #   tract (str) = AFQ tract string
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_GS_<tract>.jpg
+
+  # use plot to extract attribute of interest
+  p <- plot(sm(plot_obj, attr_num))
+  p_data <- as.data.frame(p$data$fit)
+  colnames(p_data) <- c("nodeID", "est", "ty", "Group")
+
+  # draw
+  tract_long <- switch_names(tract)
+  ggplot(data = p_data, aes(x = nodeID, y = est, group = Group)) +
+    geom_line(aes(color = Group)) +
+    scale_y_continuous(limits = c(-0.2, 0.2)) +
+    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    ggtitle(paste(tract_long, "Group Smooths")) +
+    ylab("Fit Est.") +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_GS_", tract, ".png"),
+    plot = last_plot(),
+    units = "in",
+    width = 6,
+    height = 6,
+    dpi = 600,
+    device = "png"
+  )
+}
+
+draw_group_smooth_diff <- function(plot_obj, attr_num, tract, out_dir) {
+  # Draw group difference smooth.
+  #
+  # Plot an A-B difference smooth, identify nodes
+  # which sig differ from 0, draw polygons to ID.
+  #
+  # Arguments:
+  #   plot_obj (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group difference smooth
+  #   tract (str) = AFQ tract string
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Diff_<tract>.jpg
+
+  # unpack difference smooth data
+  p <- plot(sm(plot_obj, attr_num)) +
+    geom_hline(yintercept = 0)
+  p_data <- as.data.frame(p$data$fit)
+  colnames(p_data) <- c("nodeID", "est", "ty", "se")
+
+  # find sig nodes
+  p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
+  p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
+  sig_nodes <- which(
+    (p_data$est < 0 & p_data$ub < 0) |
+      (p_data$est > 0 & p_data$lb > 0)
+  )
+
+  # find start, end points of sig regions
+  vec_start <- sig_nodes[1]
+  vec_end <- vector()
+  y_min <- min(p_data$lb)
+  num_nodes <- length(sig_nodes)
+  c <- 2
+  while (c < num_nodes) {
+    cc <- c + 1
+    if (sig_nodes[cc] > sig_nodes[c] + 1) {
+      vec_end <- append(vec_end, sig_nodes[c])
+      vec_start <- append(vec_start, sig_nodes[cc])
+    }
+    c <- cc
+  }
+  vec_end <- append(vec_end, sig_nodes[num_nodes])
+
+  # make df for drawing rectangles, adjust for 0-index nodeID
+  d_rect <- data.frame(
+    x_start = vec_start,
+    x_end = vec_end,
+    y_start = rep(y_min, length(vec_start)),
+    y_end = rep(0, length(vec_start))
+  )
+  d_rect$x_start <- d_rect$x_start - 1
+  d_rect$x_end <- d_rect$x_end - 1
+
+  # get tract name
+  tract_long <- switch_names(tract)
+
+  # draw
+  ggplot(data = p_data, aes(x = nodeID, y = est)) +
+    geom_hline(yintercept = 0) +
+    geom_line() +
+    geom_ribbon(
+      aes(ymin = lb, ymax = ub),
+      alpha = 0.2
+    ) +
+    annotate(
+      "rect",
+      xmin = c(d_rect$x_start),
+      xmax = c(d_rect$x_end),
+      ymin = c(d_rect$y_start),
+      ymax = c(d_rect$y_end),
+      alpha = 0.2,
+      fill = "red"
+    ) +
+    scale_x_continuous(breaks = c(seq(0, 99, by = 10))) +
+    ggtitle(paste(tract_long, "Exp-Con Difference Smooth")) +
+    ylab("Est. Difference") +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+  # print(p)
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Diff_", tract, ".png"),
+    plot = last_plot(),
+    units = "in",
+    width = 6,
+    height = 6,
+    dpi = 600,
+    device = "png"
+  )
+}
+
+draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, out_dir) {
+  # Draw beavior-nodeID interactions.
+  #
+  # Arguments:
+  #   plot_obj (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group difference smooth
+  #   tract (str) = AFQ tract string
+  #   y_var (str) = behavior of interest, used for Y-axis
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Intx_<tract>_<beh>.png
+
+  beh_long <- switch_names(y_var)
+  tract_long <- switch_names(tract)
+
+  p <- plot(sm(plot_obj, attr_num)) +
+    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    ggtitle(paste0(tract_long, "-Memory Metric Intx")) +
+    ylab(beh_long) +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+  print(p)
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Intx_", tract, "_", y_var, ".png"),
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+draw_group_intx <- function(df_tract, gam_obj, tract, y_var, out_dir) {
+  # Draw behavior-nodeID interactions by group.
+  #
+  # Plot factorial 3D interaction between nodeID, dti_fa, and behavior
+  # as a function of diagnosis group.
+  #
+  # Arguments:
+  #   df_tract (dataframe) = tract dataframe supplied to GAM
+  #   gam_obj (object) = returned object from GAM/BAM tool
+  #   tract (str) = AFQ tract name
+  #   y_var (str) = behavior of interest, used for Y-axis
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Group-Intx_<tract>_<beh>.png
+
+  df_pred <- transform(
+    df_tract,
+    h_pred = predict(gam_obj, type = "response")
+  )
+
+  beh_long <- switch_names(y_var)
+  tract_long <- switch_names(tract)
+
+  ggplot(
+    data = df_pred,
+    aes(
+      x = nodeID,
+      y = get(y_var),
+      fill = h_pred,
+      color = h_pred,
+      height = get(y_var)
+    )
+  ) +
+    geom_tile() +
+    facet_wrap(~dx_group, ncol = 2) +
+    scale_fill_viridis("dti_fa") +
+    scale_color_viridis("dti_fa") +
+    scale_x_continuous(expand = c(0, 0), breaks = c(0, 50, 99)) +
+    labs(x = "Tract Node", y = beh_long) +
+    ggtitle(paste0(tract_long, "-Memory Metric Intx by Group")) +
+    theme(
+      legend.position = "right",
+      text = element_text(family = "Times New Roman")
+    )
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Group-Intx_", tract, "_", y_var, ".png"),
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+draw_group_intx_diff <- function(plot_obj, attr_num, tract, y_var, out_dir) {
+  # Draw group interaction difference 3D smooth.
+  #
+  # Using the output of an ordered-factor group interaction
+  # model, draw how group B differs in their nodeID-FA-continuous
+  # interaction from the reference group (group A).
+  #
+  # Arguments:
+  #   plot_obj (object) = plotable object returned by getViz
+  #   attr_num (int) = list/attribute number of plot obj that contains
+  #                     group difference smooth
+  #   tract (str) = AFQ tract name
+  #   y_var (str) = behavior of interest, used for Y-axis
+  #   out_dir (str) = path to output location
+  #
+  # Writes:
+  #   <out_dir>/Plot_GAM_Group-Intx-Diff_<tract>_<beh>.png
+
+  beh_long <- switch_names(y_var)
+  tract_long <- switch_names(tract)
+
+  p <- plot(sm(plot_obj, attr_num)) +
+    scale_x_continuous(breaks = c(seq(0, 99, by = 10), 99)) +
+    ggtitle(paste(tract_long, "Exp-Con Intx Difference Smooth")) +
+    ylab(beh_long) +
+    xlab("Tract Node") +
+    theme(text = element_text(family = "Times New Roman"))
+  print(p)
+
+  ggsave(
+    paste0(out_dir, "/Plot_GAM_Group-Intx-Diff_", tract, "_", y_var, ".png"),
+    units = "in",
+    width = 6,
+    height = 6,
+    device = "png"
+  )
+}
+
+
+
 # Set Up ----
 
 # set paths
