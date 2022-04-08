@@ -6,7 +6,7 @@ library("mgcViz")
 library("tools")
 library("tidyr")
 library("devtools")
-install_local(path = ".", force = T)
+install_local(path = "./DiffGamm", force = T)
 library("DiffGamm")
 
 
@@ -33,6 +33,16 @@ tract_fam <- function(tract) {
 
 switch_names <- function(name) {
   # Switch tract, Y-axis title names
+  #
+  # Convert tract names to long form for titles,
+  # convert memory, ppi names to long forms for 
+  # y-axis titles.
+  #
+  # Arguments:
+  #   name (str) = AFQ tract name, behavior name, PPI seed
+  # 
+  # Returns:
+  #   name_long (str) = converted name
   x_name <- switch(name,
     "UNC_L" = "L. Uncinate",
     "UNC_R" = "R. Uncinate",
@@ -80,55 +90,12 @@ write_compare_stats <- function(model_a, model_b, tract, out_dir, out_str) {
   )
 }
 
-adjust_outliers <- function(df_tract) {
-  # Replace outliers with max/min values.
-  #
-  # Arguments:
-  #
-  # Returns:
-  #
-
-  col_list <- c(
-    "NSlacc_SPnegLF",
-    "NSlacc_SPneuLF",
-    "NSldmpfc_SPnegLF",
-    "NSldmpfc_SPneuLF",
-    "NSlsfs_SPnegLF",
-    "NSlsfs_SPneuLF"
-  )
-
-  df <- df_tract[which(df_tract$nodeID == 10), ]
-  subj_list <- as.character(df$subjectID)
-
-  for (col_name in col_list) {
-    # find min/max
-    h_iqr <- IQR(df[, col_name], na.rm = TRUE)
-    h_quant <- quantile(df[, col_name], na.rm = TRUE, names = FALSE)
-    h_min <- h_quant[2] - (1.5 * h_iqr)
-    h_max <- h_quant[4] + (1.5 * h_iqr)
-
-    # detect, replace outliers
-    ind_out <- which(df[, col_name] < h_min | df[, col_name] > h_max)
-    for (ind in ind_out) {
-      if (df[ind, col_name] > h_max) {
-        df[ind, col_name] <- h_max
-      } else if (df[ind, col_name] < h_min) {
-        df[ind, col_name] <- h_min
-      }
-    }
-
-    # fill df_tract with orig/updated values
-    for (subj in subj_list) {
-      ind_df <- which(df$subjectID == subj)
-      ind_tract <- which(df_tract$subjectID == subj)
-      df_tract[ind_tract, col_name] <- df[ind_df, col_name]
-    }
-  }
-  return(df_tract)
-}
-
 
 # Set Up ----
+#
+# Set paths and tract list, get session info,
+# then read-in data and covert certain columns to factors.
+# Finally, clip off 10 nodes from beginning, end.
 
 # set paths
 proj_dir <- "/Users/nmuncy/Projects/emu_unc"
