@@ -35,12 +35,12 @@ switch_names <- function(name) {
   # Switch tract, Y-axis title names
   #
   # Convert tract names to long form for titles,
-  # convert memory, ppi names to long forms for 
+  # convert memory, ppi names to long forms for
   # y-axis titles.
   #
   # Arguments:
   #   name (str) = AFQ tract name, behavior name, PPI seed
-  # 
+  #
   # Returns:
   #   name_long (str) = converted name
   x_name <- switch(name,
@@ -50,9 +50,15 @@ switch_names <- function(name) {
     "CGC_R" = "R. Cingulum",
     "lgi_neg" = "Negative LGI",
     "lgi_neu" = "Neutral LGI",
-    "NSlacc" = "LAmg-LACC: Study prec. Neg-Neu Lure FA",
-    "NSldmpfc" = "LAmg-LdmPFC: Study prec. Neg-Neu Lure FA",
-    "NSlsfs" = "LAmg-LSFS: Study prec. Neg-Neu Lure FA",
+    "NSlacc_SPnegLF" = "LAmg-LACC: Study prec. Negative Lure FA",
+    "NSldmpfc_SPnegLF" = "LAmg-LdmPFC: Study prec. Negative Lure FA",
+    "NSlsfs_SPnegLF" = "LAmg-LSFS: Study prec. Negative Lure FA",
+    "NSlacc_SPneuLF" = "LAmg-LACC: Study prec. Neutral Lure FA",
+    "NSldmpfc_SPneuLF" = "LAmg-LdmPFC: Study prec. Neutral Lure FA",
+    "NSlsfs_SPneuLF" = "LAmg-LSFS: Study prec. Neutral Lure FA",
+    "NSlacc_SPnegLF.SPneuLF" = "LAmg-LACC: Study prec. Neg-Neu Lure FA",
+    "NSldmpfc_SPnegLF.SPneuLF" = "LAmg-LdmPFC: Study prec. Neg-Neu Lure FA",
+    "NSlsfs_SPnegLF.SPneuLF" = "LAmg-LSFS: Study prec. Neg-Neu Lure FA",
   )
   return(x_name)
 }
@@ -90,21 +96,6 @@ write_compare_stats <- function(model_a, model_b, tract, out_dir, out_str) {
   )
 }
 
-switch_names <- function(name) {
-  # Switch tract, Y-axis title names
-  x_name <- switch(name,
-    "UNC_L" = "L. Uncinate",
-    "UNC_R" = "R. Uncinate",
-    "CGC_L" = "L. Cingulum",
-    "CGC_R" = "R. Cingulum",
-    "lgi_neg" = "Negative LGI",
-    "lgi_neu" = "Neutral LGI",
-    "NSlacc" = "LAmg-LACC: Study prec. Neg-Neu Lure FA",
-    "NSldmpfc" = "LAmg-LdmPFC: Study prec. Neg-Neu Lure FA",
-    "NSlsfs" = "LAmg-LSFS: Study prec. Neg-Neu Lure FA",
-  )
-  return(x_name)
-}
 
 # Set Up ----
 #
@@ -228,14 +219,6 @@ for (tract in tract_list) {
   rm(df_tract)
 }
 
-  ggsave(
-    paste0(out_dir, "/Plot_GAM_Group-Intx_", tract, "_", y_var, ".png"),
-    units = "in",
-    width = 6,
-    height = 6,
-    device = "png"
-  )
-}
 
 # Interaction with LGI ----
 #
@@ -354,30 +337,35 @@ for (tract in tract_list) {
 #
 # Dist are same, even w/reduced data
 
-# incorporate PPI values of ses-S1 task-study in df_afq
+# set seed and behavior (+ difference) lists
 seed_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
-beh <- "SPnegLF.SPneuLF"
+beh_list <- c("SPnegLF", "SPneuLF", "SPnegLF.SPneuLF")
+
+# incorporate PPI values of ses-S1 task-study in df_afq
 subj_list <- as.character(unique(df_afq$subjectID))
 for (seed in seed_list) {
   df_ppi <- read.csv(
     paste0(data_dir, "/df_ses-S1_task-study_amgL-", seed, ".csv")
   )
-  h_col <- paste(seed, beh, sep = "_")
-  df_afq[, h_col] <- NA
-  for (subj in subj_list) {
-    ind_afq <- which(df_afq$subjectID == subj)
-    ind_ppi <- which(df_ppi$subj == paste0("sub-", subj))
-    if (length(ind_ppi) == 0) {
-      next
+  for (beh in beh_list) {
+    h_col <- paste(seed, beh, sep = "_")
+    df_afq[, h_col] <- NA
+    for (subj in subj_list) {
+      ind_afq <- which(df_afq$subjectID == subj)
+      ind_ppi <- which(df_ppi$subj == paste0("sub-", subj))
+      if (length(ind_ppi) == 0) {
+        next
+      }
+      df_afq[ind_afq, h_col] <- df_ppi[ind_ppi, beh]
     }
-    df_afq[ind_afq, h_col] <- df_ppi[ind_ppi, beh]
   }
   rm(df_ppi)
 }
 
+# investigate tract interactions with PPI metrics
 for (tract in tract_list) {
 
-  # match tract to PPI region
+  # match tract to PPI region, only use L hemi tracts
   if (tract == "CGC_R" || tract == "UNC_R") {
     next
   }
@@ -392,95 +380,106 @@ for (tract in tract_list) {
   tract_dist <- tract_fam(tract)
 
   for (seed in seed_list) {
+    for (beh in beh_list) {
+      
+      # keep subjs who had sufficient number of behaviors to model
+      h_seed_beh <- paste(seed, beh, sep = "_")
+      df_seed <- df_tract %>% drop_na(h_seed_beh)
 
-    # keep subjs who had sufficient number of behaviors to model
-    h_seed_beh <- paste(seed, beh, sep = "_")
-    df_seed <- df_tract %>% drop_na(h_seed_beh)
+      # set up file names
+      h_name <- switch(h_seed_beh,
+        "NSlacc_SPnegLF" = "LAmg-LACC_NegLF",
+        "NSldmpfc_SPnegLF" = "LAmg-LdmPFC_NegLF",
+        "NSlsfs_SPnegLF" = "LAmg-LSFS_NegLF",
+        "NSlacc_SPneuLF" = "LAmg-LACC_NeuLF",
+        "NSldmpfc_SPneuLF" = "LAmg-LdmPFC_NeuLF",
+        "NSlsfs_SPneuLF" = "LAmg-LSFS_NeuLF",
+        "NSlacc_SPnegLF.SPneuLF" = "LAmg-LACC_NegLF-NeuLF",
+        "NSldmpfc_SPnegLF.SPneuLF" = "LAmg-LdmPFC_NegLF-NeuLF",
+        "NSlsfs_SPnegLF.SPneuLF" = "LAmg-LSFS_NegLF-NeuLF"
+      )
 
-    # set up file names
-    h_name <- switch(h_seed_beh,
-      "NSlacc_SPnegLF.SPneuLF" = "LAmg-LACC_NegLF-NeuLF",
-      "NSldmpfc_SPnegLF.SPneuLF" = "LAmg-LdmPFC_NegLF-NeuLF",
-      "NSlsfs_SPnegLF.SPneuLF" = "LAmg-LSFS_NegLF-NeuLF"
-    )
+      # model interaction of tract-group-behavior
+      gam_file <- paste0(
+        out_dir, "/Model_", tract, "_", h_name, ".Rda"
+      )
+      if (!file.exists(gam_file)) {
+        h_gam <- gam_intx_model(df_seed, tract_dist, "dx_group", h_seed_beh)
+        saveRDS(h_gam, file = gam_file)
+        rm(h_gam)
+      }
+      tract_intx <- readRDS(gam_file)
+      write_gam_stats(tract_intx, out_dir, paste0("GS-", h_name), tract)
 
-    # model interaction of tract-group-behavior
-    gam_file <- paste0(
-      out_dir, "/Model_", tract, "_", h_name, ".Rda"
-    )
-    if (!file.exists(gam_file)) {
-      h_gam <- gam_intx_model(df_seed, tract_dist, "dx_group", h_seed_beh)
-      saveRDS(h_gam, file = gam_file)
-      rm(h_gam)
+      # test if experiment group interaction differs from control
+      gam_file <- paste0(
+        out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
+      )
+      if (!file.exists(gam_file)) {
+        h_gam <- gam_intxOF_model(
+          df_seed, tract_dist, "dx_groupOF", h_seed_beh
+        )
+        saveRDS(h_gam, file = gam_file)
+        rm(h_gam)
+      }
+      tract_intxOF <- readRDS(gam_file)
+      write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
+
+      # draw
+      plot_tract_intx <- getViz(tract_intx)
+      draw_smooth_intx(
+        plot_obj = plot_tract_intx,
+        attr_num = 2,
+        tract,
+        y_var = h_seed_beh,
+        y_name = switch_names(h_seed_beh),
+        plot_title = paste(
+          switch_names(tract), "Node-FA-PPI Interaction"
+        ),
+        out_dir
+      )
+      draw_group_intx(
+        df = df_seed,
+        gam_obj = tract_intx,
+        tract,
+        y_var = h_seed_beh,
+        y_name = switch_names(h_seed_beh),
+        plot_title = paste(
+          switch_names(tract), "Node-FA-PPI Interaction, by Group"
+        ),
+        out_dir
+      )
+
+      plot_tract_intxOF <- getViz(tract_intxOF)
+      draw_group_intx_ref(
+        plot_obj = plot_tract_intxOF,
+        attr_num = 2,
+        tract,
+        y_var = h_seed_beh,
+        y_name = switch_names(seed),
+        plot_title = paste(
+          switch_names(tract), "Node-FA-PPI Interaction, Control"
+        ),
+        out_dir
+      )
+      draw_group_intx_diff(
+        plot_obj = plot_tract_intxOF,
+        attr_num = 3,
+        tract,
+        y_var = h_seed_beh,
+        y_name = switch_names(seed),
+        plot_title = paste(
+          switch_names(tract),
+          "Node-FA-PPI Interaction, Experimental Difference"
+        ),
+        out_dir
+      )
+
+      rm(df_seed)
+      rm(tract_intx)
+      rm(tract_intxOF)
+      rm(plot_tract_intx)
+      rm(plot_tract_intxOF)
     }
-    tract_intx <- readRDS(gam_file)
-    write_gam_stats(tract_intx, out_dir, paste0("GS-", h_name), tract)
-
-    # test if experiment group interaction differs from control
-    gam_file <- paste0(
-      out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
-    )
-    if (!file.exists(gam_file)) {
-      h_gam <- gam_intxOF_model(df_seed, tract_dist, "dx_groupOF", h_seed_beh)
-      saveRDS(h_gam, file = gam_file)
-      rm(h_gam)
-    }
-    tract_intxOF <- readRDS(gam_file)
-    write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
-
-    # draw
-    plot_tract_intx <- getViz(tract_intx)
-    draw_smooth_intx(
-      plot_obj = plot_tract_intx,
-      attr_num = 2,
-      tract,
-      y_var = h_seed_beh,
-      y_name = switch_names(seed),
-      plot_title = paste(
-        switch_names(tract), "Node-FA-PPI Interaction"
-      ),
-      out_dir
-    )
-    draw_group_intx(
-      df = df_seed,
-      gam_obj = tract_intx,
-      tract,
-      y_var = h_seed_beh,
-      y_name = switch_names(seed),
-      plot_title = paste(
-        switch_names(tract), "Node-FA-PPI Interaction, by Group"
-      ),
-      out_dir
-    )
-
-    plot_tract_intxOF <- getViz(tract_intxOF)
-    draw_group_intx_ref(
-      plot_obj = plot_tract_intxOF,
-      attr_num = 2,
-      tract,
-      y_var = h_seed_beh,
-      y_name = switch_names(seed),
-      plot_title = paste(
-        switch_names(tract), "Node-FA-PPI Interaction, Control"
-      ),
-      out_dir
-    )
-    draw_group_intx_diff(
-      plot_obj = plot_tract_intxOF,
-      attr_num = 3,
-      tract,
-      y_var = h_seed_beh,
-      y_name = switch_names(seed),
-      plot_title = paste(
-        switch_names(tract), "Node-FA-PPI Interaction, Experimental Difference"
-      ),
-      out_dir
-    )
-
-    rm(df_seed)
-    rm(tract_intx)
-    rm(tract_intxOF)
-    rm(plot_tract_intx)
-    rm(plot_tract_intxOF)
   }
 }
