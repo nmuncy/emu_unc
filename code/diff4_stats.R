@@ -371,7 +371,7 @@ for (tract in tract_list) {
   }
   seed_list <- switch(tract,
     "UNC_L" = "NSlacc",
-    "CGC_L" = c("NSldmpfc", "NSlsfs")
+    "CGC_L" = c("NSlacc", "NSldmpfc", "NSlsfs")
   )
 
   # subset df_afq, keep people w/dx for group modeling, get dist

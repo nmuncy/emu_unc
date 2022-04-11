@@ -27,6 +27,8 @@ function Usage {
     and output written to same directory.
 
     Required Arguments:
+        -c <path/to/code/dir> = path to clone of https://github.com/nmuncy/emu_unc,
+            should contain "code" and "data" sub-directories.
         -d </path/to/dir> = location of project derivatives directory
         -n <decon_name> = identifying deconvolution name
         -p <ppi_seed> = identifying PPI seed name
@@ -37,7 +39,9 @@ function Usage {
             note - exactly 2 must be given
 
     Example Usage:
+        code_dir=\"$(dirname \"$(pwd)\")\"
         sbatch func7_expAnalysis.sh \\
+            -c \$code_dir \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc \\
             -n precTest \\
             -p amgL \\
@@ -49,8 +53,17 @@ USAGE
 }
 
 # receive args
-while getopts ":d:n:p:s:t:h" OPT; do
+while getopts ":c:d:n:p:s:t:h" OPT; do
     case $OPT in
+    c)
+        code_dir=${OPTARG}
+        if [ ! -d ${code_dir} ] || [ ! -d ${code_dir}/data ]; then
+            if [ ! -d ${deriv_dir} ]; then
+            echo -e "\n\t ERROR: did not detect -c $code_dir or required sub-directory \"data\"." >&2
+            Usage
+            exit 1
+        fi
+        ;;
     d)
         deriv_dir=${OPTARG}
         if [ ! -d ${deriv_dir} ]; then
@@ -101,6 +114,9 @@ beh_list=("$@")
 # make sure required args have values - determine which (first) arg is empty
 function emptyArg {
     case $1 in
+    code_dir)
+        h_ret="-c"
+        ;;
     deriv_dir)
         h_ret="-d"
         ;;
@@ -125,7 +141,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in deriv_dir decon_name sess task ppi_seed; do
+for opt in code_dir deriv_dir decon_name sess task ppi_seed; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -143,6 +159,7 @@ fi
 cat <<-EOF
 
     Checks passed, options captured:
+        -c : $code_dir
         -d : $deriv_dir
         -n : $decon_name
         -p : $ppi_seed
@@ -153,12 +170,16 @@ cat <<-EOF
 EOF
 
 # set up
+data_dir=${code_dir}/data
 template_dir=${deriv_dir}/template
 analysis_dir=${deriv_dir}/analyses
 group_mask=${template_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz
 
-# find subjs with PPI output
-subj_list_all=($(ls $deriv_dir | grep "sub-*"))
+
+# find subjs with PPI output - start subject list with NSlacc sufficient trial list, from func5_mkdf.R
+# subj_list_all=($(ls $deriv_dir | grep "sub-*"))
+ref_file=${data_dir}/df_${sess}_${task}_${ppi_seed}-NSlacc_subjs-sufficient-trials.txt
+subj_list_all=($(cat $ref_file | awk '{print $1}'))
 subj_list=()
 for subj in ${subj_list_all[@]}; do
     check_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc.HEAD

@@ -200,4 +200,13 @@ for (roi in roi_list) {
   df_out <- make_dataframe(
     coef_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
   )
+  
+  # write list of participants with sufficient number of trials
+  df_complete <- df_out[complete.cases(df_out), ]
+  subj_complete <- df_complete$subj
+  subj_out <- paste0(
+    data_dir, "/df_", sess, "_", task, "_", 
+    ppi_seed, "-", roi, "_subjs-sufficient-trials.txt"
+  )
+  lapply(subj_complete, write, subj_out, append=TRUE, ncolumns=1)
 }
