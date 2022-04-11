@@ -39,7 +39,7 @@ function Usage {
             note - exactly 2 must be given
 
     Example Usage:
-        code_dir=\"$(dirname \"$(pwd)\")\"
+        code_dir="\$(dirname "\$(pwd)")"
         sbatch func7_expAnalysis.sh \\
             -c \$code_dir \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc \\
@@ -58,7 +58,6 @@ while getopts ":c:d:n:p:s:t:h" OPT; do
     c)
         code_dir=${OPTARG}
         if [ ! -d ${code_dir} ] || [ ! -d ${code_dir}/data ]; then
-            if [ ! -d ${deriv_dir} ]; then
             echo -e "\n\t ERROR: did not detect -c $code_dir or required sub-directory \"data\"." >&2
             Usage
             exit 1
@@ -174,7 +173,6 @@ data_dir=${code_dir}/data
 template_dir=${deriv_dir}/template
 analysis_dir=${deriv_dir}/analyses
 group_mask=${template_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz
-
 
 # find subjs with PPI output - start subject list with NSlacc sufficient trial list, from func5_mkdf.R
 # subj_list_all=($(ls $deriv_dir | grep "sub-*"))
