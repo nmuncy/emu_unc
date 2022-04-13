@@ -301,6 +301,8 @@ df_tract <- df_tract[ind_keep, ]
 num_groupC <- length(which(df_tract$nodeID == 50 & df_tract$dx_group == "Con"))
 num_groupE <- length(which(df_tract$nodeID == 50 & df_tract$dx_group == "Exp"))
 
+
+# Make group x cov interaction ----
 # generate linear covariate values for control, 
 # exponential for experimental group
 set.seed(12)
@@ -308,8 +310,12 @@ seq_C <- 1:num_groupC
 seq_E <- 1:num_groupE
 lin_cov <- (0.1 * seq_C + 2) + rnorm(length(seq_C), 0, 0.1)
 exp_cov <- (((0.1 * seq_E)^2) + 2) + rnorm(length(seq_E), 0, 0.1)
+
 plot(seq_C, lin_cov)
 plot(seq_E, exp_cov)
+
+plot(seq_C, lin_cov)
+points(seq_E, exp_cov)
 
 # groups differ at nodes 30-45, use ordered node 37 to assign simulated
 # covariate values -- so participants with larger 37 FA value have larger
@@ -344,18 +350,29 @@ for(subj in subj_E){
   df_tract[ind_tract, ]$cov <- exp_cov[ord_37]
 }
 
-# plot intx of group and cov
+# plot intx of group, cov, and node37 FA
 df_ind1 <- df_tract[which(df_tract$nodeID == 37), ]
 ggplot(data = df_ind1, aes(x = dti_fa, y = cov, color = dx_group)) +
   geom_point()
 
+
+# Model GS, individual group-cov intxs ----
 # gam via GS method
 descdist(df_tract$dti_fa, discrete = F)
-gam_GS <- gam_GS_model(df_tract, "gamma", "dx_group")
-gam.check(gam_GS, rep = 1000)
+# gam_GS <- gam_GS_model(df_tract, "gamma", "dx_group")
+gam_GS <- readRDS(file = "/Users/nmuncy/Projects/emu_unc/stats/Model_UNC_L_dxGS.Rda")
+# gam.check(gam_GS, rep = 1000)
 plot_GS <- getViz(gam_GS)
 plot(sm(plot_GS, 2))
 plot(sm(plot_GS, 3))
+
+# gam via GS method, ordered factor
+gam_GSOF <- gam_GSOF_model(df_tract, "gamma", "dx_groupOF")
+plot_GSOF <- getViz(gam_GSOF)
+plot(sm(plot_GSOF, 1))
+plot(sm(plot_GSOF, 2))
+plot(sm(plot_GSOF, 3))
+
 
 # interaction of groupC - visualize linear fa-cov intx
 df_groupA <- df_tract[which(df_tract$dx_group == "Con"), ]
@@ -387,17 +404,21 @@ summary(gam_groupB)
 plot_groupB <- getViz(gam_groupB)
 plot(sm(plot_groupB, 2))
 
+
+# Model group-cov interaction ----
 # full interaction model
-gam_cov <- gam_intx_model(df_tract, "gamma", "dx_group", "cov")
-saveRDS(gam_cov, file = "/Users/nmuncy/Desktop/gam_intx.Rda")
+# gam_cov <- gam_intx_model(df_tract, "gamma", "dx_group", "cov")
+# saveRDS(gam_cov, file = "/Users/nmuncy/Desktop/gam_intx.Rda")
+gam_cov <- readRDS(file = "/Users/nmuncy/Desktop/gam_intx.Rda")
 summary(gam_cov)
 plot_cov <- getViz(gam_cov)
 plot(sm(plot_cov, 1))
 plot(sm(plot_cov, 2))
 
 # ordered interaction model to get Exp difference
-gam_covOF <- gam_intxOF_model(df_tract, "gamma", "dx_groupOF", "cov")
-saveRDS(gam_covOF, file = "/Users/nmuncy/Desktop/gam_intxOF.Rda")
+# gam_covOF <- gam_intxOF_model(df_tract, "gamma", "dx_groupOF", "cov")
+# saveRDS(gam_covOF, file = "/Users/nmuncy/Desktop/gam_intxOF.Rda")
+gam_covOF <- readRDS(file = "/Users/nmuncy/Desktop/gam_intxOF.Rda")
 summary(gam_covOF)
 plot_covOF <- getViz(gam_covOF)
 plot(sm(plot_covOF, 2))
@@ -416,15 +437,17 @@ ggplot(data = p_data, aes(x = x, y = y, z = zI)) +
   ggtitle("Exp group difference interaction smooth")
 
 # use GI method to get access to plot_diff2 (to verify gam_covOF)
-gam_covGI <- bam(dti_fa ~
-   s(dx_group, bs = "re") +
-   s(subjectID, bs = "re") +
-   s(nodeID, bs = "cr", k = 50, m = 2) +
-   te(nodeID, cov, by = dx_group, bs = c("cr", "tp"), k = c(50, 10), m = 1),
- data = df_tract,
- family = Gamma(link = "logit"),
- method = "fREML"
-)
+# gam_covGI <- bam(dti_fa ~
+#    s(dx_group, bs = "re") +
+#    s(subjectID, bs = "re") +
+#    s(nodeID, bs = "cr", k = 50, m = 2) +
+#    te(nodeID, cov, by = dx_group, bs = c("cr", "tp"), k = c(50, 10), m = 1),
+#  data = df_tract,
+#  family = Gamma(link = "logit"),
+#  method = "fREML"
+# )
+# saveRDS(gam_covGI, file = "/Users/nmuncy/Desktop/gam_GIintx.Rda")
+gam_covGI <- readRDS(file = "/Users/nmuncy/Desktop/gam_GIintx.Rda")
 plot(gam_covGI)
 h_plot <- getViz(gam_covGI)
 plot(sm(h_plot, 3))
