@@ -1,6 +1,7 @@
 library("tidyr")
 library("ggplot2")
 library("mgcv")
+library("parallel")
 library("itsadug")
 library("mgcViz")
 library("fitdistrplus")
@@ -461,4 +462,69 @@ plot_diff2(
   comp=list(dx_group=c("Con", "Exp")),
   rm.ranef=T
 )
+
+
+# New intx method ----
+gam_new_intx <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    s(dx_group, bs = "re") +
+    s(nodeID, bs = "cr", k = 50, m = 1) +
+    s(cov, by = dx_group, bs = "tp", k = 10, m = 2) +
+    ti(
+      nodeID, cov, by = dx_group, bs = c("cr", "tp"), k = c(50, 10), m = 1
+    ),
+  data = df_tract,
+  family = Gamma(link = "logit"),
+  method = "fREML",
+  discrete = T
+)
+gam.check(gam_new_intx, rep = 1000)
+summary(gam_new_intx)
+plot(gam_new_intx)
+
+plot_new <- getViz(gam_new_intx)
+plot(sm(plot_new, 1))
+plot(sm(plot_new, 3))
+plot(sm(plot_new, 4))
+plot(sm(plot_new, 5))
+plot(sm(plot_new, 6))
+plot(sm(plot_new, 7))
+
+
+
+# ordered factor
+gam_new_intxOF <- bam(dti_fa ~ sex +
+    s(subjectID, bs = "re") +
+    s(dx_group, bs = "re") +
+    s(nodeID, bs = "cr", k = 50, m = 1) +
+    s(cov, by = dx_groupOF, bs = "tp", k = 10, m = 2) +
+    ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 10), m = 1) +
+    ti(
+      nodeID, cov, by = dx_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 1
+    ),
+  data = df_tract,
+  family = Gamma(link = "logit"),
+  method = "fREML",
+  discrete = T
+)
+summary(gam_new_intxOF)
+
+plot_newOF <- getViz(gam_new_intxOF)
+plot(sm(plot_newOF, 1))
+plot(sm(plot_newOF, 3))
+plot(sm(plot_newOF, 4))
+plot(sm(plot_newOF, 5))
+plot(sm(plot_newOF, 6))
+
+# invert difference smooth to help interpretation
+p <- plot(sm(plot_newOF, 6))
+p_data <- p$data$fit
+p_data$zI <- -1 * p_data$z
+
+ggplot(data = p_data, aes(x = x, y = y, z = zI)) +
+  geom_tile(aes(fill = zI)) +
+  geom_contour(colour = "black") +
+  scale_fill_viridis(option = "D", name = "Fit FA") +
+  labs(x = "Covariate Term", y = "NodeID") +
+  ggtitle("Exp group difference interaction smooth")
 
