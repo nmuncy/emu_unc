@@ -8,8 +8,8 @@ draw_group_intx_diff(
   plot_obj,
   attr_num,
   tract,
-  x_var,
-  x_name,
+  y_var,
+  y_name,
   plot_title,
   out_dir
 )
@@ -22,9 +22,9 @@ reference group difference interaction smooth (int)}
 
 \item{tract}{AFQ tract name (str)}
 
-\item{x_var}{Behavior of interest, used for Y-axis (str)}
+\item{y_var}{Behavior of interest, used for Y-axis (str)}
 
-\item{x_name}{Y-axis title (str)}
+\item{y_name}{Y-axis title (str)}
 
 \item{plot_title}{Title of plot (str)}
 
