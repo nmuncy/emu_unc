@@ -279,7 +279,7 @@ for (tract in tract_list) {
       plot_obj = plot_tract_intx,
       attr_num = 5,
       tract,
-      x_var = beh,
+      x_var = paste(beh, "con", sep = "_"),
       x_name = switch_names(beh),
       plot_title = paste(
         switch_names(tract), "Node-FA-Memory Interaction, Control"
@@ -290,7 +290,7 @@ for (tract in tract_list) {
       plot_obj = plot_tract_intx,
       attr_num = 6,
       tract,
-      x_var = beh,
+      x_var = paste(beh, "exp", sep = "_"),
       x_name = switch_names(beh),
       plot_title = paste(
         switch_names(tract), "Node-FA-Memory Interaction, Experimental"
@@ -426,8 +426,8 @@ for (tract in tract_list) {
         plot_obj = plot_tract_intx,
         attr_num = 5,
         tract,
-        x_var = beh,
-        x_name = switch_names(beh),
+        x_var = paste(h_name, beh, "con", sep = "_"),
+        x_name = switch_names(h_seed_beh),
         plot_title = paste(
           switch_names(tract), "Node-FA-PPI Interaction, Control"
         ),
@@ -437,8 +437,8 @@ for (tract in tract_list) {
         plot_obj = plot_tract_intx,
         attr_num = 6,
         tract,
-        x_var = beh,
-        x_name = switch_names(beh),
+        x_var = paste(h_name, beh, "exp", sep = "_"),
+        x_name = switch_names(h_seed_beh),
         plot_title = paste(
           switch_names(tract), "Node-FA-PPI Interaction, Experimental"
         ),
@@ -450,8 +450,8 @@ for (tract in tract_list) {
         plot_obj = plot_tract_intxOF,
         attr_num = 5,
         tract,
-        x_var = beh,
-        x_name = switch_names(beh),
+        x_var = paste(h_name, beh, sep = "_"),
+        x_name = switch_names(h_seed_beh),
         plot_title = paste(
           switch_names(tract),
           "Node-FA-PPI Interaction, Experimental Difference"
