@@ -265,7 +265,9 @@ for (tract in tract_list) {
     # test if experiment group interaction differs from control
     gam_file <- paste0(out_dir, "/Model_", tract, "_", beh, "_OF.Rda")
     if (!file.exists(gam_file)) {
-      h_gam <- gam_intxOF_model(df_tract, tract_dist, "dx_groupOF", beh)
+      h_gam <- gam_intxOF_model(
+        df_tract, tract_dist, "dx_group", "dx_groupOF", beh
+      )
       saveRDS(h_gam, file = gam_file)
       rm(h_gam)
     }
@@ -412,7 +414,7 @@ for (tract in tract_list) {
       )
       if (!file.exists(gam_file)) {
         h_gam <- gam_intxOF_model(
-          df_seed, tract_dist, "dx_groupOF", h_seed_beh
+          df_seed, tract_dist, "dx_group", "dx_groupOF", h_seed_beh
         )
         saveRDS(h_gam, file = gam_file)
         rm(h_gam)

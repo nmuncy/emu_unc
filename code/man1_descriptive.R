@@ -437,7 +437,7 @@ ggplot(data = df_diff, aes(x = x, y = y, z = z)) +
   ggtitle("L Unc node-fa-cov interaction, full model, experimental difference smooth (manual)")
 
 # ordered interaction model to get Exp difference
-gam_covOF <- gam_intxOF_model(df_tract, "gamma", "dx_groupOF", "cov")
+gam_covOF <- gam_intxOF_model(df_tract, "gamma", "dx_group", "dx_groupOF", "cov")
 summary(gam_covOF)
 
 plot_gam_covOF <- getViz(gam_covOF)
@@ -446,9 +446,10 @@ plot(sm(plot_gam_covOF, 2))
 plot(sm(plot_gam_covOF, 3))
 plot(sm(plot_gam_covOF, 4))
 plot(sm(plot_gam_covOF, 5))
+plot(sm(plot_gam_covOF, 6))
 
 # invert difference smooth to help interpretation
-p <- plot(sm(plot_gam_covOF, 5))
+p <- plot(sm(plot_gam_covOF, 6))
 p_data <- p$data$fit
 p_data$zI <- -1 * p_data$z
 
