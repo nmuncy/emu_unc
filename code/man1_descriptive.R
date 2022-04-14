@@ -91,7 +91,7 @@ for (h_seed in c(scale_groupA, scale_groupB)) {
 
 # plot node data
 ggplot(data = df_long, aes(x = node, y = fa, color = group)) +
-  geom_point()
+  geom_point() + ggtitle("Two simulated tracts")
 
 # generate linear, exponential data for group covariates
 seq_values <- 1:num_groupA
@@ -128,7 +128,7 @@ while (c <= length(subj_groupA)) {
 # plot intx of scaling and cov
 df_ind1 <- df_long[which(df_long$node == 1), ]
 ggplot(data = df_ind1, aes(x = y_scale, y = cov, color = group)) +
-  geom_point()
+  geom_point() + ggtitle("Two simulated interactions with a covariate")
 
 # gam via GS method to get group smooths
 descdist(df_long$fa, discrete = F) # just pretend the uniform dist is gaus
@@ -142,6 +142,9 @@ gam_GS <- bam(fa ~
 )
 gam.check(gam_GS, rep = 1000) # just pretend this is fine
 plot(gam_GS)
+h_plot <- getViz(gam_GS)
+plot(sm(h_plot, 2)) + ggtitle("Global smooth of simulated tract")
+plot(sm(h_plot, 3)) + ggtitle("Group smooths of simulated tract")
 
 # use ordered factor to make group difference smooth
 df_long$groupOF <- ordered(df_long$group)
@@ -153,7 +156,9 @@ gam_OF <- bam(fa ~
   family = gaussian(),
   method = "fREML"
 )
-plot(gam_OF)
+# plot(gam_OF)
+h_plot <- getViz(gam_OF)
+plot(sm(h_plot, 3)) + ggtitle("B - A difference smooth")
 
 # model cov-fa interaction of groupA - visualize linear fa-cov intx,
 # make a contour plot, 3d plot
@@ -169,7 +174,7 @@ summary(gam_groupA)
 
 # plot(gam_groupA)
 h_plot <- getViz(gam_groupA)
-plot(sm(h_plot, 2))
+plot(sm(h_plot, 2)) + ggtitle("Group A node FA - cov interaction")
 
 # vis.gam(gam_groupA,
 #   view = c("node", "cov"),
@@ -191,7 +196,7 @@ summary(gam_groupB)
 
 # plot(gam_groupB)
 h_plot <- getViz(gam_groupB)
-plot(sm(h_plot, 2))
+plot(sm(h_plot, 2)) + ggtitle("Group B node FA - cov interaction")
 
 # model how fa is a function of subject, node, cov, and group
 gam_cov <- bam(fa ~
@@ -229,8 +234,8 @@ ggplot(data = df_diff, aes(x = x, y = y, z = z)) +
   geom_tile(aes(fill = z)) +
   geom_contour(colour = "black") +
   scale_fill_viridis(option = "D", name = "Fit FA") +
-  labs(x = "Covariate Term", y = "NodeID") +
-  ggtitle("Exp group difference interaction smooth")
+  labs(x = "node", y = "cov") +
+  ggtitle("Group B difference FA - cov interaction smooth (manual)")
 
 # use ordered factors to show how group B differs in its interaction term
 # from group A, yields an F-stat
@@ -265,8 +270,8 @@ ggplot(data = p_data, aes(x = x, y = y, z = zI)) +
   geom_tile(aes(fill = zI)) +
   geom_contour(colour = "black") +
   scale_fill_viridis(option = "D", name = "Fit FA") +
-  labs(x = "Node", y = "Covariate term") +
-  ggtitle("Group B difference interaction smooth")
+  labs(x = "node", y = "cov") +
+  ggtitle("Group B difference FA - cov interaction smooth (ordered GAM)")
 
 
 
@@ -347,7 +352,7 @@ for(subj in subj_E){
 # plot intx of group, cov, and node37 FA
 df_ind1 <- df_tract[which(df_tract$nodeID == 37), ]
 ggplot(data = df_ind1, aes(x = dti_fa, y = cov, color = dx_group)) +
-  geom_point()
+  geom_point() + ggtitle("Two simulated interactions with L. Unc (node 37)")
 
 
 # Model GS, individual group-cov intxs ----
@@ -359,8 +364,8 @@ ggplot(data = df_ind1, aes(x = dti_fa, y = cov, color = dx_group)) +
 descdist(df_tract$dti_fa, discrete = F)
 gam_GS <- gam_GS_model(df_tract, "gamma", "dx_group")
 plot_GS <- getViz(gam_GS)
-plot(sm(plot_GS, 2))
-plot(sm(plot_GS, 3))
+plot(sm(plot_GS, 2)) + ggtitle("L. Unc Global smooth")
+plot(sm(plot_GS, 3)) + ggtitle("L. Unc Group smooths")
 
 # gam via GS method, ordered factor
 gam_GSOF <- gam_GSOF_model(df_tract, "gamma", "dx_groupOF")
@@ -383,7 +388,7 @@ summary(gam_groupA)
 
 # make contour plot
 plot_groupA <- getViz(gam_groupA)
-plot(sm(plot_groupA, 2))
+plot(sm(plot_groupA, 2)) + ggtitle("L. Unc node-fa-cov interaction, control")
 
 # interaction of groupE - visualize exponential fa-cov intx
 df_groupB <- df_tract[which(df_tract$dx_group == "Exp"), ]
@@ -399,7 +404,7 @@ summary(gam_groupB)
 
 # make contour plot
 plot_groupB <- getViz(gam_groupB)
-plot(sm(plot_groupB, 2))
+plot(sm(plot_groupB, 2)) + ggtitle("L. Unc node-fa-cov interaction, experimental")
 
 
 # Model group-cov interaction ----
@@ -413,8 +418,8 @@ plot_gam_cov <- getViz(gam_cov)
 plot(sm(plot_gam_cov, 1))
 plot(sm(plot_gam_cov, 3))
 plot(sm(plot_gam_cov, 4))
-plot(sm(plot_gam_cov, 5))
-plot(sm(plot_gam_cov, 6))
+plot(sm(plot_gam_cov, 5)) + ggtitle("L Unc node-fa-cov interaction, full model, control")
+plot(sm(plot_gam_cov, 6)) + ggtitle("L Unc node-fa-cov interaction, full model, experimental")
 
 # extract plot data to compare groups manually
 p_con <- plot(sm(plot_gam_cov, 5))
@@ -429,7 +434,7 @@ ggplot(data = df_diff, aes(x = x, y = y, z = z)) +
   geom_contour(colour = "black") +
   scale_fill_viridis(option = "D", name = "Fit FA") +
   labs(x = "Covariate Term", y = "NodeID") +
-  ggtitle("Exp group difference interaction smooth")
+  ggtitle("L Unc node-fa-cov interaction, full model, experimental difference smooth (manual)")
 
 # ordered interaction model to get Exp difference
 gam_covOF <- gam_intxOF_model(df_tract, "gamma", "dx_groupOF", "cov")
@@ -452,5 +457,5 @@ ggplot(data = p_data, aes(x = x, y = y, z = zI)) +
   geom_contour(colour = "black") +
   scale_fill_viridis(option = "D", name = "Fit FA") +
   labs(x = "Covariate Term", y = "NodeID") +
-  ggtitle("Exp group difference interaction smooth")
+  ggtitle("L Unc node-fa-cov interaction, full model, experimental difference smooth (ordered GAM)")
 
