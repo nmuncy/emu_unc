@@ -193,25 +193,25 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
 #' @param attr_num List/attribute number of plot_obj that contains interaction
 #'  smooth (int)
 #' @param tract AFQ tract name (str)
-#' @param y_var Behavior of interest, used for Y-axis (str)
-#' @param y_name Y-axis title (str)
+#' @param x_var Behavior of interest, used for X-axis (str)
+#' @param x_name X-axis title (str)
 #' @param plot_title Title of plot (str)
 #' @param out_dir Path to output location
-#' @details Writes <out_dir>/Plot_GAM_<tract>_Intx_<y_var>.png
+#' @details Writes <out_dir>/Plot_GAM_<tract>_Intx_<x_var>.png
 #' @import ggplot2
 #' @import mgcViz
-draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir) {
+draw_smooth_intx <- function(plot_obj, attr_num, tract, x_var, x_name, plot_title, out_dir) {
   p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+    scale_y_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(plot_title) +
-    ylab(y_name) +
-    xlab("Tract Node") +
+    xlab(x_name) +
+    ylab("Tract Node") +
     guides(fill = guide_legend(title = "Est. FA Fit", reverse = TRUE)) +
     theme(text = element_text(family = "Times New Roman"))
   print(p)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Intx_", y_var, ".png"),
+    paste0(out_dir, "/Plot_GAM_", tract, "_Intx_", x_var, ".png"),
     units = "in",
     width = 6,
     height = 6,
@@ -221,8 +221,8 @@ draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_titl
 
 #' Draw behavior-nodeID interactions by group.
 #'
-#' Plot factorial 3D interaction between nodeID, dti_fa, and behavior
-#' as a function of diagnosis group.
+#' Deprecated. Plot factorial 3D interaction between nodeID, dti_fa, and
+#' behavior as a function of diagnosis group.
 #'
 #' @export
 #' @param df Tract dataframe supplied to GAM
@@ -237,7 +237,9 @@ draw_smooth_intx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_titl
 #' @import ggplot2
 #' @import viridis
 #' @importFrom stats predict
-draw_group_intx <- function(df, gam_obj, tract, y_var, y_name, plot_title, out_dir) {
+draw_group_intx <- function(
+  df, gam_obj, tract, y_var, y_name, plot_title, out_dir
+) {
 
   # get model predictions
   df_pred <- transform(
@@ -281,7 +283,7 @@ draw_group_intx <- function(df, gam_obj, tract, y_var, y_name, plot_title, out_d
 
 #' Draw 3D smooth for reference (control) group interaction.
 #'
-#' Using the output of an ordered-factor group interaction
+#' Deprecated. Using the output of an ordered-factor group interaction
 #' model, draw how the reference group A interacts with continuous
 #' metric, nodeID, and predicted FA (s(x)).
 #'
@@ -297,7 +299,9 @@ draw_group_intx <- function(df, gam_obj, tract, y_var, y_name, plot_title, out_d
 #' @details Writes <out_dir>/Plot_GAM_<tract>_Group-Intx-Ref_<y_var>.png
 #' @import ggplot2
 #' @import mgcViz
-draw_group_intx_ref <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir) {
+draw_group_intx_ref <- function(
+  plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir
+) {
   p <- plot(sm(plot_obj, attr_num)) +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(plot_title) +
@@ -327,25 +331,35 @@ draw_group_intx_ref <- function(plot_obj, attr_num, tract, y_var, y_name, plot_t
 #' @param attr_num List/attribute number of plot_obj that contains
 #' reference group difference interaction smooth (int)
 #' @param tract AFQ tract name (str)
-#' @param y_var Behavior of interest, used for Y-axis (str)
-#' @param y_name Y-axis title (str)
+#' @param x_var Behavior of interest, used for Y-axis (str)
+#' @param x_name Y-axis title (str)
 #' @param plot_title Title of plot (str)
 #' @param out_dir Path to output location
 #' @details Writes <out_dir>/Plot_GAM_<tract>_Group-Intx-Diff_<y_var>.png
 #' @import ggplot2
 #' @import mgcViz
-draw_group_intx_diff <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir) {
-  p <- plot(sm(plot_obj, attr_num)) +
-    scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+#' @import viridis
+draw_group_intx_diff <- function(
+  plot_obj, attr_num, tract, x_var, x_name, plot_title, out_dir
+  ) {
+
+  # invert direction for ease of interpretation
+  p <- plot(sm(plot_obj, attr_num))
+  p_data <- p$data$fit
+  p_data$zI <- -1 * p_data$z
+
+  pp <- ggplot(data = p_data, aes(x = .data$x, y = .data$y, z = .data$zI)) +
+    geom_tile(aes(fill = .data$zI)) +
+    geom_contour(colour = "black") +
+    scale_y_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+    scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+    labs(x = x_name, y = "Tract Node") +
     ggtitle(plot_title) +
-    ylab(y_name) +
-    xlab("Tract Node") +
-    guides(fill = guide_legend(title = "Est. FA Fit", reverse = TRUE)) +
     theme(text = element_text(family = "Times New Roman"))
-  print(p)
+  print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_Group-Intx-Diff_", y_var, ".png"),
+    paste0(out_dir, "/Plot_GAM_", tract, "_Group-Intx-Diff_", x_var, ".png"),
     units = "in",
     width = 6,
     height = 6,

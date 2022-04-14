@@ -22,8 +22,8 @@ draw_group_intx(df, gam_obj, tract, y_var, y_name, plot_title, out_dir)
 \item{out_dir}{Path to output location (str)}
 }
 \description{
-Plot factorial 3D interaction between nodeID, dti_fa, and behavior
-as a function of diagnosis group.
+Deprecated. Plot factorial 3D interaction between nodeID, dti_fa, and
+behavior as a function of diagnosis group.
 }
 \details{
 Writes <out_dir>/Plot_GAM_<tract>_Group-Intx_<y_var>.png

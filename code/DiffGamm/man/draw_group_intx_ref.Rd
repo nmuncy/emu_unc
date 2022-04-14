@@ -31,7 +31,7 @@ reference group interaction smooth of reference group (int)}
 \item{out_dir}{Path to output location}
 }
 \description{
-Using the output of an ordered-factor group interaction
+Deprecated. Using the output of an ordered-factor group interaction
 model, draw how the reference group A interacts with continuous
 metric, nodeID, and predicted FA (s(x)).
 }
