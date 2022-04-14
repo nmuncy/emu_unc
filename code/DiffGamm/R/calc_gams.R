@@ -166,17 +166,15 @@ gam_intx_model <- function(df_tract, dist_fam, col_group, cont_var) {
   names(df_tract)[names(df_tract) == cont_var] <- "h_var"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
-    te(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-    t2(
-      nodeID, h_var, h_group,
-      bs = c("cr", "tp", "re"),
-      k = c(50, 10, 2),
-      m = 2,
-      full = TRUE
+    s(nodeID, bs = "cr", k = 50, m = 1) +
+    s(h_var, by = h_group, bs = "tp", k = 10, m = 2) +
+    ti(
+      nodeID, h_var, by = h_group, bs = c("cr", "tp"), k = c(50, 10), m = 2
     ),
   data = df_tract,
   family = h_family,
-  method = "fREML"
+  method = "fREML",
+  discrete = T
   )
   return(h_gam)
 }
@@ -193,28 +191,31 @@ gam_intx_model <- function(df_tract, dist_fam, col_group, cont_var) {
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
-#' @param col_group Column name of ordered factored grouping value (str).
+#' @param col_group Column name of grouping value (str), for intx with
+#' covariate.
+#' @param col_groupOF Column name of ordered grouping factor value (str),
+#' for make difference smooth for experimental group.
 #' @param cont_var Continuous variable, which will interact with
 #' predicted (str).
 #' @return GAM object
 #' @import mgcv
-gam_intxOF_model <- function(df_tract, dist_fam, col_group, cont_var) {
+gam_intxOF_model <- function(df_tract, dist_fam, col_group, col_groupOF, cont_var) {
   h_family <- switch_family(dist_fam)
   names(df_tract)[names(df_tract) == col_group] <- "h_group"
+  names(df_tract)[names(df_tract) == col_groupOF] <- "h_groupOF"
   names(df_tract)[names(df_tract) == cont_var] <- "h_var"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
-    te(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-    t2(
-      nodeID, h_var,
-      by = h_group,
-      bs = c("cr", "tp"),
-      k = c(50, 10),
-      m = 2,
-      full = TRUE
+    s(nodeID, bs = "cr", k = 50, m = 1) +
+    s(h_var, by = h_group, bs = "tp", k = 10, m = 2) +
+    ti(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    ti(
+      nodeID, h_var, by = h_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 2
     ),
   data = df_tract,
   family = h_family,
-  method = "fREML"
+  method = "fREML",
+  discrete = T
   )
+  return(h_gam)
 }

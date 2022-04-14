@@ -4,7 +4,7 @@
 \alias{gam_intxOF_model}
 \title{Model data with interaction by group (ordered factor).}
 \usage{
-gam_intxOF_model(df_tract, dist_fam, col_group, cont_var)
+gam_intxOF_model(df_tract, dist_fam, col_group, col_groupOF, cont_var)
 }
 \arguments{
 \item{df_tract}{Long-formatted dataframe for AFQ tract, containing
@@ -13,7 +13,11 @@ columns of dti_fa, sex, subjectID, and nodeID.}
 \item{dist_fam}{Desired family/distribution to use with data (gamma, beta,
 or gaus; str).}
 
-\item{col_group}{Column name of ordered factored grouping value (str).}
+\item{col_group}{Column name of grouping value (str), for intx with
+covariate.}
+
+\item{col_groupOF}{Column name of ordered grouping factor value (str),
+for make difference smooth for experimental group.}
 
 \item{cont_var}{Continuous variable, which will interact with
 predicted (str).}

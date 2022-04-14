@@ -23,8 +23,9 @@ smooth (int)}
 \item{out_dir}{Path to output location}
 }
 \description{
-Draw behavior-nodeID interactions.
+Plot the interaction of tract node, FA, and behavior covariate. Draws
+tract node as the X-axis.
 }
 \details{
-Writes <out_dir>/Plot_GAM_<tract>_Intx_<y_var>.png
+Writes <out_dir>/Plot_GAM_<tract>_Intx_<x_var>.png
 }
