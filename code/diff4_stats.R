@@ -260,9 +260,9 @@ for (tract in tract_list) {
       rm(h_gam)
     }
     tract_Gintx <- readRDS(gam_file)
-    write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx", beh_short), tract)
+    write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx_", beh_short), tract)
     write_compare_stats(
-      tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx", beh_short)
+      tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx_", beh_short)
     )
 
     # plot
@@ -407,6 +407,9 @@ for (tract in tract_list) {
   df_tract <- df_tract %>% drop_na(dx)
   tract_dist <- tract_fam(tract)
 
+  # get tract GS model for comparison
+  tract_GS <- readRDS(paste0(out_dir, "/Model_", tract, "_mGS.Rda"))
+
   for (seed in seed_list) {
     for (beh in beh_list) {
 
@@ -428,19 +431,17 @@ for (tract in tract_list) {
       )
 
       # model tract main effect with tract-fa-behavior intx
-      gam_file <- paste0(out_dir, "/Model_", tract, "_mGSIntx_", h_name, ".Rda")
+      gam_file <- paste0(out_dir, "/Model_", tract, "_mGIntx_", h_name, ".Rda")
       if (!file.exists(gam_file)) {
         h_gam <- gam_Gintx(df_tract, tract_dist, "dx_group", h_seed_beh)
         saveRDS(h_gam, file = gam_file)
         rm(h_gam)
       }
       tract_Gintx <- readRDS(gam_file)
-      write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx", beh_short), tract)
+      write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx_", h_name), tract)
       write_compare_stats(
-        tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx", beh_short)
+        tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx_", h_name)
       )
-
-      write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
 
       # plot
       plot_Gintx <- getViz(tract_Gintx)
@@ -448,85 +449,84 @@ for (tract in tract_list) {
         plot_Gintx,
         2,
         tract,
-        beh,
-        switch_names(beh),
+        paste(h_name, beh, sep = "_"),
+        switch_names(h_seed_beh),
         paste(
-          switch_names(tract), "Node-FA-Memory Interaction"
+          switch_names(tract), "Node-FA-PPI Interaction"
         ),
         out_dir
       )
 
-
-      # model interaction of tract-group-behavior
-      gam_file <- paste0(
-        out_dir, "/Model_", tract, "_mGIntx_", h_name, ".Rda"
-      )
-      if (!file.exists(gam_file)) {
-        h_gam <- gam_intx(df_seed, tract_dist, "dx_group", h_seed_beh)
-        saveRDS(h_gam, file = gam_file)
-        rm(h_gam)
-      }
-      tract_intx <- readRDS(gam_file)
-      write_gam_stats(tract_intx, out_dir, paste0("GS-", h_name), tract)
-
-      # test if experiment group interaction differs from control
-      gam_file <- paste0(
-        out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
-      )
-      if (!file.exists(gam_file)) {
-        h_gam <- gam_intxOF(
-          df_seed, tract_dist, "dx_group", "dx_groupOF", h_seed_beh
-        )
-        saveRDS(h_gam, file = gam_file)
-        rm(h_gam)
-      }
-      tract_intxOF <- readRDS(gam_file)
-      write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
-
-      # draw
-      plot_tract_intx <- getViz(tract_intx)
-      draw_intx(
-        plot_obj = plot_tract_intx,
-        attr_num = 5,
-        tract,
-        y_var = paste(h_name, beh, "con", sep = "_"),
-        y_name = switch_names(h_seed_beh),
-        plot_title = paste(
-          switch_names(tract), "Node-FA-PPI Interaction, Control"
-        ),
-        out_dir
-      )
-      draw_intx(
-        plot_obj = plot_tract_intx,
-        attr_num = 6,
-        tract,
-        y_var = paste(h_name, beh, "exp", sep = "_"),
-        y_name = switch_names(h_seed_beh),
-        plot_title = paste(
-          switch_names(tract), "Node-FA-PPI Interaction, Experimental"
-        ),
-        out_dir
-      )
-
-      plot_tract_intxOF <- getViz(tract_intxOF)
-      draw_intx_diff(
-        plot_obj = plot_tract_intxOF,
-        attr_num = 5,
-        tract,
-        y_var = paste(h_name, beh, sep = "_"),
-        y_name = switch_names(h_seed_beh),
-        plot_title = paste(
-          switch_names(tract),
-          "Node-FA-PPI Interaction, Experimental Difference"
-        ),
-        out_dir
-      )
-
-      rm(df_seed)
-      rm(tract_intx)
-      rm(tract_intxOF)
-      rm(plot_tract_intx)
-      rm(plot_tract_intxOF)
+      # # model interaction of tract-group-behavior
+      # gam_file <- paste0(
+      #   out_dir, "/Model_", tract, "_mGIntx_", h_name, ".Rda"
+      # )
+      # if (!file.exists(gam_file)) {
+      #   h_gam <- gam_intx(df_seed, tract_dist, "dx_group", h_seed_beh)
+      #   saveRDS(h_gam, file = gam_file)
+      #   rm(h_gam)
+      # }
+      # tract_intx <- readRDS(gam_file)
+      # write_gam_stats(tract_intx, out_dir, paste0("GS-", h_name), tract)
+      #
+      # # test if experiment group interaction differs from control
+      # gam_file <- paste0(
+      #   out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
+      # )
+      # if (!file.exists(gam_file)) {
+      #   h_gam <- gam_intxOF(
+      #     df_seed, tract_dist, "dx_group", "dx_groupOF", h_seed_beh
+      #   )
+      #   saveRDS(h_gam, file = gam_file)
+      #   rm(h_gam)
+      # }
+      # tract_intxOF <- readRDS(gam_file)
+      # write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
+      #
+      # # draw
+      # plot_tract_intx <- getViz(tract_intx)
+      # draw_intx(
+      #   plot_obj = plot_tract_intx,
+      #   attr_num = 5,
+      #   tract,
+      #   y_var = paste(h_name, beh, "con", sep = "_"),
+      #   y_name = switch_names(h_seed_beh),
+      #   plot_title = paste(
+      #     switch_names(tract), "Node-FA-PPI Interaction, Control"
+      #   ),
+      #   out_dir
+      # )
+      # draw_intx(
+      #   plot_obj = plot_tract_intx,
+      #   attr_num = 6,
+      #   tract,
+      #   y_var = paste(h_name, beh, "exp", sep = "_"),
+      #   y_name = switch_names(h_seed_beh),
+      #   plot_title = paste(
+      #     switch_names(tract), "Node-FA-PPI Interaction, Experimental"
+      #   ),
+      #   out_dir
+      # )
+      #
+      # plot_tract_intxOF <- getViz(tract_intxOF)
+      # draw_intx_diff(
+      #   plot_obj = plot_tract_intxOF,
+      #   attr_num = 5,
+      #   tract,
+      #   y_var = paste(h_name, beh, sep = "_"),
+      #   y_name = switch_names(h_seed_beh),
+      #   plot_title = paste(
+      #     switch_names(tract),
+      #     "Node-FA-PPI Interaction, Experimental Difference"
+      #   ),
+      #   out_dir
+      # )
+      #
+      # rm(df_seed)
+      # rm(tract_intx)
+      # rm(tract_intxOF)
+      # rm(plot_tract_intx)
+      # rm(plot_tract_intxOF)
     }
   }
 }
