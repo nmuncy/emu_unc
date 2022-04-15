@@ -155,57 +155,57 @@ for (tract in tract_list) {
 
   # conduct basic model
   tract_dist <- tract_fam(tract)
-  tract_G <- gam_model(df_tract, tract_dist)
-  write_gam_stats(tract_G, out_dir, "G", tract)
+  tract_G <- gam_G(df_tract, tract_dist)
+  write_gam_stats(tract_G, out_dir, "mG", tract)
 
   # does controlling for PDS help model fit
-  tract_G_pds <- gam_cov_model(df_tract, tract_dist, "pds")
-  write_gam_stats(tract_G_pds, out_dir, "G-PDS", tract)
-  write_compare_stats(tract_G, tract_G_pds, tract, out_dir, "G-PDS")
+  tract_G_pds <- gam_Gcov(df_tract, tract_dist, "pds")
+  write_gam_stats(tract_G_pds, out_dir, "mGPDS", tract)
+  write_compare_stats(tract_G, tract_G_pds, tract, out_dir, "mG-mGPDS")
 
   # test if group smooths increase fit, save model
-  gam_file <- paste0(out_dir, "/Model_", tract, "_dxGS.Rda")
+  gam_file <- paste0(out_dir, "/Model_", tract, "_mGS.Rda")
   if (!file.exists(gam_file)) {
-    h_gam <- gam_GS_model(df_tract, tract_dist, "dx_group")
+    h_gam <- gam_GS(df_tract, tract_dist, "dx_group")
     saveRDS(h_gam, file = gam_file)
     rm(h_gam)
   }
   tract_GS <- readRDS(gam_file)
-  write_gam_stats(tract_GS, out_dir, "GS", tract)
-  write_compare_stats(tract_GS, tract_G, tract, out_dir, "GS-G")
+  write_gam_stats(tract_GS, out_dir, "mGS", tract)
+  write_compare_stats(tract_GS, tract_G, tract, out_dir, "mGS-mG")
 
   # test if group wiggliness increases fit
-  tract_GI <- gam_GI_model(df_tract, tract_dist, "dx_group")
-  write_gam_stats(tract_GS, out_dir, "GI", tract)
-  write_compare_stats(tract_GS, tract_GI, tract, out_dir, "GS-GI")
+  tract_GI <- gam_GI(df_tract, tract_dist, "dx_group")
+  write_gam_stats(tract_GS, out_dir, "mGI", tract)
+  write_compare_stats(tract_GS, tract_GI, tract, out_dir, "mGS-mGI")
 
   # test if group smooths differ
-  tract_GSOF <- gam_GSOF_model(df_tract, tract_dist, "dx_groupOF")
-  write_gam_stats(tract_GSOF, out_dir, "GSOF", tract)
+  tract_GSOF <- gam_GSOF(df_tract, tract_dist, "dx_groupOF")
+  write_gam_stats(tract_GSOF, out_dir, "mGSOF", tract)
 
   # draw plots
   plot_tract_GS <- getViz(tract_GS)
   draw_global_smooth(
-    plot_obj = plot_tract_GS,
-    attr_num = 2,
+    plot_tract_GS,
+    2,
     tract,
-    plot_title = paste(switch_names(tract), "Global Smooth"),
+    paste(switch_names(tract), "Global Smooth"),
     out_dir
   )
   draw_group_smooth(
-    plot_obj = plot_tract_GS,
-    attr_num = 3,
+    plot_tract_GS,
+    3,
     tract,
-    plot_title = paste(switch_names(tract), "Group Smooths"),
+    paste(switch_names(tract), "Group Smooths"),
     out_dir
   )
 
   plot_tract_GSOF <- getViz(tract_GSOF)
   draw_group_smooth_diff(
-    plot_obj = plot_tract_GSOF,
-    attr_num = 3,
+    plot_tract_GSOF,
+    3,
     tract,
-    plot_title = paste(switch_names(tract), "Exp-Con Difference Smooth"),
+    paste(switch_names(tract), "Exp-Con Difference Smooth"),
     out_dir
   )
 
@@ -241,73 +241,104 @@ for (tract in tract_list) {
 
   # get distribution, get dxGS model
   tract_dist <- tract_fam(tract)
-  tract_GS <- readRDS(paste0(out_dir, "/Model_", tract, "_dxGS.Rda"))
+  tract_GS <- readRDS(paste0(out_dir, "/Model_", tract, "_mGS.Rda"))
 
+  # model intx w/e/behavior
   for (beh in beh_list) {
 
-    # model interaction of tract-group-behavior
-    gam_file <- paste0(out_dir, "/Model_", tract, "_", beh, ".Rda")
-    if (!file.exists(gam_file)) {
-      h_gam <- gam_intx_model(df_tract, tract_dist, "dx_group", beh)
-      saveRDS(h_gam, file = gam_file)
-      rm(h_gam)
-    }
-    tract_intx <- readRDS(gam_file)
+    # switch name for files
     beh_short <- switch(beh,
       "lgi_neg" = "Neg",
       "lgi_neu" = "Neu"
     )
-    write_gam_stats(tract_intx, out_dir, paste0("GS-", beh_short), tract)
+
+    # model tract main effect with tract-fa-behavior intx
+    gam_file <- paste0(out_dir, "/Model_", tract, "_mGSIntx_", beh, ".Rda")
+    if (!file.exists(gam_file)) {
+      h_gam <- gam_Gintx(df_tract, tract_dist, "dx_group", beh)
+      saveRDS(h_gam, file = gam_file)
+      rm(h_gam)
+    }
+    tract_Gintx <- readRDS(gam_file)
+    write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx", beh_short), tract)
     write_compare_stats(
-      tract_GS, tract_intx, tract, out_dir, paste0("GS-Intx", beh_short)
+      tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx", beh_short)
+    )
+
+    # plot
+    plot_Gintx <- getViz(tract_Gintx)
+    draw_Gintx(
+      plot_Gintx,
+      2,
+      tract,
+      beh,
+      switch_names(beh),
+      paste(
+        switch_names(tract), "Node-FA-Memory Interaction"
+      ),
+      out_dir
+    )
+
+    # model interaction of tract-group-behavior to get interaction
+    # smooths for each group
+    gam_file <- paste0(out_dir, "/Model_", tract, "_mGIntx_", beh, ".Rda")
+    if (!file.exists(gam_file)) {
+      h_gam <- gam_intx(df_tract, tract_dist, "dx_group", beh)
+      saveRDS(h_gam, file = gam_file)
+      rm(h_gam)
+    }
+    tract_intx <- readRDS(gam_file)
+
+    # draw
+    plot_tract_intx <- getViz(tract_intx)
+    draw_intx(
+      plot_tract_intx,
+      5,
+      tract,
+      paste(beh, "con", sep = "_"),
+      switch_names(beh),
+      paste(
+        switch_names(tract), "Node-FA-Memory Interaction, Control"
+      ),
+      out_dir
+    )
+    draw_intx(
+      plot_tract_intx,
+      6,
+      tract,
+      paste(beh, "exp", sep = "_"),
+      switch_names(beh),
+      paste(
+        switch_names(tract), "Node-FA-Memory Interaction, Experimental"
+      ),
+      out_dir
     )
 
     # test if experiment group interaction differs from control
-    gam_file <- paste0(out_dir, "/Model_", tract, "_", beh, "_OF.Rda")
+    gam_file <- paste0(out_dir, "/Model_", tract, "_mGSOFIntx_", beh, ".Rda")
     if (!file.exists(gam_file)) {
-      h_gam <- gam_intxOF_model(
+      h_gam <- gam_intxOF(
         df_tract, tract_dist, "dx_group", "dx_groupOF", beh
       )
       saveRDS(h_gam, file = gam_file)
       rm(h_gam)
     }
     tract_intxOF <- readRDS(gam_file)
-    write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", beh_short), tract)
+
+    # get stats
+    write_gam_stats(
+      tract_intxOF, out_dir, paste0("mGSOFIntx", beh_short), tract
+    )
 
     # draw
-    plot_tract_intx <- getViz(tract_intx)
-
-    draw_smooth_intx(
-      plot_obj = plot_tract_intx,
-      attr_num = 5,
-      tract,
-      y_var = paste(beh, "con", sep = "_"),
-      y_name = switch_names(beh),
-      plot_title = paste(
-        switch_names(tract), "Node-FA-Memory Interaction, Control"
-      ),
-      out_dir
-    )
-    draw_smooth_intx(
-      plot_obj = plot_tract_intx,
-      attr_num = 6,
-      tract,
-      y_var = paste(beh, "exp", sep = "_"),
-      y_name = switch_names(beh),
-      plot_title = paste(
-        switch_names(tract), "Node-FA-Memory Interaction, Experimental"
-      ),
-      out_dir
-    )
-
     plot_tract_intxOF <- getViz(tract_intxOF)
-    draw_group_intx_diff(
-      plot_obj = plot_tract_intxOF,
-      attr_num = 5,
+    draw_intx_diff(
+      plot_tract_intxOF,
+      5,
       tract,
-      y_var = beh,
-      y_name = switch_names(beh),
-      plot_title = paste(
+      beh,
+      switch_names(beh),
+      paste(
         switch_names(tract),
         "Node-FA-Memory Interaction, Experimental Difference"
       ),
@@ -336,7 +367,7 @@ for (tract in tract_list) {
 
 # set seed and behavior (+ difference) lists
 seed_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
-beh_list <- c("SPnegLF", "SPneuLF") #"SPnegLF.SPneuLF"
+beh_list <- c("SPnegLF", "SPneuLF") # "SPnegLF.SPneuLF"
 
 # incorporate PPI values of ses-S1 task-study in df_afq
 subj_list <- as.character(unique(df_afq$subjectID))
@@ -396,12 +427,42 @@ for (tract in tract_list) {
         "NSlsfs_SPnegLF.SPneuLF" = "LAmg-LSFS_NegLF-NeuLF"
       )
 
+      # model tract main effect with tract-fa-behavior intx
+      gam_file <- paste0(out_dir, "/Model_", tract, "_mGSIntx_", h_name, ".Rda")
+      if (!file.exists(gam_file)) {
+        h_gam <- gam_Gintx(df_tract, tract_dist, "dx_group", h_seed_beh)
+        saveRDS(h_gam, file = gam_file)
+        rm(h_gam)
+      }
+      tract_Gintx <- readRDS(gam_file)
+      write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx", beh_short), tract)
+      write_compare_stats(
+        tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx", beh_short)
+      )
+
+      write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
+
+      # plot
+      plot_Gintx <- getViz(tract_Gintx)
+      draw_Gintx(
+        plot_Gintx,
+        2,
+        tract,
+        beh,
+        switch_names(beh),
+        paste(
+          switch_names(tract), "Node-FA-Memory Interaction"
+        ),
+        out_dir
+      )
+
+
       # model interaction of tract-group-behavior
       gam_file <- paste0(
-        out_dir, "/Model_", tract, "_", h_name, ".Rda"
+        out_dir, "/Model_", tract, "_mGIntx_", h_name, ".Rda"
       )
       if (!file.exists(gam_file)) {
-        h_gam <- gam_intx_model(df_seed, tract_dist, "dx_group", h_seed_beh)
+        h_gam <- gam_intx(df_seed, tract_dist, "dx_group", h_seed_beh)
         saveRDS(h_gam, file = gam_file)
         rm(h_gam)
       }
@@ -413,7 +474,7 @@ for (tract in tract_list) {
         out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
       )
       if (!file.exists(gam_file)) {
-        h_gam <- gam_intxOF_model(
+        h_gam <- gam_intxOF(
           df_seed, tract_dist, "dx_group", "dx_groupOF", h_seed_beh
         )
         saveRDS(h_gam, file = gam_file)
@@ -424,7 +485,7 @@ for (tract in tract_list) {
 
       # draw
       plot_tract_intx <- getViz(tract_intx)
-      draw_smooth_intx(
+      draw_intx(
         plot_obj = plot_tract_intx,
         attr_num = 5,
         tract,
@@ -435,7 +496,7 @@ for (tract in tract_list) {
         ),
         out_dir
       )
-      draw_smooth_intx(
+      draw_intx(
         plot_obj = plot_tract_intx,
         attr_num = 6,
         tract,
@@ -448,7 +509,7 @@ for (tract in tract_list) {
       )
 
       plot_tract_intxOF <- getViz(tract_intxOF)
-      draw_group_intx_diff(
+      draw_intx_diff(
         plot_obj = plot_tract_intxOF,
         attr_num = 5,
         tract,

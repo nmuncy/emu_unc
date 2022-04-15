@@ -13,10 +13,10 @@ attached base packages:
 [1] tools     stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] DiffGamm_0.1.0     devtools_2.4.2     usethis_2.1.0      tidyr_1.2.0       
- [5] mgcViz_0.1.9       ggplot2_3.3.5      qgam_1.3.4         dplyr_1.0.8       
- [9] tidymv_3.2.1       itsadug_2.4        plotfunctions_1.4  mgcv_1.8-38       
-[13] nlme_3.1-153       fitdistrplus_1.1-6 survival_3.2-13    MASS_7.3-54       
+ [1] devtools_2.4.2     usethis_2.1.0      tidyr_1.2.0        mgcViz_0.1.9      
+ [5] ggplot2_3.3.5      qgam_1.3.4         dplyr_1.0.8        tidymv_3.2.1      
+ [9] itsadug_2.4        plotfunctions_1.4  mgcv_1.8-38        nlme_3.1-153      
+[13] fitdistrplus_1.1-6 survival_3.2-13    MASS_7.3-54        DiffGamm_0.1.0    
 
 loaded via a namespace (and not attached):
  [1] viridis_0.6.2      pkgload_1.2.4      viridisLite_0.4.0  splines_4.0.3     

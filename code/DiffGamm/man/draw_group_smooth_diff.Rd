@@ -19,8 +19,8 @@ difference smooth (int)}
 \item{out_dir}{Path to output location}
 }
 \description{
-Plot an A-B difference smooth, identify nodes which sig differ from 0,
-draw polygons to ID.
+Plot an A-B difference smooth from an GAM using an ordered factor for group,
+identify nodes which sig differ from 0, draw polygons to ID.
 }
 \details{
 Writes <out_dir>/Plot_GAM_<tract>_GS-Diff.png

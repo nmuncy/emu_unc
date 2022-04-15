@@ -27,7 +27,7 @@ switch_family <- function(dist_fam) {
 #' or gaus; str).
 #' @return GAM object
 #' @import mgcv
-gam_model <- function(df_tract, dist_fam) {
+gam_G <- function(df_tract, dist_fam) {
   h_family <- switch_family(dist_fam)
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
@@ -52,7 +52,7 @@ gam_model <- function(df_tract, dist_fam) {
 #' @param cov Covariate column name (str).
 #' @return GAM object
 #' @import mgcv
-gam_cov_model <- function(df_tract, dist_fam, cov) {
+gam_Gcov <- function(df_tract, dist_fam, cov) {
   h_family <- switch_family(dist_fam)
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
@@ -77,7 +77,7 @@ gam_cov_model <- function(df_tract, dist_fam, cov) {
 #' @param col_group Column name of factored grouping value (str).
 #' @return GAM object
 #' @import mgcv
-gam_GS_model <- function(df_tract, dist_fam, col_group) {
+gam_GS <- function(df_tract, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
   names(df_tract)[names(df_tract) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
@@ -103,7 +103,7 @@ gam_GS_model <- function(df_tract, dist_fam, col_group) {
 #' @param col_group Column name of factored grouping value (str).
 #' @return GAM object
 #' @import mgcv
-gam_GI_model <- function(df_tract, dist_fam, col_group) {
+gam_GI <- function(df_tract, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
   names(df_tract)[names(df_tract) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
@@ -131,13 +131,45 @@ gam_GI_model <- function(df_tract, dist_fam, col_group) {
 #' @param col_group Column name of ordered factored grouping value (str).
 #' @return GAM object
 #' @import mgcv
-gam_GSOF_model <- function(df_tract, dist_fam, col_group) {
+gam_GSOF <- function(df_tract, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
   names(df_tract)[names(df_tract) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 50, m = 2) +
     s(nodeID, by = h_group, bs = "cr", k = 50, m = 2),
+  data = df_tract,
+  family = h_family,
+  method = "fREML"
+  )
+  return(h_gam)
+}
+
+#' Title.
+#'
+#' Desc.
+#'
+#' @export
+#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' columns of dti_fa, sex, subjectID, and nodeID.
+#' @param dist_fam Desired family/distribution to use with data (gamma, beta,
+#' or gaus; str).
+#' @param col_group Column name of factored grouping value (str).
+#' @param cont_var Continuous variable, which will interact with
+#' predicted (str).
+#' @return GAM object
+#' @import mgcv
+gam_Gintx <- function(df_tract, dist_fam, col_group, cont_var) {
+  h_family <- switch_family(dist_fam)
+  names(df_tract)[names(df_tract) == col_group] <- "h_group"
+  names(df_tract)[names(df_tract) == cont_var] <- "h_var"
+  h_gam <- bam(dti_fa ~ sex +
+     s(subjectID, bs = "re") +
+    te(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    t2(
+      nodeID, h_var, h_group,
+      bs = c("cr", "tp", "re"), k = c(50, 10, 2), m = 2
+    ),
   data = df_tract,
   family = h_family,
   method = "fREML"
@@ -160,7 +192,7 @@ gam_GSOF_model <- function(df_tract, dist_fam, col_group) {
 #' predicted (str).
 #' @return GAM object
 #' @import mgcv
-gam_intx_model <- function(df_tract, dist_fam, col_group, cont_var) {
+gam_intx <- function(df_tract, dist_fam, col_group, cont_var) {
   h_family <- switch_family(dist_fam)
   names(df_tract)[names(df_tract) == col_group] <- "h_group"
   names(df_tract)[names(df_tract) == cont_var] <- "h_var"
@@ -169,7 +201,8 @@ gam_intx_model <- function(df_tract, dist_fam, col_group, cont_var) {
     s(nodeID, bs = "cr", k = 50, m = 1) +
     s(h_var, by = h_group, bs = "tp", k = 10, m = 2) +
     ti(
-      nodeID, h_var, by = h_group, bs = c("cr", "tp"), k = c(50, 10), m = 2
+      nodeID, h_var,
+      by = h_group, bs = c("cr", "tp"), k = c(50, 10), m = 2
     ),
   data = df_tract,
   family = h_family,
@@ -199,7 +232,7 @@ gam_intx_model <- function(df_tract, dist_fam, col_group, cont_var) {
 #' predicted (str).
 #' @return GAM object
 #' @import mgcv
-gam_intxOF_model <- function(df_tract, dist_fam, col_group, col_groupOF, cont_var) {
+gam_intxOF <- function(df_tract, dist_fam, col_group, col_groupOF, cont_var) {
   h_family <- switch_family(dist_fam)
   names(df_tract)[names(df_tract) == col_group] <- "h_group"
   names(df_tract)[names(df_tract) == col_groupOF] <- "h_groupOF"
@@ -210,7 +243,8 @@ gam_intxOF_model <- function(df_tract, dist_fam, col_group, col_groupOF, cont_va
     s(h_var, by = h_group, bs = "tp", k = 10, m = 2) +
     ti(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
     ti(
-      nodeID, h_var, by = h_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 2
+      nodeID, h_var,
+      by = h_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 2
     ),
   data = df_tract,
   family = h_family,
