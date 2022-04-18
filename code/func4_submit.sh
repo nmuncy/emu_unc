@@ -3,7 +3,7 @@
 function Usage {
     cat <<USAGE
 
-    Wrapper for func3_ppi.py. Checks for which subjects do not have
+    Wrapper for func4_ppi.py. Checks for which subjects do not have
     PPI output, and submits N sbatch jobs for detected subjects.
 
     Conda environment emuR01_unc required.

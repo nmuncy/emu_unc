@@ -17,7 +17,7 @@ sbatch --job-name=p1234 \
     --partition=IB_44C_512G \
     --account=iacc_madlab \
     --qos=pq_madlab \
-    func3_ppi.py \
+    func4_ppi.py \
     -s sub-1234 \
     -d decon_task-study_precTest \
     -r LHC \
@@ -29,7 +29,7 @@ sbatch --job-name=p1234 \
     --partition=IB_44C_512G \
     --account=iacc_madlab \
     --qos=pq_madlab \
-    func3_ppi.py \
+    func4_ppi.py \
     -s sub-1234 \
     -d decon_task-test_UniqueBehs \
     -r amgL \

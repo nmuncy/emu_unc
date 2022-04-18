@@ -40,7 +40,7 @@ function Usage {
 
     Example Usage:
         code_dir="\$(dirname "\$(pwd)")"
-        sbatch func7_expAnalysis.sh \\
+        sbatch func8_expAnalysis.sh \\
             -c \$code_dir \\
             -d /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc \\
             -n precTest \\
