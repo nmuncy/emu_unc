@@ -214,7 +214,7 @@ parent_dir="$(dirname $(pwd))"
 cat <<-EOF
     Submitting sbatch job
 
-        func3_ppi.py \\
+        func4_ppi.py \\
             -p <subj> \\
             -s $sess \\
             -t $task \\
@@ -241,7 +241,7 @@ while [ $c -lt $num_subj ]; do
         --partition=IB_44C_512G \
         --account=iacc_madlab \
         --qos=pq_madlab \
-        func3_ppi.py \
+        func4_ppi.py \
         -p $subj \
         -s $sess \
         -t $task \
