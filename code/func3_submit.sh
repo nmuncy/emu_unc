@@ -24,7 +24,7 @@ function Usage {
         $0 \\
             -w /scratch/madlab/emu_unc/derivatives/afni_ppi \\
             -d \$deriv_dir \\
-            -f decon_task-study_precTest \\
+            -f decon_task-study_rVal \\
             -s ses-S1 \\
             -t task-study \\
             -r amgL \\

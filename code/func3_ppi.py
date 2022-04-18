@@ -811,7 +811,7 @@ def get_args():
 
 # %%
 def main():
-    """Coordiante work."""
+    """Coordinate work."""
     # get passed args
     args = get_args().parse_args()
     deriv_dir = args.deriv_dir
@@ -837,12 +837,15 @@ def main():
     # github.com/emu-project/func_processing/cli/run_afni_subj.py
     # using deconvolve.write_new_decon function.
     afni_data = {}
-    timing_all = sorted(glob.glob(f"{subj_time}/*_{task}_desc-*_events.*"))
+    h_dcn = decon_str.split("_")[-1]
+    timing_all = sorted(
+        glob.glob(f"{subj_time}/*_{task}_decon-{h_dcn}_desc-*_events.*")
+    )
     afni_data["timing_files"] = [
         x for x in timing_all if not fnmatch.fnmatch(x, "*Cens_events.txt")
     ]
     afni_data["timing_waves"] = sorted(
-        glob.glob(f"{subj_time}/*_{task}_desc-*Cens_events.*")
+        glob.glob(f"{subj_time}/*_{task}_decon-{h_dcn}_desc-*Cens_events.*")
     )
     afni_data["scaled_files"] = sorted(
         glob.glob(f"{subj_func}/*{sess}_{task}*desc-scaled_bold.nii.gz")
@@ -857,6 +860,7 @@ def main():
         "mot-censorInv"
     ] = f"{subj_func}/{subj}_{sess}_{task}_desc-censorInv_timeseries.1D"
     afni_data["wme_mask"] = glob.glob(f"{subj_anat}/*desc-WMe_mask.nii.gz")
+    print(afni_data)
 
     # check that required files exist
     for h_type, h_file in afni_data.items():
