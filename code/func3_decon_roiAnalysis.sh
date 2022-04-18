@@ -7,7 +7,7 @@
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 2
 #SBATCH --mem 16000
-#SBATCH --job-name ppiROI
+#SBATCH --job-name dcnROI
 
 # load relevant modules
 module load afni-20.2.06
@@ -16,9 +16,10 @@ module load c3d-1.0.0-gcc-8.2.0
 # help
 function Usage {
     cat <<USAGE
-    Extract PPI coefficient for supplied behaviors.
+    Extract decon beta-coefficient for supplied behaviors.
 
-    Find subjects who have PPI output (ref func3_ppi.py). Then multiply ROI <mask_name>
+    Find subjects who have deconvoluted files (ref github.com/emu-project/func_processing/cli/run_afni_subj.py,
+    using the deconvolve.write_new_decon function). Then multiply ROI <mask_name>
     by intersection mask (-g) to make clean mask. Finally, use clean mask to extract
     coefs for each subject.
 
@@ -28,8 +29,6 @@ function Usage {
         -m <mask_name> = identifying mask name
             (e.g. NSlacc to find <mask_dir>/tpl-MNIPediatricAsym_cohort-5_res-2_desc-NSlacc_mask.nii.gz)
         -n <decon_name> = identifying deconvolution name
-        -p <ppi_seed> = identifying PPI seed name
-            (e.g. amgL to find <data_dir>/<subj>/<sess>/func/decon_task-test_UniqueBehs_PPI-amgL_stats_REML+tlrc.HEAD)
         -s <session> = BIDS session string
         -t <task> = BIDS task string
         <behaviors> = remaining args are sub-brick behaviors to extract (ref 3dinfo -verb),
@@ -39,21 +38,20 @@ function Usage {
         deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
         sess=ses-S1
         task=task-study
-        sbatch func4_roiAnalysis.sh \\
+        sbatch func3_decon_roiAnalysis.sh \\
             -d \$deriv_dir \\
             -g \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_\${sess}_\${task}_desc-grpIntx_mask.nii.gz \\
             -m NSlacc \\
-            -n precTest \\
-            -p amgL \\
+            -n rVal \\
             -s \$sess \\
             -t \$task \\
-            SPnegLF SPneuLF
+            neg neu
 
 USAGE
 }
 
 # receive args
-while getopts ":d:g:m:n:p:s:t:h" OPT; do
+while getopts ":d:g:m:n:s:t:h" OPT; do
     case $OPT in
     d)
         deriv_dir=${OPTARG}
@@ -71,9 +69,6 @@ while getopts ":d:g:m:n:p:s:t:h" OPT; do
         ;;
     n)
         decon_name=${OPTARG}
-        ;;
-    p)
-        ppi_seed=${OPTARG}
         ;;
     s)
         sess=${OPTARG}
@@ -126,9 +121,6 @@ function emptyArg {
     task)
         h_ret="-t"
         ;;
-    ppi_seed)
-        h_ret="-p"
-        ;;
     group_mask)
         h_ret="-g"
         ;;
@@ -141,7 +133,7 @@ function emptyArg {
     exit 1
 }
 
-for opt in deriv_dir sess task mask_name decon_name group_mask ppi_seed; do
+for opt in deriv_dir sess task mask_name decon_name group_mask; do
     h_opt=$(eval echo \${$opt})
     if [ -z $h_opt ]; then
         emptyArg $opt
@@ -163,7 +155,6 @@ cat <<-EOF
         -g : $group_mask
         -m : $mask_name
         -n : $decon_name
-        -p : $ppi_seed
         -s : $sess
         -t : $task
         beh : ${beh_list[@]}
@@ -175,11 +166,11 @@ mask_dir=${deriv_dir}/template
 analysis_dir=${deriv_dir}/analyses
 mkdir -p $analysis_dir
 
-# find subjs with PPI output
+# find subjs with deconvolved output
 subj_list_all=($(ls $deriv_dir | grep "sub-*"))
 subj_list=()
 for subj in ${subj_list_all[@]}; do
-    check_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc.HEAD
+    check_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_stats_REML+tlrc.HEAD
     if [ -f $check_file ]; then
         subj_list+=($subj)
     fi
@@ -209,17 +200,17 @@ if [ ! -f $mask_clean ]; then
 fi
 
 # extract coefs for each subj/behavior
-out_file=${analysis_dir}/Coefs_${sess}_${task}_${ppi_seed}-${mask_name}.txt
+out_file=${analysis_dir}/Coefs_${sess}_${task}_decon-${decon_name}_${mask_name}.txt
 echo -e "\n\tWriting: $out_file ...\n"
 echo -e "Mask\t$mask_name" >$out_file
 
 for subj in ${subj_list[@]}; do
-    ppi_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_PPI-${ppi_seed}_stats_REML+tlrc
+    dcn_file=${deriv_dir}/${subj}/${sess}/func/decon_${task}_${decon_name}_stats_REML+tlrc
 
     # find sub-brick for behavior coefficient
     brick_list=()
     for beh in ${beh_list[@]}; do
-        h_brick=$(3dinfo -label2index "${beh}#0_Coef" $ppi_file)
+        h_brick=$(3dinfo -label2index "${beh}#0_Coef" $dcn_file)
         brick_list+=($h_brick)
     done
 
@@ -235,6 +226,6 @@ for subj in ${subj_list[@]}; do
     IFS=$' \t\n'
 
     # get, print coefs
-    stats=$(3dROIstats -mask $mask_clean "${ppi_file}[${brick_str}]")
+    stats=$(3dROIstats -mask $mask_clean "${dcn_file}[${brick_str}]")
     echo -e "$subj\t$stats" >>$out_file
 done
