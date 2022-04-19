@@ -4,7 +4,7 @@
 \alias{draw_intx_diff}
 \title{Draw 3D interaction difference smooth for experimental group.}
 \usage{
-draw_intx_diff(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir)
+draw_intx_diff(plot_obj, attr_num, tract, y_name, plot_title, out_file)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -14,13 +14,11 @@ reference group difference interaction smooth (int)}
 
 \item{tract}{AFQ tract name (str)}
 
-\item{y_var}{Behavior of interest, used for Y-axis (str)}
-
 \item{y_name}{Y-axis title (str)}
 
 \item{plot_title}{Title of plot (str)}
 
-\item{out_dir}{Path to output location}
+\item{out_file}{Path to output location, file name}
 }
 \description{
 Using the output of an ordered-factor group interaction
@@ -29,5 +27,5 @@ interaction from the reference group (group A). The plot is inverted
 to illustrate B-A.
 }
 \details{
-Writes <out_dir>/Plot_GAM_<tract>_Group-Intx-Diff_<y_var>.png
+Writes <out_file>.png
 }

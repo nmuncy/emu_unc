@@ -21,18 +21,18 @@ switch_family <- function(dist_fam) {
 #' by testing.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
 #' @return GAM object
 #' @import mgcv
-gam_G <- function(df_tract, dist_fam) {
+gam_G <- function(df, dist_fam) {
   h_family <- switch_family(dist_fam)
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 50),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML"
   )
@@ -45,20 +45,20 @@ gam_G <- function(df_tract, dist_fam) {
 #' interaction of sex with covariate.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
 #' @param cov Covariate column name (str).
 #' @return GAM object
 #' @import mgcv
-gam_Gcov <- function(df_tract, dist_fam, cov) {
+gam_Gcov <- function(df, dist_fam, cov) {
   h_family <- switch_family(dist_fam)
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 50) +
     s(get(cov), by = sex),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML"
   )
@@ -70,21 +70,21 @@ gam_Gcov <- function(df_tract, dist_fam, cov) {
 #' Similar to gam_model, but each group factor has own smooth.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
 #' @param col_group Column name of factored grouping value (str).
 #' @return GAM object
 #' @import mgcv
-gam_GS <- function(df_tract, dist_fam, col_group) {
+gam_GS <- function(df, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
-  names(df_tract)[names(df_tract) == col_group] <- "h_group"
+  names(df)[names(df) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 50, m = 2) +
     s(nodeID, h_group, bs = "fs", k = 50, m = 2),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML"
   )
@@ -96,22 +96,22 @@ gam_GS <- function(df_tract, dist_fam, col_group) {
 #' Similar to gam_model, but each group factor has own smooth and wiggliness.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
 #' @param col_group Column name of factored grouping value (str).
 #' @return GAM object
 #' @import mgcv
-gam_GI <- function(df_tract, dist_fam, col_group) {
+gam_GI <- function(df, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
-  names(df_tract)[names(df_tract) == col_group] <- "h_group"
+  names(df)[names(df) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(h_group, bs = "re") +
     s(nodeID, bs = "cr", k = 50, m = 2) +
     s(nodeID, by = h_group, bs = "cr", k = 50, m = 1),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML"
   )
@@ -124,21 +124,21 @@ gam_GI <- function(df_tract, dist_fam, col_group) {
 #' smooth can be calculated.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
 #' @param col_group Column name of ordered factored grouping value (str).
 #' @return GAM object
 #' @import mgcv
-gam_GSOF <- function(df_tract, dist_fam, col_group) {
+gam_GSOF <- function(df, dist_fam, col_group) {
   h_family <- switch_family(dist_fam)
-  names(df_tract)[names(df_tract) == col_group] <- "h_group"
+  names(df)[names(df) == col_group] <- "h_group"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
     s(nodeID, bs = "cr", k = 50, m = 2) +
     s(nodeID, by = h_group, bs = "cr", k = 50, m = 2),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML"
   )
@@ -150,7 +150,7 @@ gam_GSOF <- function(df_tract, dist_fam, col_group) {
 #' Desc.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
@@ -159,18 +159,18 @@ gam_GSOF <- function(df_tract, dist_fam, col_group) {
 #' predicted (str).
 #' @return GAM object
 #' @import mgcv
-gam_Gintx <- function(df_tract, dist_fam, col_group, cont_var) {
+gam_Gintx <- function(df, dist_fam, col_group, cont_var) {
   h_family <- switch_family(dist_fam)
-  names(df_tract)[names(df_tract) == col_group] <- "h_group"
-  names(df_tract)[names(df_tract) == cont_var] <- "h_var"
+  names(df)[names(df) == col_group] <- "h_group"
+  names(df)[names(df) == cont_var] <- "h_var"
   h_gam <- bam(dti_fa ~ sex +
      s(subjectID, bs = "re") +
-    te(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    te(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 5), m = 2) +
     t2(
       nodeID, h_var, h_group,
-      bs = c("cr", "tp", "re"), k = c(50, 10, 2), m = 2
+      bs = c("cr", "tp", "re"), k = c(50, 5, 2), m = 2
     ),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML"
   )
@@ -183,7 +183,7 @@ gam_Gintx <- function(df_tract, dist_fam, col_group, cont_var) {
 #' continuous variable (LGI, PPI, etc).
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
@@ -192,19 +192,19 @@ gam_Gintx <- function(df_tract, dist_fam, col_group, cont_var) {
 #' predicted (str).
 #' @return GAM object
 #' @import mgcv
-gam_intx <- function(df_tract, dist_fam, col_group, cont_var) {
+gam_GSintx <- function(df, dist_fam, col_group, cont_var) {
   h_family <- switch_family(dist_fam)
-  names(df_tract)[names(df_tract) == col_group] <- "h_group"
-  names(df_tract)[names(df_tract) == cont_var] <- "h_var"
+  names(df)[names(df) == col_group] <- "h_group"
+  names(df)[names(df) == cont_var] <- "h_var"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
-    s(nodeID, bs = "cr", k = 50, m = 1) +
-    s(h_var, by = h_group, bs = "tp", k = 10, m = 2) +
+    s(nodeID, bs = "cr", k = 50, m = 2) +
+    s(h_var, by = h_group, bs = "tp", k = 5, m = 2) +
     ti(
       nodeID, h_var,
-      by = h_group, bs = c("cr", "tp"), k = c(50, 10), m = 2
+      by = h_group, bs = c("cr", "tp"), k = c(50, 5), m = 2
     ),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML",
   discrete = T
@@ -220,7 +220,7 @@ gam_intx <- function(df_tract, dist_fam, col_group, cont_var) {
 #' calculated.
 #'
 #' @export
-#' @param df_tract Long-formatted dataframe for AFQ tract, containing
+#' @param df Long-formatted dataframe for AFQ tract, containing
 #' columns of dti_fa, sex, subjectID, and nodeID.
 #' @param dist_fam Desired family/distribution to use with data (gamma, beta,
 #' or gaus; str).
@@ -232,21 +232,21 @@ gam_intx <- function(df_tract, dist_fam, col_group, cont_var) {
 #' predicted (str).
 #' @return GAM object
 #' @import mgcv
-gam_intxOF <- function(df_tract, dist_fam, col_group, col_groupOF, cont_var) {
+gam_GSintxOF <- function(df, dist_fam, col_group, col_groupOF, cont_var) {
   h_family <- switch_family(dist_fam)
-  names(df_tract)[names(df_tract) == col_group] <- "h_group"
-  names(df_tract)[names(df_tract) == col_groupOF] <- "h_groupOF"
-  names(df_tract)[names(df_tract) == cont_var] <- "h_var"
+  names(df)[names(df) == col_group] <- "h_group"
+  names(df)[names(df) == col_groupOF] <- "h_groupOF"
+  names(df)[names(df) == cont_var] <- "h_var"
   h_gam <- bam(dti_fa ~ sex +
     s(subjectID, bs = "re") +
-    s(nodeID, bs = "cr", k = 50, m = 1) +
-    s(h_var, by = h_group, bs = "tp", k = 10, m = 2) +
-    ti(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+    s(nodeID, bs = "cr", k = 50, m = 2) +
+    s(h_var, by = h_group, bs = "tp", k = 5, m = 2) +
+    ti(nodeID, h_var, bs = c("cr", "tp"), k = c(50, 5), m = 2) +
     ti(
       nodeID, h_var,
-      by = h_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 2
+      by = h_groupOF, bs = c("cr", "tp"), k = c(50, 5), m = 2
     ),
-  data = df_tract,
+  data = df,
   family = h_family,
   method = "fREML",
   discrete = T

@@ -4,7 +4,7 @@
 \alias{draw_intx}
 \title{Draw interaction smooths of AFQ tract node, FA, and behavioral covariate.}
 \usage{
-draw_intx(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir)
+draw_intx(plot_obj, attr_num, tract, y_name, plot_title, out_file)
 }
 \arguments{
 \item{plot_obj}{Plotable object returned by getViz (object)}
@@ -14,18 +14,16 @@ smooth (int)}
 
 \item{tract}{AFQ tract name (str)}
 
-\item{y_var}{Behavior of interest, used for Y-axis (str)}
-
 \item{y_name}{Y-axis title (str)}
 
 \item{plot_title}{Title of plot (str)}
 
-\item{out_dir}{Path to output location}
+\item{out_file}{Path to output location, file name}
 }
 \description{
 Plot using the gamViz plottable object and corresponding attribute. Draws
 tract node as the X-axis.
 }
 \details{
-Writes <out_dir>/Plot_GAM_<tract>_Intx_<x_var>.png
+Writes <out_file>.png
 }

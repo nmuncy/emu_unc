@@ -4,10 +4,10 @@
 \alias{gam_Gcov}
 \title{Conduct basic GAM analysis, G method with covariate.}
 \usage{
-gam_Gcov(df_tract, dist_fam, cov)
+gam_Gcov(df, dist_fam, cov)
 }
 \arguments{
-\item{df_tract}{Long-formatted dataframe for AFQ tract, containing
+\item{df}{Long-formatted dataframe for AFQ tract, containing
 columns of dti_fa, sex, subjectID, and nodeID.}
 
 \item{dist_fam}{Desired family/distribution to use with data (gamma, beta,

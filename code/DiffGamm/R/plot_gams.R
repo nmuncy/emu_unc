@@ -195,15 +195,13 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
 #' @param attr_num List/attribute number of plot_obj that contains interaction
 #'  smooth (int)
 #' @param tract AFQ tract name (str)
-#' @param y_var Behavior of interest, used for Y-axis (str)
 #' @param y_name Y-axis title (str)
 #' @param plot_title Title of plot (str)
-#' @param out_dir Path to output location
-#' @details Writes <out_dir>/Plot_GAM_<tract>_Intx_<x_var>.png
+#' @param out_file Path to output location, file name
+#' @details Writes <out_file>.png
 #' @import ggplot2
 #' @import mgcViz
-draw_Gintx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir) {
-
+draw_Gintx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
   p <- plot(sm(plot_obj, attr_num))
   p_data <- p$data$fit
   colnames(p_data) <- c("z", "tz", "node", "cov", "se")
@@ -221,7 +219,7 @@ draw_Gintx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out
   print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_mGSIntx_", y_var, ".png"),
+    paste0(out_file, ".png"),
     units = "in",
     width = 6,
     height = 6,
@@ -239,14 +237,13 @@ draw_Gintx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out
 #' @param attr_num List/attribute number of plot_obj that contains interaction
 #'  smooth (int)
 #' @param tract AFQ tract name (str)
-#' @param y_var Behavior of interest, used for Y-axis (str)
 #' @param y_name Y-axis title (str)
 #' @param plot_title Title of plot (str)
-#' @param out_dir Path to output location
-#' @details Writes <out_dir>/Plot_GAM_<tract>_Intx_<x_var>.png
+#' @param out_file Path to output location, file name
+#' @details Writes <out_file>.png
 #' @import ggplot2
 #' @import mgcViz
-draw_intx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir) {
+draw_intx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
 
   # switch x-y so node is X-axis
   p <- plot(sm(plot_obj, attr_num))
@@ -266,7 +263,7 @@ draw_intx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_
   print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_mGSIntx_", y_var, ".png"),
+    paste0(out_file, ".png"),
     units = "in",
     width = 6,
     height = 6,
@@ -286,15 +283,14 @@ draw_intx <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_
 #' @param attr_num List/attribute number of plot_obj that contains
 #' reference group difference interaction smooth (int)
 #' @param tract AFQ tract name (str)
-#' @param y_var Behavior of interest, used for Y-axis (str)
 #' @param y_name Y-axis title (str)
 #' @param plot_title Title of plot (str)
-#' @param out_dir Path to output location
-#' @details Writes <out_dir>/Plot_GAM_<tract>_Group-Intx-Diff_<y_var>.png
+#' @param out_file Path to output location, file name
+#' @details Writes <out_file>.png
 #' @import ggplot2
 #' @import mgcViz
 #' @import viridis
-draw_intx_diff <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title, out_dir) {
+draw_intx_diff <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
 
   # invert direction for ease of interpretation, switch x-y so node is X-axis
   p <- plot(sm(plot_obj, attr_num))
@@ -315,7 +311,7 @@ draw_intx_diff <- function(plot_obj, attr_num, tract, y_var, y_name, plot_title,
   print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_mGSOFIntx-Diff_", y_var, ".png"),
+    paste0(out_file, ".png"),
     units = "in",
     width = 6,
     height = 6,

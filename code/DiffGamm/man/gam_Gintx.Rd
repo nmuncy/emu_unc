@@ -4,10 +4,10 @@
 \alias{gam_Gintx}
 \title{Title.}
 \usage{
-gam_Gintx(df_tract, dist_fam, col_group, cont_var)
+gam_Gintx(df, dist_fam, col_group, cont_var)
 }
 \arguments{
-\item{df_tract}{Long-formatted dataframe for AFQ tract, containing
+\item{df}{Long-formatted dataframe for AFQ tract, containing
 columns of dti_fa, sex, subjectID, and nodeID.}
 
 \item{dist_fam}{Desired family/distribution to use with data (gamma, beta,

@@ -3,53 +3,54 @@ library("stringr")
 
 # General Notes ----
 #
-# Make dataframes of PPI coefficients referencing output of func4_roiAnalysis.
+# Make dataframes of coefficients referencing output of func3 and func5
+# ROI analyses.
 #
-# Requires OneDrive access for EMU summary dataset.
+# Requires OneDrive access for EMU summary dataset, and assumes amgL PPI seed.
 #
 # Writes:
-#   <data_dir>/df_<sess>_<task>_<ppi_seed>-ROI.csv
+#   <data_dir>/df_<sess>_<task>_<decon>_ROI.csv
 #
 # Receives three positional arguments:
-#   [1] = ppi seed (amgL)
-#   [2] = BIDS session (ses-S1)
-#   [3] = BIDS task (task-study)
-#   [4] = sub-brick behavior string (SnegLF)
-#   [5] = sub-brick behavior string (SneuLF)
+#   [1] = BIDS session (ses-S1)
+#   [2] = BIDS task (task-study)
+#   [3] = decon str (decon-rVal)
+#   [4] = sub-brick behavior string (neg)
+#   [5] = sub-brick behavior string (neu)
 #
 # Usage:
-#   Rscript func6_mkdf.R amgL ses-S1 task-study SPnegLF SPneuLF
+#   Rscript func6_mkdf.R ses-S1 task-study decon-rVal neg neu
 
 # Receive Args ----
 get_args <- commandArgs(trailingOnly = T)
 if (length(get_args) != 5) {
   stop("Please see General Notes. Exiting.")
 }
-ppi_seed <- get_args[1]
-sess <- get_args[2]
-task <- get_args[3]
+sess <- get_args[1]
+task <- get_args[2]
+decon <- get_args[3]
 beh_A <- get_args[4]
 beh_B <- get_args[5]
 
 # # for testing
-# ppi_seed <- "amgL"
 # sess <- "ses-S1"
 # task <- "task-study"
-# beh_A <- "SPnegLF"
-# beh_B <- "SPneuLF"
+# decon <- "decon-rVal"
+# beh_A <- "neg"
+# beh_B <- "neu"
 
 
 # Functions ----
-beh_switch <- function(h_beh) {
-  x_beh <- switch(h_beh,
-    "SPnegLF" = "PnegLF",
-    "SPneuLF" = "PneuLF"
-  )
-  return(x_beh)
-}
+# beh_switch <- function(h_beh) {
+#   x_beh <- switch(h_beh,
+#     "SPnegLF" = "PnegLF",
+#     "SPneuLF" = "PneuLF"
+#   )
+#   return(x_beh)
+# }
 
-make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir) {
-  # Organize func4_roiAnalysis output, make dataframes.
+make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, roi, one_dir, data_dir) {
+  # Organize func3/func5 output, make dataframes.
   #
   # Added values are: age in month, sex, PARS-6, Child's SCARED,
   # Parent's SCARED, PARS/SCARED groups, primary diagnosis, diagnosis groups.
@@ -61,12 +62,13 @@ make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, on
   #   beh_A (str) = sub-brick behavior to search
   #   beh_B (str) = sub-brick behavior to search
   #   ppi_seed (str) =  name of seed
-  #   roi (str) = name of ROI
+  #   roi (str) = name of ROI, Seed-ROI for PPI
+  #     e.g. decon ROI analysis = amgL, PPI ROI analysis= amgL-NSlacc
   #   one_dir (str) = path to directory containing emuR01_summary_latest.csv
   #   data_dir (str) = path to directory containing AFQ tract_profiles.csv
   #
   # Returns:
-  #   df_out (dataframe) = wide-formatted, PPI coefs + summary info
+  #   df_out (dataframe) = wide-formatted, coefs & summary info
   #
   # Writes:
   #   data_dir/df_<sess>_<task>_<ppi_seed>-<roi>.csv
@@ -82,9 +84,6 @@ make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, on
     behB <- as.numeric(beh_vecB)
   )
   colnames(df_out) <- c("subj", beh_A, beh_B)
-  df_out[, paste0(beh_A, "-", beh_B)] <- NA
-  df_out[, paste0(beh_A, "-", beh_B)] <- df_out[, beh_A] - df_out[, beh_B]
-  rm(df_raw)
 
   # add demographic, measure info
   df_out$sex <- df_out$age <- df_out$pars <- df_out$pscared <-
@@ -92,27 +91,26 @@ make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, on
   df_summary <- read.csv(paste0(one_dir, "/emuR01_summary_latest.csv"))
   for (subj in subj_list) {
 
-    # censure subjects who had <7 behavior events modeled
+    # censure subjects who had <15 events modeled for both desired behaviors
     ind_out <- grep(subj, df_out$subj)
-
+    
+    subj_time_dir <- paste(data_dir, "timing_files", subj, sess, sep = "/")
     subj_count <- read.delim(
-      paste(data_dir, "timing_files", subj, sess, "beh_counts.tsv", sep = "/"),
+      paste0(subj_time_dir, "/beh_", decon, "_counts.tsv"),
       header = T,
       sep = "\t"
     )
-    h_colA <- beh_switch(beh_A)
-    h_colB <- beh_switch(beh_B)
 
-    # check for behavior columns
-    if (!h_colA %in% colnames(subj_count) || !h_colB %in% colnames(subj_count)) {
+    # check that all desired behs exist
+    if (!beh_A %in% colnames(subj_count) || !beh_B %in% colnames(subj_count)) {
       df_out[ind_out, 2:4] <- NA
       next
     } else {
 
       # count beh events
-      count_A <- as.numeric(subj_count[1, h_colA])
-      count_B <- as.numeric(subj_count[1, h_colB])
-      if (count_A < 7 || count_B < 7) {
+      count_A <- as.numeric(subj_count[1, beh_A])
+      count_B <- as.numeric(subj_count[1, beh_B])
+      if (count_A < 15 || count_B < 15) {
         df_out[ind_out, 2:4] <- NA
         next
       }
@@ -170,7 +168,7 @@ make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, ppi_seed, roi, on
 
   # save df
   write_out <- paste0(
-    data_dir, "/df_", sess, "_", task, "_", ppi_seed, "-", roi, ".csv"
+    data_dir, "/df_", sess, "_", task, "_", decon, "_", roi, ".csv"
   )
   write.table(df_out, write_out, sep = ",", row.names = F)
 
@@ -192,21 +190,31 @@ one_dir <- paste(
 )
 data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
 
-roi_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
-for (roi in roi_list) {
+roi_list <- c("amgL", "amgR")
+ns_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
+
+# get coefs for decon roi analysis
+for (roi in c(roi_list, ns_list)) {
+  
   coef_file <- paste0(
-    data_dir, "/Coefs_", sess, "_", task, "_", ppi_seed, "-", roi, ".txt"
+    data_dir, "/Coefs_", sess, "_", task, "_", decon, "_", roi, ".txt"
   )
   df_out <- make_dataframe(
-    coef_file, sess, task, beh_A, beh_B, ppi_seed, roi, one_dir, data_dir
+    coef_file, sess, task, beh_A, beh_B, roi, one_dir, data_dir
   )
-
-  # write list of participants with sufficient number of trials
-  df_complete <- df_out[complete.cases(df_out), ]
-  subj_complete <- df_complete$subj
-  subj_out <- paste0(
-    data_dir, "/df_", sess, "_", task, "_",
-    ppi_seed, "-", roi, "_subjs-sufficient-trials.txt"
-  )
-  lapply(subj_complete, write, subj_out, append=TRUE, ncolumns=1)
+  
+  # get coefs for decon amgL-PPI analysis
+  if(roi == "amgL"){
+    for(h_roi in ns_list){
+      seed_roi = paste("amgL", h_roi, sep = "-")
+      coef_file <- paste0(
+        data_dir, "/Coefs_", sess, "_", task, "_", decon, "_", seed_roi, ".txt"
+      )
+      df_out <- make_dataframe(
+        coef_file, sess, task, beh_A, beh_B, seed_roi, one_dir, data_dir
+      )
+    }
+  }
 }
+
+

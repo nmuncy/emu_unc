@@ -4,10 +4,10 @@
 \alias{gam_GI}
 \title{Model data with global + group smooths, GI method.}
 \usage{
-gam_GI(df_tract, dist_fam, col_group)
+gam_GI(df, dist_fam, col_group)
 }
 \arguments{
-\item{df_tract}{Long-formatted dataframe for AFQ tract, containing
+\item{df}{Long-formatted dataframe for AFQ tract, containing
 columns of dti_fa, sex, subjectID, and nodeID.}
 
 \item{dist_fam}{Desired family/distribution to use with data (gamma, beta,

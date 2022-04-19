@@ -4,10 +4,10 @@
 \alias{gam_G}
 \title{Conduct basic GAM analysis, G method.}
 \usage{
-gam_G(df_tract, dist_fam)
+gam_G(df, dist_fam)
 }
 \arguments{
-\item{df_tract}{Long-formatted dataframe for AFQ tract, containing
+\item{df}{Long-formatted dataframe for AFQ tract, containing
 columns of dti_fa, sex, subjectID, and nodeID.}
 
 \item{dist_fam}{Desired family/distribution to use with data (gamma, beta,
