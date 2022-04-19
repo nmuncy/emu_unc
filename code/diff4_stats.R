@@ -183,7 +183,7 @@ for (tract in tract_list) {
     plot_tract_GS,
     2,
     tract,
-    paste(switch_names(tract), "Global Smooth"),
+    paste(switch_names(tract), "Tract Smooth"),
     out_dir
   )
   draw_group_smooth(
@@ -281,6 +281,7 @@ for (tract in tract_list) {
       rm(h_gam)
     }
     tract_GSintx <- readRDS(gam_file)
+    write_gam_stats(tract_GSintx, out_dir, paste0("mGSIntx_LGI_", beh_short), tract)
 
     # draw
     plot_tract_GSintx <- getViz(tract_GSintx)
@@ -337,7 +338,7 @@ for (tract in tract_list) {
       switch_names(beh),
       paste(
         switch_names(tract),
-        "Node-FA-Memory Interaction, Experimental Difference"
+        "Node-FA-Memory Interaction, Diff"
       ),
       paste0(
         out_dir, "/Plot_", tract, "_mGSOFIntx_LGI_", beh_short, "_diff"
@@ -345,8 +346,10 @@ for (tract in tract_list) {
     )
 
     # clean up
+    rm(tract_Gintx)
     rm(tract_GSintx)
     rm(tract_GSintxOF)
+    rm(plot_Gintx)
     rm(plot_tract_GSintx)
     rm(plot_tract_GSintxOF)
   }
@@ -503,18 +506,21 @@ for (tract in tract_list) {
       tract,
       paste(switch_names(beh), switch_names(roi), "Coefs"),
       paste(
-        switch_names(tract), "Node-FA-ROI Interaction, Experimental Difference"
+        switch_names(tract), "Node-FA-ROI Interaction, Diff"
       ),
       paste0(
         out_dir, "/Plot_", tract, "_mGSOFIntx_ROI_", roi_beh_out, "_diff"
       )
     )
 
+    rm(tract_Gintx)
     rm(tract_GSintx)
     rm(tract_GSintxOF)
+    rm(plot_Gintx)
     rm(plot_tract_GSintx)
     rm(plot_tract_GSintxOF)
   }
+  rm(tract_GS)
 }
 
 

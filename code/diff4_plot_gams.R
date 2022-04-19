@@ -33,7 +33,7 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
     geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(plot_title) +
-    ylab("Fit Est.") +
+    ylab("Est. FA Fit") +
     xlab("Tract Node") +
     theme(text = element_text(family = "Times New Roman"))
   print(pp)
@@ -42,8 +42,8 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
     paste0(out_dir, "/Plot_", tract, "_mGS-Global.png"),
     plot = last_plot(),
     units = "in",
-    width = 6,
-    height = 6,
+    width = 4,
+    height = 3,
     dpi = 600,
     device = "png"
   )
@@ -81,7 +81,7 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
     scale_y_continuous(limits = c(-0.2, 0.2)) +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     ggtitle(plot_title) +
-    ylab("Fit Est.") +
+    ylab("Est. FA Fit") +
     xlab("Tract Node") +
     theme(text = element_text(family = "Times New Roman"))
   print(pp)
@@ -90,8 +90,8 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
     paste0(out_dir, "/Plot_", tract, "_mGS-Group.png"),
     plot = last_plot(),
     units = "in",
-    width = 6,
-    height = 6,
+    width = 4,
+    height = 3,
     dpi = 600,
     device = "png"
   )
@@ -184,8 +184,8 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
     paste0(out_dir, "/Plot_", tract, "_mGSOF-Diff.png"),
     plot = last_plot(),
     units = "in",
-    width = 6,
-    height = 6,
+    width = 4,
+    height = 3,
     dpi = 600,
     device = "png"
   )
@@ -228,8 +228,8 @@ draw_Gintx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) 
   ggsave(
     paste0(out_file, ".png"),
     units = "in",
-    width = 6,
-    height = 6,
+    width = 4,
+    height = 3,
     device = "png"
   )
 }
@@ -273,8 +273,8 @@ draw_intx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
   ggsave(
     paste0(out_file, ".png"),
     units = "in",
-    width = 6,
-    height = 6,
+    width = 4,
+    height = 3,
     device = "png"
   )
 }
@@ -315,14 +315,17 @@ draw_intx_diff <- function(plot_obj, attr_num, tract, y_name, plot_title, out_fi
     scale_fill_viridis(option = "D", name = "Est. FA Fit") +
     labs(y = y_name, x = "Tract Node") +
     ggtitle(plot_title) +
-    theme(text = element_text(family = "Times New Roman"))
+    theme(
+      text = element_text(family = "Times New Roman"),
+      plot.title = element_text(size = 12)
+    )
   print(pp)
 
   ggsave(
     paste0(out_file, ".png"),
     units = "in",
-    width = 6,
-    height = 6,
+    width = 4,
+    height = 3,
     device = "png"
   )
 }
