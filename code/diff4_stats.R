@@ -1,17 +1,16 @@
-library("fitdistrplus")
 library("itsadug")
 library("tidymv")
 library("dplyr")
-library("mgcViz")
 library("tools")
 library("tidyr")
-library("devtools")
-
-# install_local(path = ".", force = T)
-library("DiffGamm")
+source("./diff4_calc_gams.R")
+source("./diff4_plot_gams.R")
 
 
 # Functions ----
+#
+# Helper functions for organizing strings and writing files.
+
 tract_fam <- function(tract) {
   # Set family for each tract.
   #
