@@ -18,7 +18,7 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   #   out_dir (str) = Path to output location
   #
   # Writes:
-  #   <out_dir>/Plot_GAM_<tract>_mGS-Global.png
+  #   <out_dir>/Plot_<tract>_mGS-Global.png
 
   # use plot to extract attribute of interest
   p <- plot(sm(plot_obj, attr_num))
@@ -39,7 +39,7 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_mGS-Global.png"),
+    paste0(out_dir, "/Plot_", tract, "_mGS-Global.png"),
     plot = last_plot(),
     units = "in",
     width = 6,
@@ -65,7 +65,7 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   #   out_dir (str) = Path to output location
   #
   # Writes:
-  #   <out_dir>/Plot_GAM_<tract>_mGS-Group.png
+  #   <out_dir>/Plot_<tract>_mGS-Group.png
 
   # use plot to extract attribute of interest
   p <- plot(sm(plot_obj, attr_num))
@@ -87,7 +87,7 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_mGS-Group.png"),
+    paste0(out_dir, "/Plot_", tract, "_mGS-Group.png"),
     plot = last_plot(),
     units = "in",
     width = 6,
@@ -113,7 +113,7 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
   #   out_dir (str) = Path to output location
   #
   # Writes:
-  #   <out_dir>/Plot_GAM_<tract>_mGS-Diff.png
+  #   <out_dir>/Plot_<tract>_mGS-Diff.png
 
   # unpack difference smooth data
   p <- plot(sm(plot_obj, attr_num)) +
@@ -181,7 +181,7 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
   print(pp)
 
   ggsave(
-    paste0(out_dir, "/Plot_GAM_", tract, "_mGSOF-Diff.png"),
+    paste0(out_dir, "/Plot_", tract, "_mGSOF-Diff.png"),
     plot = last_plot(),
     units = "in",
     width = 6,

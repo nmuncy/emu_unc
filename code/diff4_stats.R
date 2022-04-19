@@ -329,12 +329,7 @@ for (tract in tract_list) {
 
     # draw
     plot_tract_GSintxOF <- getViz(tract_GSintxOF)
-    plot(sm(plot_tract_GSintxOF, 1))
-    plot(sm(plot_tract_GSintxOF, 2))
-    plot(sm(plot_tract_GSintxOF, 3))
-    plot(sm(plot_tract_GSintxOF, 4))
-    plot(sm(plot_tract_GSintxOF, 5))
-    plot(sm(plot_tract_GSintxOF, 6))
+    
     draw_intx_diff(
       plot_tract_GSintxOF,
       6,
@@ -360,9 +355,11 @@ for (tract in tract_list) {
 }
 
 
-# Interaction with decon ROI coefs ----
+# Interaction with ROI coefs ----
 #
-# Desc.
+# Incorporate beta-coefficients from left and right amygdala during
+# negative and neutral judgments into dataframe. Then test if a group x
+# coefs x valence interaction exists for UNC_L-amgL and UNC_R-amgR.
 
 # set seed and behavior lists
 roi_list <- c("amgL", "amgR")
