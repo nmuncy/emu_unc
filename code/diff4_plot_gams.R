@@ -1,6 +1,8 @@
 library(ggplot2)
 library(mgcViz)
 library(viridis)
+library(itsadug)
+
 
 draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   # Draw global smooth of AFQ tract.
@@ -278,6 +280,116 @@ draw_intx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
     device = "png"
   )
 }
+
+draw_covS_diff <- function(gam_obj, x_name, plot_title, out_file) {
+  # Draw difference smooth of covariate.
+  #
+  # Use plot_diff to calculate group difference smooth for covariate
+  # from gam_GSintxOF model. Unpack, determine regions which differ,
+  # and plot the smooth with sig boxes.
+  #
+  # Arguments:
+  #   gam_obj (gam) = GAM object returned by mgcv, specifically the
+  #     function gam_GSintxOF
+  #   x_name (str) = name of X-axis label
+  #   plot_title (str) = Title of plot
+  #   out_file (str) = Path to output location, file name
+  #
+  # Writes:
+  #   <out_file>.png
+
+  # calc cov group diff smooth
+  p_data <- plot_diff(
+    gam_obj,
+    view = c("h_var"),
+    comp = list(h_group = c("Con", "Exp")),
+    rm.ranef = T,
+    plot = F
+  )
+
+  # determine regions that differ from zero
+  p_data$lb <- p_data$est - p_data$CI
+  p_data$ub <- p_data$est + p_data$CI
+  sig_rows <- which(
+    (p_data$est < 0 & p_data$ub < 0) |
+      (p_data$est > 0 & p_data$lb > 0)
+  )
+  sig_nodes <- p_data[sig_rows, ]$h_var
+
+  # find start, end points of sig regions, deal w/no sig regions
+  vec_start <- sig_nodes[1]
+  if(!is.na(vec_start)){
+    vec_end <- vector()
+    y_min <- min(p_data$lb)
+    num_nodes <- length(sig_nodes)
+    c <- 2
+    while (c < num_nodes) {
+      cc <- c + 1
+      if (sig_nodes[cc] > sig_nodes[c] + 1) {
+        vec_end <- append(vec_end, sig_nodes[c])
+        vec_start <- append(vec_start, sig_nodes[cc])
+      }
+      c <- cc
+    }
+    vec_end <- append(vec_end, sig_nodes[num_nodes])
+    
+    # make df for drawing rectangles
+    d_rect <- data.frame(
+      x_start = vec_start,
+      x_end = vec_end,
+      y_start = rep(y_min, length(vec_start)),
+      y_end = rep(0, length(vec_start))
+    )
+    d_rect$x_start <- d_rect$x_start
+    d_rect$x_end <- d_rect$x_end
+  }
+  
+  # draw smooth, shade diff regions if they exist
+  if(!is.na(vec_start)){
+    pp <- ggplot(data = p_data, aes(x = .data$h_var, y = .data$est)) +
+      geom_hline(yintercept = 0) +
+      geom_line() +
+      geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
+      annotate(
+        "rect",
+        xmin = c(d_rect$x_start),
+        xmax = c(d_rect$x_end),
+        ymin = c(d_rect$y_start),
+        ymax = c(d_rect$y_end),
+        alpha = 0.2,
+        fill = "red"
+      ) +
+      labs(x = x_name, y = "Est. FA Fit") +
+      ggtitle(plot_title) +
+      theme(
+        text = element_text(family = "Times New Roman"),
+        plot.title = element_text(size = 12)
+      )
+  } else {
+    pp <- ggplot(data = p_data, aes(x = .data$h_var, y = .data$est)) +
+      geom_hline(yintercept = 0) +
+      geom_line() +
+      geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
+      labs(x = x_name, y = "Est. FA Fit") +
+      ggtitle(plot_title) +
+      theme(
+        text = element_text(family = "Times New Roman"),
+        plot.title = element_text(size = 12)
+      )
+  }
+  print(pp)
+  ggsave(
+    filename = paste0(out_file, ".png"),
+    plot = last_plot(),
+    units = "in",
+    width = 4,
+    height = 3,
+    dpi = 600,
+    device = "png"
+  )
+}
+
+
 
 
 draw_intx_diff <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {

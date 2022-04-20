@@ -1,8 +1,8 @@
-library("itsadug")
 library("tidymv")
 library("dplyr")
 library("tools")
 library("tidyr")
+library("ez")
 source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
 
@@ -217,7 +217,10 @@ for (tract in tract_list) {
 
 # Interaction with LGI ----
 #
-# First, model the interaction of group, tract node, and
+# First, test for a group by valence interaction in LGI 
+# scores.
+#
+# Next, model the interaction of group, tract node, and
 # a memory metric (negative/neutral LGI) in predicting
 # tract FA values. Compare with tract_GS model to determine
 # if including LGI improves model fit.
@@ -227,6 +230,73 @@ for (tract in tract_list) {
 # interaction from reference group.
 
 beh_list <- c("lgi_neg", "lgi_neu")
+
+# subset dataframe, make long format
+df_sub <- df_afq[which(df_afq$tractID == "UNC_L" & df_afq$nodeID == 10), ]
+df_sub <- df_sub %>% drop_na(dx_group)
+
+df_sub$dx_group <- as.character(df_sub$dx_group)
+subj_list <- df_sub$subjectID
+group_list <- unique(df_sub$dx_group)
+num_beh <- length(beh_list)
+num_subj <- length(subj_list)
+num_group <- length(group_list)
+
+df_long <- as.data.frame(matrix(NA, nrow = num_subj * num_beh, ncol = 4))
+colnames(df_long) <- c("subj", "group", "mem", "value")
+df_long$subj <- rep(subj_list, each = num_beh)
+df_long$mem <- rep(beh_list, num_subj)
+
+for (subj in subj_list){
+  
+  # get group
+  ind_long <- which(df_long$subj == subj)
+  ind_sub <- which(df_sub$subjectID == subj)
+  df_long[ind_long, ]$group <- df_sub[ind_sub, ]$dx_group
+  
+  # get lgi values
+  for(beh in beh_list){
+    ind_long <- which(df_long$subj == subj & df_long$mem == beh)
+    df_long[ind_long, ]$value <- df_sub[ind_sub, beh]
+  }
+}
+
+# test for group x lgi diff
+df_long$groupF <- factor(df_long$group)
+df_long$memF <- factor(df_long$mem)
+fit_anov <- ezANOVA(
+  df_long, value, wid=subj, within = memF, between = groupF
+)
+fit_anov
+
+# rename vars for pretty plots
+ind_neg <- which(df_long$mem == "lgi_neg")
+ind_neu <- which(df_long$mem == "lgi_neu")
+df_long[ind_neg, ]$mem <- "Negative"
+df_long[ind_neu, ]$mem <- "Neutral"
+
+ggplot(df_long, aes(x = mem, y = value, fill = group)) +
+  geom_boxplot() +
+  labs(x = "Stimulus Valence", y = "LGI") +
+  scale_fill_discrete(name = "Group") +
+  ggtitle("Memory Metric by Valence and Group") +
+  theme(
+    text = element_text(family = "Times New Roman")
+  )
+# ggsave(
+#   "/Users/nmuncy/Desktop/grou_lgi.png",
+#   plot = last_plot(),
+#   units = "in",
+#   width = 4,
+#   height = 3,
+#   dpi = 600,
+#   device = "png"
+# )
+rm(df_long)
+rm(df_sub)
+
+
+# conduct GAMs
 for (tract in tract_list) {
 
   # subset df_afq, keep people w/dx for group modeling
@@ -311,6 +381,7 @@ for (tract in tract_list) {
         out_dir, "/Plot_", tract, "_mGSIntx_LGI_", beh_short, "_exp"
       )
     )
+    
 
     # test if experiment group interaction differs from control
     gam_file <- paste0(out_dir, "/Model_", tract, "_mGSOFIntx_LGI_", beh_short, ".Rda")
@@ -342,6 +413,19 @@ for (tract in tract_list) {
       ),
       paste0(
         out_dir, "/Plot_", tract, "_mGSOFIntx_LGI_", beh_short, "_diff"
+      )
+    )
+    
+    # draw diff smooth of covariate
+    draw_covS_diff(
+      tract_GSintxOF,
+      switch_names(beh), 
+      paste(
+        switch_names(tract),
+        "Memory Metric Smooth, Diff"
+      ),
+      paste0(
+        out_dir, "/Plot_", tract, "_mGSOFIntx_LGI_", beh_short, "_cov_diff"
       )
     )
 
@@ -510,6 +594,19 @@ for (tract in tract_list) {
       ),
       paste0(
         out_dir, "/Plot_", tract, "_mGSOFIntx_ROI_", roi_beh_out, "_diff"
+      )
+    )
+    
+    # draw diff smooth of covariate
+    draw_covS_diff(
+      tract_GSintxOF,
+      paste(switch_names(beh), switch_names(roi), "Coefs"), 
+      paste(
+        switch_names(tract),
+        "ROI Interaction Smooth, Diff"
+      ),
+      paste0(
+        out_dir, "/Plot_", tract, "_mGSOFIntx_roi_", roi_beh_out, "_cov_diff"
       )
     )
 

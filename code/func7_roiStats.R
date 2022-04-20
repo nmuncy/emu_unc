@@ -256,16 +256,45 @@ df_long$beh <- factor(df_long$beh)
 
 final_subj_num <- length(unique(df_long$subj))
 
-# omnibus
+# omnibus test
 fit_omni <- ezANOVA(
   df_long, coef, wid=subj, within = c(beh, roi), between = group
 )
 fit_omni
+
+# rename vars for pretty plots
+ind_amgL <- which(df_long$roi == "amgL")
+ind_amgR <- which(df_long$roi == "amgR")
+ind_neg <- which(df_long$beh == "neg")
+ind_neu <- which(df_long$beh == "neu")
+
+df_long$roi <- as.character(df_long$roi)
+df_long$beh <- as.character(df_long$beh)
+
+df_long[ind_amgL, ]$roi <- "L. Amg"
+df_long[ind_amgR, ]$roi <- "R. Amg"
+df_long[ind_neg, ]$beh <- "Neg"
+df_long[ind_neu, ]$beh <- "Neu"
+
 ggplot(df_long, aes(x = beh, y = coef, fill = group)) +
   facet_wrap(~roi) +
   geom_boxplot() +
-  labs(x = "Stimulus Rating", y = "Coefficient", color = "Group") +
-  ggtitle("Amygdaloid BOLD signal during scene valence rating")
+  labs(x = "Stimulus Rating", y = "Coefficient") +
+  scale_fill_discrete(name = "Group") +
+  ggtitle("Scene Valence Rating Amygdaloid Signal") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size=12)
+    )
+ggsave(
+  "/Users/nmuncy/Desktop/roi_amg.png",
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  dpi = 600,
+  device = "png"
+)
 
 
 # amgL NSlacc, NSldmpfc, NSlsfs ----

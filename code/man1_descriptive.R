@@ -4,6 +4,7 @@ library("fitdistrplus")
 source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
 
+
 # Read in AFQ data ----
 data_dir <- "/Users/nmuncy/Projects/emu_unc/data"
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
@@ -499,9 +500,9 @@ ggsave(
 )
 
 
-# Model group-covariate interactions ----
+# Model individual group-covariate interactions ----
 #
-# Foo.
+# Model each group separately to check the interaction of node-fa-cov.
 
 # interaction of groupC - visualize linear fa-cov intx
 df_groupA <- df_tract[which(df_tract$dx_group == "Con"), ]
@@ -603,19 +604,19 @@ ggsave(
 
 # full interaction model, visualize
 gam_cov <- gam_GSintx(df_tract, "gamma", "dx_group", "cov")
-# gam_cov <- bam(dti_fa ~ sex +
-#                s(subjectID, bs = "re") +
-#                s(nodeID, bs = "cr", k = 50, m = 2) +
-#                s(cov, by = dx_group, bs = "tp", k = 5, m = 2) +
-#                ti(
-#                  nodeID, cov,
-#                  by = dx_group, bs = c("cr", "tp"), k = c(50, 5), m = 2
-#                ),
-#              data = df_tract,
-#              family = Gamma(link = "logit"),
-#              method = "fREML",
-#              discrete = T
-# )
+gam_covGS <- bam(dti_fa ~ sex +
+               s(subjectID, bs = "re") +
+               s(nodeID, bs = "cr", k = 50, m = 2) +
+               s(cov, by = dx_group, bs = "tp", k = 5, m = 2) +
+               ti(
+                 nodeID, cov,
+                 by = dx_group, bs = c("cr", "tp"), k = c(50, 5), m = 2
+               ),
+             data = df_tract,
+             family = Gamma(link = "logit"),
+             method = "fREML",
+             discrete = T
+)
 
 plot_gam_cov <- getViz(gam_cov)
 # plot(sm(plot_gam_cov, 1))
@@ -704,6 +705,7 @@ plot_gam_covOF <- getViz(gam_covOF)
 # plot(sm(plot_gam_covOF, 5))
 plot(sm(plot_gam_covOF, 6))
 
+# plot node-fa-cov diff smooth
 p <- plot(sm(plot_gam_covOF, 6))
 p_data <- p$data$fit
 p_data$zI <- -1 * p_data$z
@@ -731,15 +733,80 @@ ggsave(
   device = "png"
 )
 
-# # invert difference smooth to help interpretation
-# p <- plot(sm(plot_gam_covOF, 6))
-# p_data <- p$data$fit
-# p_data$zI <- -1 * p_data$z
-# 
-# ggplot(data = p_data, aes(x = x, y = y, z = zI)) +
-#   geom_tile(aes(fill = zI)) +
-#   geom_contour(colour = "black") +
-#   scale_fill_viridis(option = "D", name = "Fit FA") +
-#   labs(x = "Covariate Term", y = "NodeID") +
-#   ggtitle("L Unc node-fa-cov interaction, full model, experimental difference smooth (ordered GAM)")
+# calc cov group diff smooth
+p_data <- plot_diff(
+  gam_covOF, 
+  view = c("h_var"), 
+  comp = list(h_group=c("Con", "Exp")), 
+  rm.ranef = T
+  )
+
+# determine regions that differ from zero
+p_data$lb <- p_data$est-p_data$CI
+p_data$ub <- p_data$est+p_data$CI
+sig_rows <- which(
+  (p_data$est < 0 & p_data$ub < 0) |
+    (p_data$est > 0 & p_data$lb > 0)
+)
+sig_nodes <- p_data[sig_rows, ]$h_var
+
+# find start, end points of sig regions
+vec_start <- sig_nodes[1]
+vec_end <- vector()
+y_min <- min(p_data$lb)
+num_nodes <- length(sig_nodes)
+c <- 2
+while (c < num_nodes) {
+  cc <- c + 1
+  if (sig_nodes[cc] > sig_nodes[c] + 1) {
+    vec_end <- append(vec_end, sig_nodes[c])
+    vec_start <- append(vec_start, sig_nodes[cc])
+  }
+  c <- cc
+}
+vec_end <- append(vec_end, sig_nodes[num_nodes])
+
+# make df for drawing rectangles
+d_rect <- data.frame(
+  x_start = vec_start,
+  x_end = vec_end,
+  y_start = rep(y_min, length(vec_start)),
+  y_end = rep(0, length(vec_start))
+)
+d_rect$x_start <- d_rect$x_start
+d_rect$x_end <- d_rect$x_end
+
+# draw smooth, shade diff regions
+ggplot(data = p_data, aes(x = h_var, y = est)) +
+  geom_hline(yintercept = 0) +
+  geom_line() +
+  geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
+  annotate(
+    "rect",
+    xmin = c(d_rect$x_start),
+    xmax = c(d_rect$x_end),
+    ymin = c(d_rect$y_start),
+    ymax = c(d_rect$y_end),
+    alpha = 0.2,
+    fill = "red"
+  ) +
+  labs(x = "Simulated Covariate", y = "Est. FA Fit") +
+  ggtitle("L. Uncinate Covariate Smooth, Diff") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_cov-diff.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  dpi = 600,
+  device = "png"
+)
+
+
+
+
 
