@@ -517,9 +517,9 @@ for (tract in tract_list) {
     )
 
     # plot
-    plot_Gintx <- getViz(tract_Gintx)
+    plot_tract_Gintx <- getViz(tract_Gintx)
     draw_Gintx(
-      plot_Gintx,
+      plot_tract_Gintx,
       2,
       tract,
       paste(switch_names(beh), switch_names(roi), "Coefs"),
@@ -548,7 +548,7 @@ for (tract in tract_list) {
       tract,
       paste(switch_names(beh), switch_names(roi), "Coefs"),
       paste(
-        switch_names(tract), "Node-FA-ROI Interaction, Control"
+        switch_names(tract), "Node-FA-ROI Interaction, Con"
       ),
       paste0(
         out_dir, "/Plot_", tract, "_mGSIntx_ROI_", roi_beh_out, "_con"
@@ -561,7 +561,7 @@ for (tract in tract_list) {
       tract,
       paste(switch_names(beh), switch_names(roi), "Coefs"),
       paste(
-        switch_names(tract), "Node-FA-ROI Interaction, Experimental"
+        switch_names(tract), "Node-FA-ROI Interaction, Exp"
       ),
       paste0(
         out_dir, "/Plot_", tract, "_mGSIntx_ROI_", roi_beh_out, "_exp"
@@ -606,14 +606,14 @@ for (tract in tract_list) {
         "ROI Interaction Smooth, Diff"
       ),
       paste0(
-        out_dir, "/Plot_", tract, "_mGSOFIntx_roi_", roi_beh_out, "_cov_diff"
+        out_dir, "/Plot_", tract, "_mGSOFIntx_ROI_", roi_beh_out, "_cov_diff"
       )
     )
 
     rm(tract_Gintx)
     rm(tract_GSintx)
     rm(tract_GSintxOF)
-    rm(plot_Gintx)
+    rm(plot_tract_Gintx)
     rm(plot_tract_GSintx)
     rm(plot_tract_GSintxOF)
   }
@@ -622,7 +622,7 @@ for (tract in tract_list) {
 
 
 
-# Interaction with PPI ----
+# Interaction with PPI coefs ----
 #
 # Test for an interaction between group differences in the various tracts
 # and the PPI term of the LAmg-ROI for Study trials preceding Test negative
@@ -633,13 +633,13 @@ for (tract in tract_list) {
 
 # set seed and behavior (+ difference) lists
 seed_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
-beh_list <- c("SPnegLF", "SPneuLF") # "SPnegLF.SPneuLF"
+beh_list <- c("neg", "neu")
 
 # incorporate PPI values of ses-S1 task-study in df_afq
 subj_list <- as.character(unique(df_afq$subjectID))
 for (seed in seed_list) {
   df_ppi <- read.csv(
-    paste0(data_dir, "/df_ses-S1_task-study_amgL-", seed, ".csv")
+    paste0(data_dir, "/df_ses-S1_task-study_decon-rVal_amgL-", seed, ".csv")
   )
   for (beh in beh_list) {
     h_col <- paste(seed, beh, sep = "_")
@@ -685,114 +685,135 @@ for (tract in tract_list) {
 
       # set up file names
       h_name <- switch(h_seed_beh,
-        "NSlacc_SPnegLF" = "LAmg-LACC_NegLF",
-        "NSldmpfc_SPnegLF" = "LAmg-LdmPFC_NegLF",
-        "NSlsfs_SPnegLF" = "LAmg-LSFS_NegLF",
-        "NSlacc_SPneuLF" = "LAmg-LACC_NeuLF",
-        "NSldmpfc_SPneuLF" = "LAmg-LdmPFC_NeuLF",
-        "NSlsfs_SPneuLF" = "LAmg-LSFS_NeuLF",
-        "NSlacc_SPnegLF.SPneuLF" = "LAmg-LACC_NegLF-NeuLF",
-        "NSldmpfc_SPnegLF.SPneuLF" = "LAmg-LdmPFC_NegLF-NeuLF",
-        "NSlsfs_SPnegLF.SPneuLF" = "LAmg-LSFS_NegLF-NeuLF"
+        "NSlacc_neg" = "LAmg-LACC_Neg",
+        "NSldmpfc_neg" = "LAmg-LdmPFC_Neg",
+        "NSlsfs_neg" = "LAmg-LSFS_Neg",
+        "NSlacc_neu" = "LAmg-LACC_Neu",
+        "NSldmpfc_neu" = "LAmg-LdmPFC_Neu",
+        "NSlsfs_neu" = "LAmg-LSFS_Neu",
+      )
+      
+      y_name <- switch(h_seed_beh,
+       "NSlacc_neg" = "LAmg-LACC Coef: Negative Ratings",
+       "NSldmpfc_neg" = "LAmg-LdmPFC Coef: Negative Ratings",
+       "NSlsfs_neg" = "LAmg-LSFS Coef: Negative Ratings",
+       "NSlacc_neu" = "LAmg-LACC Coef: Neutral Ratings",
+       "NSldmpfc_neu" = "LAmg-LdmPFC Coef: Neutral Ratings",
+       "NSlsfs_neu" = "LAmg-LSFS Coef: Neutral Ratings",
       )
 
       # model tract main effect with tract-fa-behavior intx
-      gam_file <- paste0(out_dir, "/Model_", tract, "_mGIntx_", h_name, ".Rda")
+      gam_file <- paste0(out_dir, "/Model_", tract, "_mGIntx_PPI_", h_name, ".Rda")
       if (!file.exists(gam_file)) {
         h_gam <- gam_Gintx(df_tract, tract_dist, "dx_group", h_seed_beh)
         saveRDS(h_gam, file = gam_file)
         rm(h_gam)
       }
       tract_Gintx <- readRDS(gam_file)
-      write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx_", h_name), tract)
+      write_gam_stats(tract_Gintx, out_dir, paste0("mGSIntx_PPI_", h_name), tract)
       write_compare_stats(
-        tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx_", h_name)
+        tract_GS, tract_Gintx, tract, out_dir, paste0("mGS-mGSIntx_PPI_", h_name)
       )
 
       # plot
-      plot_Gintx <- getViz(tract_Gintx)
+      plot_tract_Gintx <- getViz(tract_Gintx)
       draw_Gintx(
-        plot_Gintx,
+        plot_tract_Gintx,
         2,
         tract,
-        paste(h_name, beh, sep = "_"),
-        switch_names(h_seed_beh),
+        y_name,
         paste(
           switch_names(tract), "Node-FA-PPI Interaction"
         ),
-        out_dir
+        paste0(out_dir, "/Plot_", tract, "_mGIntx_PPI_", h_name)
+      )
+      
+      # model interaction of tract-group-behavior
+      gam_file <- paste0(out_dir, "/Model_", tract, "_mGSIntx_PPI_", h_name, ".Rda")
+      if (!file.exists(gam_file)) {
+        h_gam <- gam_GSintx(df_tract, tract_dist, "dx_group", h_seed_beh)
+        saveRDS(h_gam, file = gam_file)
+        rm(h_gam)
+      }
+      tract_GSintx <- readRDS(gam_file)
+      write_gam_stats(tract_GSintx, out_dir, paste0("mGSIntx_PPI_", h_name), tract)
+      
+      # draw
+      plot_tract_GSintx <- getViz(tract_GSintx)
+      
+      draw_intx(
+        plot_tract_GSintx,
+        5,
+        tract,
+        y_name,
+        paste(
+          switch_names(tract), "Node-FA-PPI Interaction, Con"
+        ),
+        paste0(out_dir, "/Plot_", tract, "_mGIntx_PPI_", h_name, "_con")
+      )
+      
+      draw_intx(
+        plot_tract_GSintx,
+        6,
+        tract,
+        y_name,
+        paste(
+          switch_names(tract), "Node-FA-PPI Interaction, Exp"
+        ),
+        paste0(out_dir, "/Plot_", tract, "_mGIntx_PPI_", h_name, "_exp")
+      )
+      
+      # test if experiment group interaction differs from control
+      gam_file <- paste0(
+        out_dir, "/Model_", tract, "_mGSOFIntx_PPI_", h_name, ".Rda"
+      )
+      if (!file.exists(gam_file)) {
+        h_gam <- gam_GSintxOF(
+          df_tract, tract_dist, "dx_group", "dx_groupOF", h_seed_beh
+        )
+        saveRDS(h_gam, file = gam_file)
+        rm(h_gam)
+      }
+      tract_GSintxOF <- readRDS(gam_file)
+      write_gam_stats(tract_GSintxOF, out_dir, paste0("mGSOFIntx_PPI_", h_name), tract)
+      
+      # draw
+      plot_tract_GSintxOF <- getViz(tract_GSintxOF)
+      draw_intx_diff(
+        plot_tract_GSintxOF,
+        6,
+        tract,
+        y_name,
+        paste(
+          switch_names(tract), "Node-FA-PPI Interaction, Diff"
+        ),
+        paste0(
+          out_dir, "/Plot_", tract, "_mGSOFIntx_PPI_", h_name, "_diff"
+        )
+      )
+      
+      # draw diff smooth of covariate
+      draw_covS_diff(
+        tract_GSintxOF,
+        y_name, 
+        paste(
+          switch_names(tract),
+          "PPI Interaction Smooth, Diff"
+        ),
+        paste0(
+          out_dir, "/Plot_", tract, "_mGSOFIntx_PPI_", h_name, "_cov_diff"
+        )
       )
 
-      # # model interaction of tract-group-behavior
-      # gam_file <- paste0(
-      #   out_dir, "/Model_", tract, "_mGIntx_", h_name, ".Rda"
-      # )
-      # if (!file.exists(gam_file)) {
-      #   h_gam <- gam_intx(df_seed, tract_dist, "dx_group", h_seed_beh)
-      #   saveRDS(h_gam, file = gam_file)
-      #   rm(h_gam)
-      # }
-      # tract_intx <- readRDS(gam_file)
-      # write_gam_stats(tract_intx, out_dir, paste0("GS-", h_name), tract)
-      #
-      # # test if experiment group interaction differs from control
-      # gam_file <- paste0(
-      #   out_dir, "/Model_", tract, "_", h_name, "OF.Rda"
-      # )
-      # if (!file.exists(gam_file)) {
-      #   h_gam <- gam_intxOF(
-      #     df_seed, tract_dist, "dx_group", "dx_groupOF", h_seed_beh
-      #   )
-      #   saveRDS(h_gam, file = gam_file)
-      #   rm(h_gam)
-      # }
-      # tract_intxOF <- readRDS(gam_file)
-      # write_gam_stats(tract_intxOF, out_dir, paste0("GSOF-", h_name), tract)
-      #
-      # # draw
-      # plot_tract_intx <- getViz(tract_intx)
-      # draw_intx(
-      #   plot_obj = plot_tract_intx,
-      #   attr_num = 5,
-      #   tract,
-      #   y_var = paste(h_name, beh, "con", sep = "_"),
-      #   y_name = switch_names(h_seed_beh),
-      #   plot_title = paste(
-      #     switch_names(tract), "Node-FA-PPI Interaction, Control"
-      #   ),
-      #   out_dir
-      # )
-      # draw_intx(
-      #   plot_obj = plot_tract_intx,
-      #   attr_num = 6,
-      #   tract,
-      #   y_var = paste(h_name, beh, "exp", sep = "_"),
-      #   y_name = switch_names(h_seed_beh),
-      #   plot_title = paste(
-      #     switch_names(tract), "Node-FA-PPI Interaction, Experimental"
-      #   ),
-      #   out_dir
-      # )
-      #
-      # plot_tract_intxOF <- getViz(tract_intxOF)
-      # draw_intx_diff(
-      #   plot_obj = plot_tract_intxOF,
-      #   attr_num = 5,
-      #   tract,
-      #   y_var = paste(h_name, beh, sep = "_"),
-      #   y_name = switch_names(h_seed_beh),
-      #   plot_title = paste(
-      #     switch_names(tract),
-      #     "Node-FA-PPI Interaction, Experimental Difference"
-      #   ),
-      #   out_dir
-      # )
-      #
-      # rm(df_seed)
-      # rm(tract_intx)
-      # rm(tract_intxOF)
-      # rm(plot_tract_intx)
-      # rm(plot_tract_intxOF)
+      rm(df_seed)
+      rm(tract_Gintx)
+      rm(tract_GSintx)
+      rm(tract_GSintxOF)
+      rm(plot_Gintx)
+      rm(plot_tract_GSintx)
+      rm(plot_tract_GSintxOF)
     }
   }
+  rm(tract_GS)
+  rm(df_tract)
 }

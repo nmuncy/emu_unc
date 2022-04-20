@@ -6,7 +6,9 @@ library("stringr")
 # Make dataframes of coefficients referencing output of func3 and func5
 # ROI analyses.
 #
-# Requires OneDrive access for EMU summary dataset, and assumes amgL PPI seed.
+# Notes:
+#   - Requires OneDrive access for EMU summary dataset, and assumes amgL PPI seed.
+#   - Omit "S" for PPI beh name, e.g. use "neg" for "Sneg" sub-brick
 #
 # Writes:
 #   <data_dir>/df_<sess>_<task>_<decon>_ROI.csv
