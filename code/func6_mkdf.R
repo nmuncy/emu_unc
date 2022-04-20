@@ -23,6 +23,7 @@ library("stringr")
 # Usage:
 #   Rscript func6_mkdf.R ses-S1 task-study decon-rVal neg neu
 
+
 # Receive Args ----
 get_args <- commandArgs(trailingOnly = T)
 if (length(get_args) != 5) {
@@ -43,14 +44,6 @@ beh_B <- get_args[5]
 
 
 # Functions ----
-# beh_switch <- function(h_beh) {
-#   x_beh <- switch(h_beh,
-#     "SPnegLF" = "PnegLF",
-#     "SPneuLF" = "PneuLF"
-#   )
-#   return(x_beh)
-# }
-
 make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, roi, one_dir, data_dir) {
   # Organize func3/func5 output, make dataframes.
   #

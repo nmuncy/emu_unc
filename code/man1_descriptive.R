@@ -5,6 +5,12 @@ source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
 
 
+# General Notes ----
+#
+# Simulate data for hypothesis visuals, demonstrate analyses. Also
+# conduct quick stats needed for manuscript.
+
+
 # Read in AFQ data ----
 data_dir <- "/Users/nmuncy/Projects/emu_unc/data"
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
@@ -18,20 +24,14 @@ num_female <- length(which(df_subset$sex == "F"))
 age_avg <- round(mean(df_subset$age), 2)
 age_sd <- round(sd(df_subset$age), 2)
 
-# stat_age <- aov(Age ~ as.factor(Group), data = df_subset)
-# summary(stat_age)
-# etaSquared(stat_age)
-#
-# stat_pds <- aov(PDS ~ as.factor(Group), data = df_subset)
-# summary(stat_pds)
-# etaSquared(stat_pds)
-
 
 # Simulate data to demonstrate an interaction smooth ----
 #
 # Simulate data to demonstrate (a) groups smooths differing from the global,
 # and (b) groups interacting differently with a continuous covariate.
-
+#
+# May be outdated, I spent more time working with the real FA values and
+# simulated covariates.
 gen_norm <- function(y_scale, n = 50, mean = 1, sd = 0.1) {
   # Generate a normal distribution.
   #
@@ -87,7 +87,8 @@ for (h_seed in c(scale_groupA, scale_groupB)) {
 
 # plot node data
 ggplot(data = df_long, aes(x = node, y = fa, color = group)) +
-  geom_point() + ggtitle("Two simulated tracts")
+  geom_point() +
+  ggtitle("Two simulated tracts")
 
 # generate linear, exponential data for group covariates
 seq_values <- 1:num_groupA
@@ -124,17 +125,18 @@ while (c <= length(subj_groupA)) {
 # plot intx of scaling and cov
 df_ind1 <- df_long[which(df_long$node == 1), ]
 ggplot(data = df_ind1, aes(x = y_scale, y = cov, color = group)) +
-  geom_point() + ggtitle("Two simulated interactions with a covariate")
+  geom_point() +
+  ggtitle("Two simulated interactions with a covariate")
 
-# gam via GS method to get group smooths
+# gam via GS method to get group smooths, plot relevant attributes
 descdist(df_long$fa, discrete = F) # just pretend the uniform dist is gaus
 gam_GS <- bam(fa ~
-    s(subj, bs = "re") +
-    s(node, bs = "cr", k = 10, m = 2) +
-    s(node, group, bs = "fs", k = 10, m = 2),
-  data = df_long,
-  family = gaussian(),
-  method = "fREML"
+s(subj, bs = "re") +
+  s(node, bs = "cr", k = 10, m = 2) +
+  s(node, group, bs = "fs", k = 10, m = 2),
+data = df_long,
+family = gaussian(),
+method = "fREML"
 )
 gam.check(gam_GS, rep = 1000) # just pretend this is fine
 plot(gam_GS)
@@ -142,17 +144,16 @@ h_plot <- getViz(gam_GS)
 plot(sm(h_plot, 2)) + ggtitle("Global smooth of simulated tract")
 plot(sm(h_plot, 3)) + ggtitle("Group smooths of simulated tract")
 
-# use ordered factor to make group difference smooth
+# use ordered factor to make group difference smooth, plot
 df_long$groupOF <- ordered(df_long$group)
 gam_OF <- bam(fa ~
-    s(subj, bs = "re") +
-    s(node, bs = "cr", k = 10, m = 2) +
-    s(node, by = groupOF, bs = "cr", k = 10, m = 2),
-  data = df_long,
-  family = gaussian(),
-  method = "fREML"
+s(subj, bs = "re") +
+  s(node, bs = "cr", k = 10, m = 2) +
+  s(node, by = groupOF, bs = "cr", k = 10, m = 2),
+data = df_long,
+family = gaussian(),
+method = "fREML"
 )
-# plot(gam_OF)
 h_plot <- getViz(gam_OF)
 plot(sm(h_plot, 3)) + ggtitle("B - A difference smooth")
 
@@ -160,18 +161,15 @@ plot(sm(h_plot, 3)) + ggtitle("B - A difference smooth")
 # make a contour plot, 3d plot
 df_groupA <- df_long[which(df_long$group == "A"), ]
 gam_groupA <- bam(fa ~
-    s(subj, bs = "re") +
-    te(node, cov, bs = c("cr", "tp"), k = c(10, 10)),
-  data = df_groupA,
-  family = gaussian(),
-  method = "fREML"
+s(subj, bs = "re") +
+  te(node, cov, bs = c("cr", "tp"), k = c(10, 10)),
+data = df_groupA,
+family = gaussian(),
+method = "fREML"
 )
 summary(gam_groupA)
-
-# plot(gam_groupA)
 h_plot <- getViz(gam_groupA)
 plot(sm(h_plot, 2)) + ggtitle("Group A node FA - cov interaction")
-
 # vis.gam(gam_groupA,
 #   view = c("node", "cov"),
 #   color = "topo",
@@ -182,30 +180,29 @@ plot(sm(h_plot, 2)) + ggtitle("Group A node FA - cov interaction")
 # make a contour plot
 df_groupB <- df_long[which(df_long$group == "B"), ]
 gam_groupB <- bam(fa ~
-    s(subj, bs = "re") +
-    te(node, cov, bs = c("cr", "tp"), k = c(10, 10)),
-  data = df_groupB,
-  family = gaussian(),
-  method = "fREML"
+s(subj, bs = "re") +
+  te(node, cov, bs = c("cr", "tp"), k = c(10, 10)),
+data = df_groupB,
+family = gaussian(),
+method = "fREML"
 )
 summary(gam_groupB)
-
-# plot(gam_groupB)
 h_plot <- getViz(gam_groupB)
 plot(sm(h_plot, 2)) + ggtitle("Group B node FA - cov interaction")
 
 # model how fa is a function of subject, node, cov, and group
 gam_cov <- bam(fa ~
-    s(subj, bs = "re") +
-    s(node, bs = "cr", k = 10, m = 2) +
-    s(cov, by = group, bs = "tp", k = 10, m = 2) +
-    ti(
-      node, cov, by = group, bs = c("cr", "tp"), k = c(10, 10), m = 2
-    ),
-  data = df_long,
-  family = gaussian(),
-  method = "fREML",
-  discrete = T
+s(subj, bs = "re") +
+  s(node, bs = "cr", k = 10, m = 2) +
+  s(cov, by = group, bs = "tp", k = 10, m = 2) +
+  ti(
+    node, cov,
+    by = group, bs = c("cr", "tp"), k = c(10, 10), m = 2
+  ),
+data = df_long,
+family = gaussian(),
+method = "fREML",
+discrete = T
 )
 summary(gam_cov)
 
@@ -238,17 +235,18 @@ ggplot(data = df_diff, aes(x = x, y = y, z = z)) +
 df_long$groupOF <- NA
 df_long$groupOF <- factor(df_long$group, ordered = T)
 gam_covOF <- bam(fa ~
-    s(subj, bs = "re") +
-    s(node, bs = "cr", k = 10, m = 1) +
-    s(cov, by = group, bs = "tp", k = 10, m = 2) +
-    ti(node, cov, bs = c("cr", "tp"), k = c(10, 10), m = 2) +
-    ti(
-      node, cov, by = groupOF, bs = c("cr", "tp"), k = c(10, 10), m = 2
-    ),
-  data = df_long,
-  family = gaussian(),
-  method = "fREML",
-  discrete = T
+s(subj, bs = "re") +
+  s(node, bs = "cr", k = 10, m = 1) +
+  s(cov, by = group, bs = "tp", k = 10, m = 2) +
+  ti(node, cov, bs = c("cr", "tp"), k = c(10, 10), m = 2) +
+  ti(
+    node, cov,
+    by = groupOF, bs = c("cr", "tp"), k = c(10, 10), m = 2
+  ),
+data = df_long,
+family = gaussian(),
+method = "fREML",
+discrete = T
 )
 summary(gam_covOF)
 
@@ -285,6 +283,7 @@ df_tract$dx_group <- factor(df_tract$dx_group)
 df_tract$subjectID <- factor(df_tract$subjectID)
 df_tract$dx_groupOF <- factor(df_tract$dx_group, ordered = T)
 
+# clip tails
 ind_keep <- which(
   df_tract$nodeID >= 10 & df_tract$nodeID <= 89
 )
@@ -294,19 +293,13 @@ df_tract <- df_tract[ind_keep, ]
 num_groupC <- length(which(df_tract$nodeID == 50 & df_tract$dx_group == "Con"))
 num_groupE <- length(which(df_tract$nodeID == 50 & df_tract$dx_group == "Exp"))
 
-
-# Make group x cov interaction ----
-#
-# Generate linear covariate values for control,
-# exponential for experimental group.
+# generate linear covariate values for control, exponential
+# for experimental group
 set.seed(12)
 seq_C <- 1:num_groupC
 seq_E <- 1:num_groupE
 lin_cov <- (0.1 * seq_C + 2) + rnorm(length(seq_C), 0, 0.1)
 exp_cov <- (((0.1 * seq_E)^2) + 2) + rnorm(length(seq_E), 0, 0.1)
-
-# plot(seq_C, lin_cov)
-# plot(seq_E, exp_cov)
 
 # groups differ at nodes 30-45, use ordered node 37 to assign simulated
 # covariate values -- participants with larger 37 FA value have larger
@@ -319,21 +312,28 @@ fa_37E <- sort(df_tract[which(
   df_tract$dx_group == "Exp" & df_tract$nodeID == 37
 ), ]$dti_fa)
 
-# assign simulated covariates
+# assign simulated covariates for con/exp subjs
 df_tract$cov <- NA
 subj_C <- unique(df_tract[which(df_tract$dx_group == "Con"), ]$subjectID)
 subj_E <- unique(df_tract[which(df_tract$dx_group == "Exp"), ]$subjectID)
 
-for(subj in subj_C){
+for (subj in subj_C) {
+
+  # get fa value at node 3d
   val_37 <- df_tract[which(
     df_tract$subjectID == subj & df_tract$nodeID == 37
   ), ]$dti_fa
+
+  # determine position of subj of node 37 fa value in sorted list
   ord_37 <- which(grepl(val_37, fa_37C) == T)
   ind_tract <- which(df_tract$subjectID == subj)
+
+  # get covariate from same position
   df_tract[ind_tract, ]$cov <- lin_cov[ord_37]
 }
 
-for(subj in subj_E){
+# repeat for exp group
+for (subj in subj_E) {
   val_37 <- df_tract[which(
     df_tract$subjectID == subj & df_tract$nodeID == 37
   ), ]$dti_fa
@@ -345,25 +345,25 @@ for(subj in subj_E){
 # plot intx of group, cov, and node37 FA
 df_ind1 <- df_tract[which(df_tract$nodeID == 37), ]
 ggplot(data = df_ind1, aes(x = dti_fa, y = cov, color = dx_group)) +
-  geom_point() + 
+  geom_point() +
   labs(y = "Simulated Covariate", x = "Node 37 FA", colour = "Group") +
-  ggtitle("L. Uncinate Group-Covariate Interactions") + 
+  ggtitle("L. Uncinate Group-Covariate Interactions") +
   theme(text = element_text(family = "Times New Roman"))
 ggsave(
-  filename = "/Users/nmuncy/Desktop/sim_intx.png", 
+  filename = "/Users/nmuncy/Desktop/sim_intx.png",
   plot = last_plot(),
   units = "in",
   width = 4,
   height = 3,
   device = "png"
-  )
+)
 
 
-# Model GS ----
+# Model Global and Group smooths ----
 #
 # Conduct GS style GAM to show that groups differ in their smooths.
 
-# gam via GS method
+# gam via GS method, make getViz plot object
 descdist(df_tract$dti_fa, discrete = F)
 gam_GS <- gam_GS(df_tract, "gamma", "dx_group")
 plot_GS <- getViz(gam_GS)
@@ -375,6 +375,7 @@ colnames(p_data) <- c("nodeID", "est", "ty", "se")
 p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
 p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
 
+# sequence range (10-89) results from clipping of tails
 ggplot(data = p_data, aes(x = .data$nodeID, y = .data$est)) +
   geom_line() +
   geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
@@ -384,7 +385,7 @@ ggplot(data = p_data, aes(x = .data$nodeID, y = .data$est)) +
   xlab("Tract Node") +
   theme(text = element_text(family = "Times New Roman"))
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_global.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_global.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -408,11 +409,11 @@ ggplot(
   ggtitle("L. Uncinate Group Smooths") +
   labs(y = "Est. FA Fit", x = "Tract Node") +
   theme(
-    text = element_text(family = "Times New Roman"), 
+    text = element_text(family = "Times New Roman"),
     legend.position = "none"
   )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_group.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_group.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -420,14 +421,11 @@ ggsave(
   device = "png"
 )
 
-# gam via GS method, ordered factor
+# gam via ordered factor method to produce difference smooth
 gam_GSOF <- gam_GSOF(df_tract, "gamma", "dx_groupOF")
 plot_GSOF <- getViz(gam_GSOF)
-# plot(sm(plot_GSOF, 1))
-# plot(sm(plot_GSOF, 2))
-# plot(sm(plot_GSOF, 3))
 
-# unpack difference smooth data
+# unpack difference smooth data for pretty plotting
 p <- plot(sm(plot_GSOF, 3)) +
   geom_hline(yintercept = 0)
 p_data <- as.data.frame(p$data$fit)
@@ -468,7 +466,7 @@ d_rect <- data.frame(
 d_rect$x_start <- d_rect$x_start
 d_rect$x_end <- d_rect$x_end
 
-# draw
+# draw difference smooth with differing nodes highlighted
 ggplot(data = p_data, aes(x = .data$nodeID, y = .data$est)) +
   geom_hline(yintercept = 0) +
   geom_line() +
@@ -491,7 +489,7 @@ ggplot(data = p_data, aes(x = .data$nodeID, y = .data$est)) +
   xlab("Tract Node") +
   theme(text = element_text(family = "Times New Roman"))
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_group-diff.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_group-diff.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -507,23 +505,19 @@ ggsave(
 # interaction of groupC - visualize linear fa-cov intx
 df_groupA <- df_tract[which(df_tract$dx_group == "Con"), ]
 gam_groupA <- bam(dti_fa ~
-    s(subjectID, bs = "re") +
-    s(nodeID, bs = "cr", k = 50, m = 2) +
-    s(cov, bs = "tp", k = 5, m = 2) +
-    ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 5), m = 2),
-  data = df_groupA,
-  family = Gamma(link = "logit"),
-  method = "fREML",
-  discrete = T
+s(subjectID, bs = "re") +
+  s(nodeID, bs = "cr", k = 50, m = 2) +
+  s(cov, bs = "tp", k = 5, m = 2) +
+  ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 5), m = 2),
+data = df_groupA,
+family = Gamma(link = "logit"),
+method = "fREML",
+discrete = T
 )
 summary(gam_groupA)
 
 # make contour plot
 plot_groupA <- getViz(gam_groupA)
-# plot(sm(plot_groupA, 1))
-# plot(sm(plot_groupA, 2))
-# plot(sm(plot_groupA, 3))
-# plot(sm(plot_groupA, 4)) + ggtitle("L. Unc node-fa-cov interaction, control")
 p <- plot(sm(plot_groupA, 4))
 p_data <- p$data$fit
 colnames(p_data) <- c("z", "tz", "cov", "node", "se")
@@ -542,7 +536,7 @@ ggplot(
     plot.title = element_text(size = 12)
   )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_gA-intx.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_gA-intx.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -550,26 +544,22 @@ ggsave(
   device = "png"
 )
 
-
 # interaction of groupE - visualize exponential fa-cov intx
 df_groupB <- df_tract[which(df_tract$dx_group == "Exp"), ]
 gam_groupB <- bam(dti_fa ~
-    s(subjectID, bs = "re") +
-    s(nodeID, bs = "cr", k = 50, m = 2) +
-    s(cov, bs = "tp", k = 5, m = 2) +
-    ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 5), m = 2),
-  data = df_groupB,
-  family = Gamma(link = "logit"),
-  method = "fREML",
-  discrete = T
+s(subjectID, bs = "re") +
+  s(nodeID, bs = "cr", k = 50, m = 2) +
+  s(cov, bs = "tp", k = 5, m = 2) +
+  ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 5), m = 2),
+data = df_groupB,
+family = Gamma(link = "logit"),
+method = "fREML",
+discrete = T
 )
 summary(gam_groupB)
 
 # make contour plot
 plot_groupB <- getViz(gam_groupB)
-# plot(sm(plot_groupB, 1))
-# plot(sm(plot_groupB, 2))
-# plot(sm(plot_groupB, 3))
 p <- plot(sm(plot_groupB, 4))
 p_data <- p$data$fit
 colnames(p_data) <- c("z", "tz", "cov", "node", "se")
@@ -586,9 +576,9 @@ ggplot(
   theme(
     text = element_text(family = "Times New Roman"),
     plot.title = element_text(size = 12)
-    )
+  )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_gB-intx.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_gB-intx.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -604,28 +594,9 @@ ggsave(
 
 # full interaction model, visualize
 gam_cov <- gam_GSintx(df_tract, "gamma", "dx_group", "cov")
-gam_covGS <- bam(dti_fa ~ sex +
-               s(subjectID, bs = "re") +
-               s(nodeID, bs = "cr", k = 50, m = 2) +
-               s(cov, by = dx_group, bs = "tp", k = 5, m = 2) +
-               ti(
-                 nodeID, cov,
-                 by = dx_group, bs = c("cr", "tp"), k = c(50, 5), m = 2
-               ),
-             data = df_tract,
-             family = Gamma(link = "logit"),
-             method = "fREML",
-             discrete = T
-)
-
 plot_gam_cov <- getViz(gam_cov)
-# plot(sm(plot_gam_cov, 1))
-# plot(sm(plot_gam_cov, 2))
-# plot(sm(plot_gam_cov, 3))
-# plot(sm(plot_gam_cov, 4))
-plot(sm(plot_gam_cov, 5)) + ggtitle("L Unc node-fa-cov interaction, full model, control")
-plot(sm(plot_gam_cov, 6)) + ggtitle("L Unc node-fa-cov interaction, full model, experimental")
 
+# make node-cov-fa interaction plots for each group (con/exp)
 p <- plot(sm(plot_gam_cov, 5))
 p_data <- p$data$fit
 colnames(p_data) <- c("z", "tz", "cov", "node", "se")
@@ -644,7 +615,7 @@ ggplot(
     plot.title = element_text(size = 12)
   )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_gA-intx.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_gA-intx.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -670,7 +641,7 @@ ggplot(
     plot.title = element_text(size = 12)
   )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_gB-intx.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_gB-intx.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -678,34 +649,13 @@ ggsave(
   device = "png"
 )
 
-
-# ordered interaction model to get Exp difference
+# ordered interaction model to get Exp difference smooth
 gam_covOF <- gam_GSintxOF(df_tract, "gamma", "dx_group", "dx_groupOF", "cov")
-# gam_covOF <- bam(dti_fa ~ sex +
-#      s(subjectID, bs = "re") +
-#      s(nodeID, bs = "cr", k = 50, m = 2) +
-#      s(cov, by = dx_group, bs = "tp", k = 10, m = 2) +
-#      ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
-#      ti(
-#        nodeID, cov,
-#        by = dx_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 2
-#      ),
-#    data = df_tract,
-#    family = Gamma(link = "logit"),
-#    method = "fREML",
-#    discrete = T
-# )
-
 summary(gam_covOF)
 plot_gam_covOF <- getViz(gam_covOF)
-# plot(sm(plot_gam_covOF, 1))
-# plot(sm(plot_gam_covOF, 2))
-# plot(sm(plot_gam_covOF, 3))
-# plot(sm(plot_gam_covOF, 4))
-# plot(sm(plot_gam_covOF, 5))
-plot(sm(plot_gam_covOF, 6))
 
-# plot node-fa-cov diff smooth
+# plot node-fa-cov exp diff (from con) smooth, invert for ease of
+# interpretation
 p <- plot(sm(plot_gam_covOF, 6))
 p_data <- p$data$fit
 p_data$zI <- -1 * p_data$z
@@ -725,7 +675,7 @@ ggplot(
     plot.title = element_text(size = 12)
   )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_gAB-diff.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_gAB-diff.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -735,15 +685,15 @@ ggsave(
 
 # calc cov group diff smooth
 p_data <- plot_diff(
-  gam_covOF, 
-  view = c("h_var"), 
-  comp = list(h_group=c("Con", "Exp")), 
+  gam_covOF,
+  view = c("h_var"),
+  comp = list(h_group = c("Con", "Exp")),
   rm.ranef = T
-  )
+)
 
 # determine regions that differ from zero
-p_data$lb <- p_data$est-p_data$CI
-p_data$ub <- p_data$est+p_data$CI
+p_data$lb <- p_data$est - p_data$CI
+p_data$ub <- p_data$est + p_data$CI
 sig_rows <- which(
   (p_data$est < 0 & p_data$ub < 0) |
     (p_data$est > 0 & p_data$lb > 0)
@@ -797,7 +747,7 @@ ggplot(data = p_data, aes(x = h_var, y = est)) +
     plot.title = element_text(size = 12)
   )
 ggsave(
-  filename = "/Users/nmuncy/Desktop/lunc_cov-diff.png", 
+  filename = "/Users/nmuncy/Desktop/lunc_cov-diff.png",
   plot = last_plot(),
   units = "in",
   width = 4,
@@ -805,8 +755,3 @@ ggsave(
   dpi = 600,
   device = "png"
 )
-
-
-
-
-

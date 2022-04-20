@@ -232,6 +232,7 @@ draw_Gintx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) 
     units = "in",
     width = 4,
     height = 3,
+    dpi = 600,
     device = "png"
   )
 }
@@ -277,6 +278,7 @@ draw_intx <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
     units = "in",
     width = 4,
     height = 3,
+    dpi = 600,
     device = "png"
   )
 }
@@ -389,9 +391,6 @@ draw_covS_diff <- function(gam_obj, x_name, plot_title, out_file) {
   )
 }
 
-
-
-
 draw_intx_diff <- function(plot_obj, attr_num, tract, y_name, plot_title, out_file) {
   # Draw 3D interaction difference smooth for experimental group.
   #
@@ -438,6 +437,7 @@ draw_intx_diff <- function(plot_obj, attr_num, tract, y_name, plot_title, out_fi
     units = "in",
     width = 4,
     height = 3,
+    dpi = 600,
     device = "png"
   )
 }
