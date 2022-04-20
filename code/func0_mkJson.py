@@ -12,7 +12,7 @@ python func0_mkJson.py \\
     -s ses-S1 \\
     -w /Users/nmuncy/Projects/emu_unc/data/timing_files \\
     -p /home/nmuncy/compute/emu_unc/data/timing_files \\
-    -n precTest
+    -n rVal
 """
 
 # %%
@@ -38,7 +38,7 @@ def get_args():
         "-n",
         "--decon-name",
         required=True,
-        help="Deconvolution name (noVal for decon_<task>_noVal_*)",
+        help="Deconvolution name (noVal for decon-noVal_*)",
     )
     required_args.add_argument(
         "-p",
@@ -73,7 +73,7 @@ def main():
         file_list = [
             x
             for x in os.listdir(os.path.join(work_dir, subj, sess))
-            if fnmatch.fnmatch(x, "tf_*.txt")
+            if fnmatch.fnmatch(x, f"tf_*decon-{name}*_events.txt")
         ]
         file_list.sort()
         subj_dict = {name: {}}

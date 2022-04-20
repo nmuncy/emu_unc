@@ -9,6 +9,9 @@
 # responses preceding a test non-response will be "PNR". Study
 # response for stimuli not found in test will be "noTest"
 #
+# Update - timing files now also made for participant judgments in Study.
+# Also updated timing file name to include decon string.
+#
 # Positional Arguments:
 #   [1] = BIDS project directory
 #   [2] = BIDS subject string
@@ -36,7 +39,7 @@ test_list[1] <- args[6]
 test_list[2] <- args[7]
 test_list[3] <- args[8]
 
-# # For testing
+# For testing
 # proj_dir <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset"
 # subj <- "sub-4212"
 # write_dir <- "/Users/nmuncy/Projects/emu_unc/data/timing_files/sub-4212/ses-S1"
@@ -47,7 +50,7 @@ test_list[3] <- args[8]
 # test_list[3] <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset/sub-4212/ses-S2/func/sub-4212_ses-S2_task-test_run-3_events.tsv"
 
 switch_string <- function(h_str) {
-  # Switch string to AFNI length.
+  # Rename Test behaviors to an AFNI length.
   #
   # Arguments:
   #   h_str (str) = behavior string from tsv file
@@ -92,6 +95,7 @@ for (run in 2:length(study_list)) {
   df <- read.delim(study_list[run], sep = "\t", header = T)
   df$run <- run
   df_study <- rbind(df_study, df)
+  rm(df)
 }
 
 # make master test df
@@ -101,7 +105,53 @@ for (run in 2:length(test_list)) {
   df <- read.delim(test_list[run], sep = "\t", header = T)
   df$run <- run
   df_test <- rbind(df_test, df)
+  rm(df)
 }
+
+
+# Study judgment timing files ----
+#
+# Make timing files for participants stimulus valence ratings
+# in Study session e.g. participant responds neg -> rNeg.
+
+# get lsits, start count df
+run_list <- unique(df_study$run)
+beh_list <- unique(df_study$value)
+df_count <- as.data.frame(matrix(NA, nrow = 2, ncol = length(beh_list)))
+colnames(df_count) <- beh_list
+
+# build timing files by run
+for (run in run_list) {
+  h_append <- ifelse(run == 1, F, T)
+  df_run <- df_study[which(df_study$run == run), ]
+  
+  # get behavior counts
+  for (beh in beh_list) {
+    ind_beh <- which(df_run$value == beh)
+    df_count[run, beh] <- length(ind_beh)
+    
+    # write asterisk for no behavior in run, otherwise get onset times
+    if (length(ind_beh) == 0) {
+      row_out <- "*"
+    } else {
+      row_out <- round(df_run[ind_beh, ]$onset, 1)
+    }
+    beh_out <- ifelse(beh == "NaN", "NR", beh)
+    out_file <- paste0(
+      write_dir, "/", "tf_task-study_decon-rVal_desc-", beh_out, "_events.txt"
+    )
+    cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
+  }
+}
+
+# sum cols for df_count, write
+df_count[3, ] <- colSums(df_count)
+write.table(
+  df_count[3, ],
+  file = paste(write_dir, "beh_decon-rVal_counts.tsv", sep = "/"),
+  sep = "\t",
+  row.names = F
+)
 
 
 # Find test response to study stimulus ----
@@ -122,7 +172,6 @@ for (stim in stim_list) {
   }
 
   # strip simularity identifier, find test response, convert
-  # stim_strip <- gsub(".{5}$", "", stim)
   stim_strip <- substr(stim, 1, 5)
   ind_test <- grep(stim_strip, df_test$stim_file)
   if (length(ind_test) == 0) {
@@ -134,7 +183,7 @@ for (stim in stim_list) {
 }
 
 
-# Make timing files ----
+# Make Study preceding Test timing files ----
 #
 # Iterate through runs, behaviors. Find study onset times, write
 # out to timing file. Account for no behavior type in run. Also count
@@ -157,7 +206,9 @@ for (run in run_list) {
     } else {
       row_out <- round(df_run[ind_beh, ]$onset, 1)
     }
-    out_file <- paste0(write_dir, "/", "tf_task-study_desc-", beh, "_events.txt")
+    out_file <- paste0(
+      write_dir, "/", "tf_task-study_decon-precTest_desc-", beh, "_events.txt"
+    )
     cat(row_out, "\n", file = out_file, append = h_append, sep = "\t")
   }
 }
@@ -166,11 +217,10 @@ df_count[3, ] <- colSums(df_count)
 # write df_count
 write.table(
   df_count[3, ],
-  file = paste(write_dir, "beh_counts.tsv", sep = "/"),
+  file = paste(write_dir, "beh_decon-precTest_counts.tsv", sep = "/"),
   sep = "\t",
   row.names = F
 )
-
 
 
 # Remove empty timing files -----

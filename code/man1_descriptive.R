@@ -1,22 +1,18 @@
 library("tidyr")
-library("ggplot2")
-library("mgcv")
-library("parallel")
 library("itsadug")
-library("mgcViz")
 library("fitdistrplus")
-library("viridis")
-library("devtools")
-install_local(path = "./DiffGamm", force = T)
-library("DiffGamm")
+source("./diff4_calc_gams.R")
+source("./diff4_plot_gams.R")
 
 
+# Read in AFQ data ----
 data_dir <- "/Users/nmuncy/Projects/emu_unc/data"
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
-df_subset <- df_afq[which(df_afq$tractID == "UNC_L" & df_afq$nodeID == 10), ]
-df_subset <- df_node10 %>% drop_na(dx)
+
 
 # Get Demographics ------
+df_subset <- df_afq[which(df_afq$tractID == "UNC_L" & df_afq$nodeID == 10), ]
+df_subset <- df_node10 %>% drop_na(dx)
 num_subj <- dim(df_subset)[1]
 num_female <- length(which(df_subset$sex == "F"))
 age_avg <- round(mean(df_subset$age), 2)
@@ -201,7 +197,7 @@ plot(sm(h_plot, 2)) + ggtitle("Group B node FA - cov interaction")
 # model how fa is a function of subject, node, cov, and group
 gam_cov <- bam(fa ~
     s(subj, bs = "re") +
-    s(node, bs = "cr", k = 10, m = 1) +
+    s(node, bs = "cr", k = 10, m = 2) +
     s(cov, by = group, bs = "tp", k = 10, m = 2) +
     ti(
       node, cov, by = group, bs = c("cr", "tp"), k = c(10, 10), m = 2
@@ -309,11 +305,8 @@ seq_E <- 1:num_groupE
 lin_cov <- (0.1 * seq_C + 2) + rnorm(length(seq_C), 0, 0.1)
 exp_cov <- (((0.1 * seq_E)^2) + 2) + rnorm(length(seq_E), 0, 0.1)
 
-plot(seq_C, lin_cov)
-plot(seq_E, exp_cov)
-
-plot(seq_C, lin_cov)
-points(seq_E, exp_cov)
+# plot(seq_C, lin_cov)
+# plot(seq_E, exp_cov)
 
 # groups differ at nodes 30-45, use ordered node 37 to assign simulated
 # covariate values -- participants with larger 37 FA value have larger
@@ -352,33 +345,172 @@ for(subj in subj_E){
 # plot intx of group, cov, and node37 FA
 df_ind1 <- df_tract[which(df_tract$nodeID == 37), ]
 ggplot(data = df_ind1, aes(x = dti_fa, y = cov, color = dx_group)) +
-  geom_point() + ggtitle("Two simulated interactions with L. Unc (node 37)")
+  geom_point() + 
+  labs(y = "Simulated Covariate", x = "Node 37 FA", colour = "Group") +
+  ggtitle("L. Uncinate Group-Covariate Interactions") + 
+  theme(text = element_text(family = "Times New Roman"))
+ggsave(
+  filename = "/Users/nmuncy/Desktop/sim_intx.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+  )
 
 
-# Model GS, individual group-cov intxs ----
+# Model GS ----
 #
 # Conduct GS style GAM to show that groups differ in their smooths.
-# Then model interaction of each group with their covariate.
 
 # gam via GS method
 descdist(df_tract$dti_fa, discrete = F)
-gam_GS <- gam_GS_model(df_tract, "gamma", "dx_group")
+gam_GS <- gam_GS(df_tract, "gamma", "dx_group")
 plot_GS <- getViz(gam_GS)
-plot(sm(plot_GS, 2)) + ggtitle("L. Unc Global smooth")
-plot(sm(plot_GS, 3)) + ggtitle("L. Unc Group smooths")
+
+# make, save global tract smooth plot
+p <- plot(sm(plot_GS, 2))
+p_data <- as.data.frame(p$data$fit)
+colnames(p_data) <- c("nodeID", "est", "ty", "se")
+p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
+p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
+
+ggplot(data = p_data, aes(x = .data$nodeID, y = .data$est)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  ggtitle("L. Uncinate Tract Smooth") +
+  ylab("Est. FA Fit") +
+  xlab("Tract Node") +
+  theme(text = element_text(family = "Times New Roman"))
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_global.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
+
+# make, save group smooths plot
+p <- plot(sm(plot_GS, 3))
+p_data <- as.data.frame(p$data$fit)
+colnames(p_data) <- c("nodeID", "est", "ty", "Group")
+
+# make, save ggplot
+ggplot(
+  data = p_data,
+  aes(x = .data$nodeID, y = .data$est, group = .data$Group)
+) +
+  geom_line(aes(color = .data$Group)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  ggtitle("L. Uncinate Group Smooths") +
+  labs(y = "Est. FA Fit", x = "Tract Node") +
+  theme(
+    text = element_text(family = "Times New Roman"), 
+    legend.position = "none"
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_group.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
 
 # gam via GS method, ordered factor
-gam_GSOF <- gam_GSOF_model(df_tract, "gamma", "dx_groupOF")
+gam_GSOF <- gam_GSOF(df_tract, "gamma", "dx_groupOF")
 plot_GSOF <- getViz(gam_GSOF)
-plot(sm(plot_GSOF, 1))
-plot(sm(plot_GSOF, 2))
-plot(sm(plot_GSOF, 3))
+# plot(sm(plot_GSOF, 1))
+# plot(sm(plot_GSOF, 2))
+# plot(sm(plot_GSOF, 3))
+
+# unpack difference smooth data
+p <- plot(sm(plot_GSOF, 3)) +
+  geom_hline(yintercept = 0)
+p_data <- as.data.frame(p$data$fit)
+colnames(p_data) <- c("nodeID", "est", "ty", "se")
+
+# find sig nodes
+p_data$lb <- as.numeric(p_data$est - (2 * p_data$se))
+p_data$ub <- as.numeric(p_data$est + (2 * p_data$se))
+sig_rows <- which(
+  (p_data$est < 0 & p_data$ub < 0) |
+    (p_data$est > 0 & p_data$lb > 0)
+)
+sig_nodes <- p_data[sig_rows, ]$nodeID
+
+# find start, end points of sig regions
+vec_start <- sig_nodes[1]
+vec_end <- vector()
+y_min <- min(p_data$lb)
+num_nodes <- length(sig_nodes)
+c <- 2
+while (c < num_nodes) {
+  cc <- c + 1
+  if (sig_nodes[cc] > sig_nodes[c] + 1) {
+    vec_end <- append(vec_end, sig_nodes[c])
+    vec_start <- append(vec_start, sig_nodes[cc])
+  }
+  c <- cc
+}
+vec_end <- append(vec_end, sig_nodes[num_nodes])
+
+# make df for drawing rectangles
+d_rect <- data.frame(
+  x_start = vec_start,
+  x_end = vec_end,
+  y_start = rep(y_min, length(vec_start)),
+  y_end = rep(0, length(vec_start))
+)
+d_rect$x_start <- d_rect$x_start
+d_rect$x_end <- d_rect$x_end
+
+# draw
+ggplot(data = p_data, aes(x = .data$nodeID, y = .data$est)) +
+  geom_hline(yintercept = 0) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin = .data$lb, ymax = .data$ub),
+    alpha = 0.2
+  ) +
+  annotate(
+    "rect",
+    xmin = c(d_rect$x_start),
+    xmax = c(d_rect$x_end),
+    ymin = c(d_rect$y_start),
+    ymax = c(d_rect$y_end),
+    alpha = 0.2,
+    fill = "red"
+  ) +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  ggtitle("L. Uncinate Exp-Con Difference Smooth") +
+  ylab("Est. Difference") +
+  xlab("Tract Node") +
+  theme(text = element_text(family = "Times New Roman"))
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_group-diff.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
+
+
+# Model individual group-covariate interactions ----
+#
+# Model each group separately to check the interaction of node-fa-cov.
 
 # interaction of groupC - visualize linear fa-cov intx
 df_groupA <- df_tract[which(df_tract$dx_group == "Con"), ]
 gam_groupA <- bam(dti_fa ~
     s(subjectID, bs = "re") +
-    te(nodeID, cov, bs = c("cr", "tp"), k = c(50, 10)),
+    s(nodeID, bs = "cr", k = 50, m = 2) +
+    s(cov, bs = "tp", k = 5, m = 2) +
+    ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 5), m = 2),
   data = df_groupA,
   family = Gamma(link = "logit"),
   method = "fREML",
@@ -388,13 +520,44 @@ summary(gam_groupA)
 
 # make contour plot
 plot_groupA <- getViz(gam_groupA)
-plot(sm(plot_groupA, 2)) + ggtitle("L. Unc node-fa-cov interaction, control")
+# plot(sm(plot_groupA, 1))
+# plot(sm(plot_groupA, 2))
+# plot(sm(plot_groupA, 3))
+# plot(sm(plot_groupA, 4)) + ggtitle("L. Unc node-fa-cov interaction, control")
+p <- plot(sm(plot_groupA, 4))
+p_data <- p$data$fit
+colnames(p_data) <- c("z", "tz", "cov", "node", "se")
+
+ggplot(
+  data = p_data, aes(x = .data$node, y = .data$cov, z = .data$z)
+) +
+  geom_tile(aes(fill = .data$z)) +
+  geom_contour(colour = "black") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  labs(y = "Simulated Covariate", x = "Tract Node") +
+  ggtitle("L. Uncinate Node-FA-Covariate Interaction, Con") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_gA-intx.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
+
 
 # interaction of groupE - visualize exponential fa-cov intx
 df_groupB <- df_tract[which(df_tract$dx_group == "Exp"), ]
 gam_groupB <- bam(dti_fa ~
     s(subjectID, bs = "re") +
-    te(nodeID, cov, bs = c("cr", "tp"), k = c(50, 10)),
+    s(nodeID, bs = "cr", k = 50, m = 2) +
+    s(cov, bs = "tp", k = 5, m = 2) +
+    ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 5), m = 2),
   data = df_groupB,
   family = Gamma(link = "logit"),
   method = "fREML",
@@ -404,7 +567,34 @@ summary(gam_groupB)
 
 # make contour plot
 plot_groupB <- getViz(gam_groupB)
-plot(sm(plot_groupB, 2)) + ggtitle("L. Unc node-fa-cov interaction, experimental")
+# plot(sm(plot_groupB, 1))
+# plot(sm(plot_groupB, 2))
+# plot(sm(plot_groupB, 3))
+p <- plot(sm(plot_groupB, 4))
+p_data <- p$data$fit
+colnames(p_data) <- c("z", "tz", "cov", "node", "se")
+
+ggplot(
+  data = p_data, aes(x = .data$node, y = .data$cov, z = .data$z)
+) +
+  geom_tile(aes(fill = .data$z)) +
+  geom_contour(colour = "black") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  labs(y = "Simulated Covariate", x = "Tract Node") +
+  ggtitle("L. Uncinate Node-FA-Covariate Interaction, Exp") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+    )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_gB-intx.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
 
 
 # Model group-cov interaction ----
@@ -413,50 +603,210 @@ plot(sm(plot_groupB, 2)) + ggtitle("L. Unc node-fa-cov interaction, experimental
 # control group.
 
 # full interaction model, visualize
-gam_cov <- gam_intx_model(df_tract, "gamma", "dx_group", "cov")
+gam_cov <- gam_GSintx(df_tract, "gamma", "dx_group", "cov")
+gam_covGS <- bam(dti_fa ~ sex +
+               s(subjectID, bs = "re") +
+               s(nodeID, bs = "cr", k = 50, m = 2) +
+               s(cov, by = dx_group, bs = "tp", k = 5, m = 2) +
+               ti(
+                 nodeID, cov,
+                 by = dx_group, bs = c("cr", "tp"), k = c(50, 5), m = 2
+               ),
+             data = df_tract,
+             family = Gamma(link = "logit"),
+             method = "fREML",
+             discrete = T
+)
+
 plot_gam_cov <- getViz(gam_cov)
-plot(sm(plot_gam_cov, 1))
-plot(sm(plot_gam_cov, 3))
-plot(sm(plot_gam_cov, 4))
+# plot(sm(plot_gam_cov, 1))
+# plot(sm(plot_gam_cov, 2))
+# plot(sm(plot_gam_cov, 3))
+# plot(sm(plot_gam_cov, 4))
 plot(sm(plot_gam_cov, 5)) + ggtitle("L Unc node-fa-cov interaction, full model, control")
 plot(sm(plot_gam_cov, 6)) + ggtitle("L Unc node-fa-cov interaction, full model, experimental")
 
-# extract plot data to compare groups manually
-p_con <- plot(sm(plot_gam_cov, 5))
-p_exp <- plot(sm(plot_gam_cov, 6))
-df_con <- p_con$data$fit
-df_exp <- p_exp$data$fit
-df_diff <- df_con - df_exp
-df_diff$x <- df_con$x
-df_diff$y <- df_con$y
-ggplot(data = df_diff, aes(x = x, y = y, z = z)) +
-  geom_tile(aes(fill = z)) +
+p <- plot(sm(plot_gam_cov, 5))
+p_data <- p$data$fit
+colnames(p_data) <- c("z", "tz", "cov", "node", "se")
+
+ggplot(
+  data = p_data, aes(x = .data$node, y = .data$cov, z = .data$z)
+) +
+  geom_tile(aes(fill = .data$z)) +
   geom_contour(colour = "black") +
-  scale_fill_viridis(option = "D", name = "Fit FA") +
-  labs(x = "Covariate Term", y = "NodeID") +
-  ggtitle("L Unc node-fa-cov interaction, full model, experimental difference smooth (manual)")
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  labs(y = "Simulated Covariate", x = "Tract Node") +
+  ggtitle("L. Uncinate Node-FA-Covariate Interaction, Con") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_gA-intx.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
+
+p <- plot(sm(plot_gam_cov, 6))
+p_data <- p$data$fit
+colnames(p_data) <- c("z", "tz", "cov", "node", "se")
+
+ggplot(
+  data = p_data, aes(x = .data$node, y = .data$cov, z = .data$z)
+) +
+  geom_tile(aes(fill = .data$z)) +
+  geom_contour(colour = "black") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  labs(y = "Simulated Covariate", x = "Tract Node") +
+  ggtitle("L. Uncinate Node-FA-Covariate Interaction, Exp") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_gB-intx.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
+
 
 # ordered interaction model to get Exp difference
-gam_covOF <- gam_intxOF_model(df_tract, "gamma", "dx_group", "dx_groupOF", "cov")
-summary(gam_covOF)
+gam_covOF <- gam_GSintxOF(df_tract, "gamma", "dx_group", "dx_groupOF", "cov")
+# gam_covOF <- bam(dti_fa ~ sex +
+#      s(subjectID, bs = "re") +
+#      s(nodeID, bs = "cr", k = 50, m = 2) +
+#      s(cov, by = dx_group, bs = "tp", k = 10, m = 2) +
+#      ti(nodeID, cov, bs = c("cr", "tp"), k = c(50, 10), m = 2) +
+#      ti(
+#        nodeID, cov,
+#        by = dx_groupOF, bs = c("cr", "tp"), k = c(50, 10), m = 2
+#      ),
+#    data = df_tract,
+#    family = Gamma(link = "logit"),
+#    method = "fREML",
+#    discrete = T
+# )
 
+summary(gam_covOF)
 plot_gam_covOF <- getViz(gam_covOF)
-plot(sm(plot_gam_covOF, 1))
-plot(sm(plot_gam_covOF, 2))
-plot(sm(plot_gam_covOF, 3))
-plot(sm(plot_gam_covOF, 4))
-plot(sm(plot_gam_covOF, 5))
+# plot(sm(plot_gam_covOF, 1))
+# plot(sm(plot_gam_covOF, 2))
+# plot(sm(plot_gam_covOF, 3))
+# plot(sm(plot_gam_covOF, 4))
+# plot(sm(plot_gam_covOF, 5))
 plot(sm(plot_gam_covOF, 6))
 
-# invert difference smooth to help interpretation
+# plot node-fa-cov diff smooth
 p <- plot(sm(plot_gam_covOF, 6))
 p_data <- p$data$fit
 p_data$zI <- -1 * p_data$z
+colnames(p_data) <- c("z", "tz", "cov", "node", "se", "zI")
 
-ggplot(data = p_data, aes(x = x, y = y, z = zI)) +
-  geom_tile(aes(fill = zI)) +
+ggplot(
+  data = p_data, aes(x = .data$node, y = .data$cov, z = .data$zI)
+) +
+  geom_tile(aes(fill = .data$zI)) +
   geom_contour(colour = "black") +
-  scale_fill_viridis(option = "D", name = "Fit FA") +
-  labs(x = "Covariate Term", y = "NodeID") +
-  ggtitle("L Unc node-fa-cov interaction, full model, experimental difference smooth (ordered GAM)")
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  labs(y = "Simulated Covariate", x = "Tract Node") +
+  ggtitle("L. Uncinate Node-FA-Covariate Interaction, Diff") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_gAB-diff.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  device = "png"
+)
+
+# calc cov group diff smooth
+p_data <- plot_diff(
+  gam_covOF, 
+  view = c("h_var"), 
+  comp = list(h_group=c("Con", "Exp")), 
+  rm.ranef = T
+  )
+
+# determine regions that differ from zero
+p_data$lb <- p_data$est-p_data$CI
+p_data$ub <- p_data$est+p_data$CI
+sig_rows <- which(
+  (p_data$est < 0 & p_data$ub < 0) |
+    (p_data$est > 0 & p_data$lb > 0)
+)
+sig_nodes <- p_data[sig_rows, ]$h_var
+
+# find start, end points of sig regions
+vec_start <- sig_nodes[1]
+vec_end <- vector()
+y_min <- min(p_data$lb)
+num_nodes <- length(sig_nodes)
+c <- 2
+while (c < num_nodes) {
+  cc <- c + 1
+  if (sig_nodes[cc] > sig_nodes[c] + 1) {
+    vec_end <- append(vec_end, sig_nodes[c])
+    vec_start <- append(vec_start, sig_nodes[cc])
+  }
+  c <- cc
+}
+vec_end <- append(vec_end, sig_nodes[num_nodes])
+
+# make df for drawing rectangles
+d_rect <- data.frame(
+  x_start = vec_start,
+  x_end = vec_end,
+  y_start = rep(y_min, length(vec_start)),
+  y_end = rep(0, length(vec_start))
+)
+d_rect$x_start <- d_rect$x_start
+d_rect$x_end <- d_rect$x_end
+
+# draw smooth, shade diff regions
+ggplot(data = p_data, aes(x = h_var, y = est)) +
+  geom_hline(yintercept = 0) +
+  geom_line() +
+  geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
+  annotate(
+    "rect",
+    xmin = c(d_rect$x_start),
+    xmax = c(d_rect$x_end),
+    ymin = c(d_rect$y_start),
+    ymax = c(d_rect$y_end),
+    alpha = 0.2,
+    fill = "red"
+  ) +
+  labs(x = "Simulated Covariate", y = "Est. FA Fit") +
+  ggtitle("L. Uncinate Covariate Smooth, Diff") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size = 12)
+  )
+ggsave(
+  filename = "/Users/nmuncy/Desktop/lunc_cov-diff.png", 
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  dpi = 600,
+  device = "png"
+)
+
+
+
+
 
