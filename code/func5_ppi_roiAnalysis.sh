@@ -18,7 +18,7 @@ function Usage {
     cat <<USAGE
     Extract PPI coefficient for supplied behaviors.
 
-    Find subjects who have PPI output (ref func3_ppi.py). Then multiply ROI <mask_name>
+    Find subjects who have PPI output (ref func4_ppi.py). Then multiply ROI <mask_name>
     by intersection mask (-g) to make clean mask. Finally, use clean mask to extract
     coefs for each subject.
 
@@ -43,11 +43,11 @@ function Usage {
             -d \$deriv_dir \\
             -g \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_\${sess}_\${task}_desc-grpIntx_mask.nii.gz \\
             -m NSlacc \\
-            -n precTest \\
+            -n rVal \\
             -p amgL \\
             -s \$sess \\
             -t \$task \\
-            SPnegLF SPneuLF
+            Sneg Sneu
 
 USAGE
 }
@@ -209,7 +209,7 @@ if [ ! -f $mask_clean ]; then
 fi
 
 # extract coefs for each subj/behavior
-out_file=${analysis_dir}/Coefs_${sess}_${task}_${ppi_seed}-${mask_name}.txt
+out_file=${analysis_dir}/Coefs_${sess}_${task}_decon-${decon_name}_${ppi_seed}-${mask_name}.txt
 echo -e "\n\tWriting: $out_file ...\n"
 echo -e "Mask\t$mask_name" >$out_file
 
