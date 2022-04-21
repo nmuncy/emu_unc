@@ -106,7 +106,9 @@ out_dir <- paste0(proj_dir, "/stats")
 tract_list <- c("UNC_L", "UNC_R", "CGC_L", "CGC_R")
 
 # capture session
-capture.output(sessionInfo(), file = paste0(data_dir, "/R_session_info.txt"))
+capture.output(
+  sessionInfo(), file = paste0(proj_dir, "/env/R_session_info.txt")
+)
 
 # import data, setup factors
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))

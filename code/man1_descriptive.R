@@ -343,8 +343,8 @@ for (subj in subj_E) {
 }
 
 # plot intx of group, cov, and node37 FA
-df_ind1 <- df_tract[which(df_tract$nodeID == 37), ]
-ggplot(data = df_ind1, aes(x = dti_fa, y = cov, color = dx_group)) +
+df_node37 <- df_tract[which(df_tract$nodeID == 37), ]
+ggplot(data = df_node37, aes(x = dti_fa, y = cov, color = dx_group)) +
   geom_point() +
   labs(y = "Simulated Covariate", x = "Node 37 FA", colour = "Group") +
   ggtitle("L. Uncinate Group-Covariate Interactions") +
@@ -357,6 +357,7 @@ ggsave(
   height = 3,
   device = "png"
 )
+rm(df_node37)
 
 
 # Model Global and Group smooths ----
