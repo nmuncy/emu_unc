@@ -274,7 +274,7 @@ fit_anov <- ezANOVA(
   df_long, value,
   wid = subj, within = memF, between = groupF
 )
-fit_anov
+fit_anov # MEs of group, valence; no group:valence
 
 # rename vars for pretty plots
 ind_neg <- which(df_long$mem == "lgi_neg")
