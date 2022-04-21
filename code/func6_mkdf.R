@@ -43,14 +43,6 @@ beh_B <- get_args[5]
 
 
 # Functions ----
-# beh_switch <- function(h_beh) {
-#   x_beh <- switch(h_beh,
-#     "SPnegLF" = "PnegLF",
-#     "SPneuLF" = "PneuLF"
-#   )
-#   return(x_beh)
-# }
-
 make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, roi, one_dir, data_dir) {
   # Organize func3/func5 output, make dataframes.
   #
@@ -95,7 +87,7 @@ make_dataframe <- function(raw_file, sess, task, beh_A, beh_B, roi, one_dir, dat
 
     # censure subjects who had <15 events modeled for both desired behaviors
     ind_out <- grep(subj, df_out$subj)
-    
+
     subj_time_dir <- paste(data_dir, "timing_files", subj, sess, sep = "/")
     subj_count <- read.delim(
       paste0(subj_time_dir, "/beh_", decon, "_counts.tsv"),
@@ -197,14 +189,14 @@ ns_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
 
 # get coefs for decon roi analysis
 for (roi in c(roi_list, ns_list)) {
-  
+
   coef_file <- paste0(
     data_dir, "/Coefs_", sess, "_", task, "_", decon, "_", roi, ".txt"
   )
   df_out <- make_dataframe(
     coef_file, sess, task, beh_A, beh_B, roi, one_dir, data_dir
   )
-  
+
   # get coefs for decon amgL-PPI analysis
   if(roi == "amgL"){
     for(h_roi in ns_list){
