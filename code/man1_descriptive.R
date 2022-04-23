@@ -1,8 +1,10 @@
 library("tidyr")
 library("itsadug")
+library("mgcv")
+library("mgcViz")
 library("fitdistrplus")
-source("./diff4_calc_gams.R")
-source("./diff4_plot_gams.R")
+library("ggplot2")
+library("viridis")
 
 
 # General Notes ----
@@ -328,28 +330,25 @@ ggsave(
 )
 
 # predict node-fa-cov interaction, Con group
-p_data_intx_con <- with(df_long,
- expand.grid(
-   subj = seq(1:60),
-   group = "Con",
-   node = seq(1:50),
-   cov = seq(min(cov_con), max(cov_con), length = 60)
- )
+cov_con_seq <- seq(min(cov_con), max(cov_con), length = 60)
+df_con <- df_long[which(df_long$group == "Con"), ]
+df_pred_con <- data.frame(
+  subj = df_con$subj,
+  group = df_con$group,
+  node = df_con$node,
+  cov = rep(cov_con_seq, each = 50)
 )
-fit_intx_con <- predict(gam_cov, p_data_intx_con)
-# ind <- exclude.too.far(
-#   df_long$node, df_long$cov,
-#   p_data_intx_con$node, p_data_intx_con$cov,
-#   dist = 0.05
-# )
-# fit_intx_con[ind] <- NA
+df_pred_con$fit_fa <- predict(gam_cov, df_pred_con)
 
-pred_intx_con <- cbind(p_data_intx_con, fa = fit_intx_con)
-ggplot(pred_intx_con, aes(x = node, y = cov, z = fa)) +
-  geom_tile(aes(fill = fa)) +
+ggplot(df_pred_con, aes(x = node, y = cov, z = fit_fa)) +
+  geom_tile(aes(fill = fit_fa)) +
   geom_contour(colour = "black") +
   scale_x_continuous(breaks = seq(0, 50, by = 10)) +
-  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  scale_fill_viridis(
+    option = "D", 
+    name = "Est. FA Fit", 
+    limits = c(0.3, 0.8)
+  ) +
   labs(y = "Simulated Covariate", x = "Tract Node") +
   ggtitle("Tract Node-FA-Covariate Interaction, Con") +
   theme(
@@ -367,22 +366,25 @@ ggsave(
 )
 
 # predict node-fa-cov interaction, Exp group
-p_data_intx_exp <- with(df_long,
- expand.grid(
-   subj = seq(1:60),
-   group = "Exp",
-   node = seq(1:50),
-   cov = seq(min(cov_exp), max(cov_exp), length = 60)
- )
+cov_exp_seq <- seq(min(cov_exp), max(cov_exp), length = 60)
+df_exp <- df_long[which(df_long$group == "Exp"), ]
+df_pred_exp <- data.frame(
+  subj = df_exp$subj,
+  group = df_exp$group,
+  node = df_exp$node,
+  cov = rep(cov_exp_seq, each = 50)
 )
+df_pred_exp$fit_fa <- predict(gam_cov, df_pred_exp)
 
-fit_intx_exp <- predict(gam_cov, p_data_intx_exp)
-pred_intx_exp <- cbind(p_data_intx_exp, fa = fit_intx_exp)
-ggplot(pred_intx_exp, aes(x = node, y = cov, z = fa)) +
-  geom_tile(aes(fill = fa)) +
+ggplot(df_pred_exp, aes(x = node, y = cov, z = fit_fa)) +
+  geom_tile(aes(fill = fit_fa)) +
   geom_contour(colour = "black") +
   scale_x_continuous(breaks = seq(0, 50, by = 10)) +
-  scale_fill_viridis(option = "D", name = "Est. FA Fit") +
+  scale_fill_viridis(
+    option = "D", 
+    name = "Est. FA Fit", 
+    limits = c(0.3, 0.8)
+  ) +
   labs(y = "Simulated Covariate", x = "Tract Node") +
   ggtitle("Tract Node-FA-Covariate Interaction, Exp") +
   theme(
