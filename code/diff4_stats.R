@@ -3,6 +3,7 @@ library("dplyr")
 library("tools")
 library("tidyr")
 library("ez")
+library("gridExtra")
 source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
 
@@ -346,20 +347,6 @@ for (tract in tract_list) {
       paste0("mGS-mGIntx_LGI_", beh_short)
     )
 
-    # plot omnibus interaction of group-node-fa-lgi
-    plot_Gintx <- getViz(tract_Gintx)
-    draw_Gintx(
-      plot_Gintx,
-      2,
-      tract,
-      switch_names(beh),
-      paste(
-        switch_names(tract), "Node-FA-Memory Interaction"
-      ),
-      paste0(out_dir, "/Plot_", tract, "_mGIntx_LGI_", beh_short)
-    )
-
-
     # model interaction of tract-behavior-fa to get interaction
     # smooths for each group
     gam_file <- paste0(
@@ -374,35 +361,14 @@ for (tract in tract_list) {
     write_gam_stats(
       tract_GSintx, out_dir, paste0("mGSIntx_LGI_", beh_short), tract
     )
-
-    # draw tract-behavior-fa intxs for con, exp groups
-    plot_tract_GSintx <- getViz(tract_GSintx)
-
-    draw_intx(
-      plot_tract_GSintx,
-      5,
-      tract,
-      switch_names(beh),
-      paste(
-        switch_names(tract), "Node-FA-Memory Interaction, Control"
-      ),
-      paste0(
-        out_dir, "/Plot_", tract, "_mGSIntx_LGI_", beh_short, "_con"
-      )
+    
+    plot_group_intx <- pred_group_intx(
+      df_tract, tract_GSintx, switch_names(beh), beh
     )
-
-    draw_intx(
-      plot_tract_GSintx,
-      6,
-      tract,
-      switch_names(beh),
-      paste(
-        switch_names(tract), "Node-FA-Memory Interaction, Experimental"
-      ),
-      paste0(
-        out_dir, "/Plot_", tract, "_mGSIntx_LGI_", beh_short, "_exp"
-      )
+    plot_group_behs <- pred_group_behs(
+      df_tract, 37, tract_GSintx, switch_names(beh), beh, switch_names(tract)
     )
+    
 
     # test if exp group node-fa-lgi intx term differs from control
     gam_file <- paste0(
@@ -417,48 +383,36 @@ for (tract in tract_list) {
     }
     tract_GSintxOF <- readRDS(gam_file)
 
-    # get stats
+    # get stats, plot
     write_gam_stats(
       tract_GSintxOF, out_dir, paste0("mGSOFIntx_LGI_", beh_short), tract
     )
-
-    # draw group intx diff smooth of node-fa-lgi
-    plot_tract_GSintxOF <- getViz(tract_GSintxOF)
-
-    draw_intx_diff(
-      plot_tract_GSintxOF,
-      6,
-      tract,
-      switch_names(beh),
-      paste(
-        switch_names(tract),
-        "Node-FA-Memory Interaction, Diff"
-      ),
-      paste0(
-        out_dir, "/Plot_", tract, "_mGSOFIntx_LGI_", beh_short, "_diff"
-      )
+    plot_group_intx_diff <- pred_group_intx_diff(
+      df_tract, tract_GSintxOF, switch_names(beh), beh
     )
-
-    # draw group diff smooth of fa-lgi
-    draw_covS_diff(
-      tract_GSintxOF,
-      switch_names(beh),
-      paste(
-        switch_names(tract),
-        "Memory Metric Smooth, Diff"
-      ),
-      paste0(
-        out_dir, "/Plot_", tract, "_mGSOFIntx_LGI_", beh_short, "_cov_diff"
-      )
+    
+    # make tract-lgi plot
+    pOut <- grid.arrange(
+      plot_group_intx$con, plot_group_behs$con,
+      plot_group_intx$exp, plot_group_behs$exp,
+      plot_group_intx_diff$diff, plot_group_behs$diff,
+      nrow = 3,
+      ncol= 2
+    )
+    ggsave(
+      paste0(out_dir, "/Plot_", tract, "_LGI.png"),
+      plot = pOut,
+      units = "in",
+      height = 6,
+      width = 9,
+      dpi = 600,
+      device = "png"
     )
 
     # clean up
     rm(tract_Gintx)
     rm(tract_GSintx)
     rm(tract_GSintxOF)
-    rm(plot_Gintx)
-    rm(plot_tract_GSintx)
-    rm(plot_tract_GSintxOF)
   }
   rm(tract_GS)
 }
@@ -556,18 +510,18 @@ for (tract in tract_list) {
       paste0("mGS-mGIntx_ROI_", roi_beh_out)
     )
 
-    # plot omnibus intx of group-node-fa-roi coef for tract
-    plot_tract_Gintx <- getViz(tract_Gintx)
-    draw_Gintx(
-      plot_tract_Gintx,
-      2,
-      tract,
-      paste(switch_names(beh), switch_names(roi), "Coefs"),
-      paste(
-        switch_names(tract), "Node-FA-ROI Interaction"
-      ),
-      paste0(out_dir, "/Plot_", tract, "_mGIntx_ROI_", roi_beh_out)
-    )
+    # # plot omnibus intx of group-node-fa-roi coef for tract
+    # plot_tract_Gintx <- getViz(tract_Gintx)
+    # draw_Gintx(
+    #   plot_tract_Gintx,
+    #   2,
+    #   tract,
+    #   paste(switch_names(beh), switch_names(roi), "Coefs"),
+    #   paste(
+    #     switch_names(tract), "Node-FA-ROI Interaction"
+    #   ),
+    #   paste0(out_dir, "/Plot_", tract, "_mGIntx_ROI_", roi_beh_out)
+    # )
 
     # model tract node-fa-roi coef intx for e/group, write stats
     gam_file <- paste0(
@@ -774,18 +728,18 @@ for (tract in tract_list) {
         paste0("mGS-mGSIntx_PPI_", h_name)
       )
 
-      # plot omnibus intx of group-node-fa-roi coef for tract
-      plot_tract_Gintx <- getViz(tract_Gintx)
-      draw_Gintx(
-        plot_tract_Gintx,
-        2,
-        tract,
-        y_name,
-        paste(
-          switch_names(tract), "Node-FA-PPI Interaction"
-        ),
-        paste0(out_dir, "/Plot_", tract, "_mGIntx_PPI_", h_name)
-      )
+      # # plot omnibus intx of group-node-fa-roi coef for tract
+      # plot_tract_Gintx <- getViz(tract_Gintx)
+      # draw_Gintx(
+      #   plot_tract_Gintx,
+      #   2,
+      #   tract,
+      #   y_name,
+      #   paste(
+      #     switch_names(tract), "Node-FA-PPI Interaction"
+      #   ),
+      #   paste0(out_dir, "/Plot_", tract, "_mGIntx_PPI_", h_name)
+      # )
 
       # model tract node-fa-ppi coef intx for e/group, write stats
       gam_file <- paste0(
