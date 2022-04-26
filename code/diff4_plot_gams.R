@@ -532,6 +532,7 @@ pred_group_intx <- function(df_tract, gam_obj, y_name, beh){
   z_max <- max(c(df_pred_con_intx$fit, df_pred_exp_intx$fit), na.rm = T)
   
   # plot
+  # ggtitle("Node-FA-Behavior Interaction, Con")
   pC <- ggplot(df_pred_con_intx, aes(x = nodeID, y = h_var, z = fit)) +
     geom_tile(aes(fill = fit)) +
     geom_contour(colour = "black") +
@@ -541,14 +542,16 @@ pred_group_intx <- function(df_tract, gam_obj, y_name, beh){
       name = "Est. FA Fit",
       limits = c(z_min, z_max)
     ) +
-    labs(y = y_name, x = "Tract Node") +
-    ggtitle("Tract Node-FA-Covariate Interaction, Con") +
     theme(
       text = element_text(family = "Times New Roman"),
-      plot.title = element_text(size = 12)
+      plot.title = element_text(size = 12),
+      legend.text=element_text(size = 10),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
     )
   print(pC)
   
+  # ggtitle(paste("Node-FA-Behavior Interaction, Exp"))
   pE <- ggplot(df_pred_exp_intx, aes(x = nodeID, y = h_var, z = fit)) +
     geom_tile(aes(fill = fit)) +
     geom_contour(colour = "black") +
@@ -558,11 +561,13 @@ pred_group_intx <- function(df_tract, gam_obj, y_name, beh){
       name = "Est. FA Fit",
       limits = c(z_min, z_max)
     ) +
-    labs(y = y_name, x = "Tract Node") +
-    ggtitle(paste("Tract Node-FA-Covariate Interaction, Exp")) +
+    labs(x = "Tract Node") +
     theme(
       text = element_text(family = "Times New Roman"),
-      plot.title = element_text(size = 12)
+      plot.title = element_text(size = 12),
+      legend.text=element_text(size = 10),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
     )
   print(pE)
   return(list("con" = pC, "exp" = pE))
@@ -570,14 +575,20 @@ pred_group_intx <- function(df_tract, gam_obj, y_name, beh){
 
 
 pred_group_intx_diff <- function(df_tract, gam_obj, y_name, beh){
-  # Title.
+  # Draw difference interaction smooth for node-fa-beh.
   #
-  # Desc.
-  
-  # # For testing
-  # gam_obj <- tract_GSintxOF
-  # y_name <- "Neutral LGI"
-  # id_node <- 37
+  # Predict and plot how the Exp group differs in their interaction term
+  # of node-fa-beh from the reference group.
+  #
+  # Arguments:
+  #   df_tract (dataframe) = input data for GAM
+  #   gam_obj (gam) = GAM object returned by mgcv, specifically the
+  #     function gam_GSintx
+  #   y_name (str) = name of Y-axis label
+  #   beh (str) = column name for covariate of interest
+  #
+  # Returns:
+  #   named list of difference (diff) plot
   
   # set up for predicting node-fa-beh group difference intx
   node_list <- unique(df_tract$nodeID)
@@ -610,16 +621,19 @@ pred_group_intx_diff <- function(df_tract, gam_obj, y_name, beh){
   )
   
   df_pred_diff <- cbind(df_pred_diff, fit = pred_intx_diff$fit)
+  # ggtitle("Node-FA-Behavior Interaction, Diff")
   p <- ggplot(df_pred_diff, aes(x = nodeID, y = h_var, z = fit)) +
     geom_tile(aes(fill = fit)) +
     geom_contour(colour = "black") +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     scale_fill_viridis(option = "D", name = "Est. FA Fit") +
-    labs(y = y_name, x = "Tract Node") +
-    ggtitle("Tract Node-FA-Covariate Interaction, Diff") +
+    labs(x = "Tract Node") +
     theme(
       text = element_text(family = "Times New Roman"),
-      plot.title = element_text(size = 12)
+      plot.title = element_text(size = 12),
+      legend.text=element_text(size = 10),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
     )
   print(p)
   
@@ -643,7 +657,7 @@ pred_group_behs <- function(df_tract, id_node, gam_obj, x_name, beh, tract_name)
   #   tract_name (str) = long-formatted tract name for plot title
   #
   # Returns:
-  #   named list of control (con) and experimental (exp) plots
+  #   Named list of control (con) and experimental (exp) plots
   
   # # For testing
   # gam_obj <- tract_GSintx
@@ -703,34 +717,36 @@ pred_group_behs <- function(df_tract, id_node, gam_obj, x_name, beh, tract_name)
   df_pred_exp_cov <- cbind(df_pred_exp_cov, pred_exp_cov)
 
   # Plot
-  y_min <- min(c(df_pred_con_cov$lb, df_pred_exp_cov$lb), na.rm = T)
-  y_max <- max(c(df_pred_con_cov$ub, df_pred_exp_cov$ub), na.rm = T)
+  x_min <- min(c(df_pred_con_cov$lb, df_pred_exp_cov$lb), na.rm = T)
+  x_max <- max(c(df_pred_con_cov$ub, df_pred_exp_cov$ub), na.rm = T)
   
+  # ggtitle(paste("Node", id_node, "FA-Behavior Smooth, Con"))
   pC <- ggplot(data = df_pred_con_cov, aes(x = h_var, y = fit)) +
     geom_line() +
     geom_ribbon(aes(ymin = lb, ymax = ub), alpha = 0.2) +
-    labs(x = x_name, y = "Est. FA Fit") +
-    ggtitle(paste(tract_name, "Node", id_node, "FA-Covariate Smooth, Con")) +
     theme(
       text = element_text(family = "Times New Roman"),
       legend.position = "none",
-      plot.title = element_text(size = 12)
+      plot.title = element_text(size = 12),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
     ) +
-    coord_cartesian(ylim = c(y_min, y_max))
+    coord_flip(ylim = c(x_min, x_max)) 
   print(pC)
   
+  # ggtitle(paste("Node", id_node, "FA-Behavior Smooth, Exp"))
   pE <- ggplot(data = df_pred_exp_cov, aes(x = h_var, y = fit)) +
     geom_line() +
-    ylim(y_min, y_max) +
     geom_ribbon(aes(ymin = lb, ymax = ub), alpha = 0.2) +
     labs(x = x_name, y = "Est. FA Fit") +
-    ggtitle(paste(tract_name, "Node", id_node, "FA-Covariate Smooth, Exp")) +
     theme(
       text = element_text(family = "Times New Roman"),
       legend.position = "none",
-      plot.title = element_text(size = 12)
+      plot.title = element_text(size = 12),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
     ) +
-    coord_cartesian(ylim = c(y_min, y_max))
+    coord_flip(ylim = c(x_min, x_max)) 
   print(pE)
   
   # plot group difference smooth of covariate-fa intx as node X
@@ -779,6 +795,7 @@ pred_group_behs <- function(df_tract, id_node, gam_obj, x_name, beh, tract_name)
   d_rect$x_end <- d_rect$x_end
   
   # draw smooth, shade diff regions
+  # ggtitle(paste("Node ", id_node,"FA-Behavior Smooth, Diff"))
   pD <- ggplot(data = p_data, aes(x = h_var, y = est)) +
     geom_hline(yintercept = 0) +
     geom_line() +
@@ -792,14 +809,14 @@ pred_group_behs <- function(df_tract, id_node, gam_obj, x_name, beh, tract_name)
       alpha = 0.2,
       fill = "red"
     ) +
-    labs(x = x_name, y = "Est. FA Fit") +
-    ggtitle(paste(tract_name, "Node ", id_node,"FA-Covariate Smooth, Diff")) +
     theme(
       text = element_text(family = "Times New Roman"),
-      plot.title = element_text(size = 12)
-    )
+      plot.title = element_text(size = 12),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
+    ) +
+    coord_flip()
   print(pD)
-  
   
   return(list("con" = pC, "exp" = pE, "diff" = pD))
 }

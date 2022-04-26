@@ -4,6 +4,7 @@ library("tools")
 library("tidyr")
 library("ez")
 library("gridExtra")
+library("ggpubr")
 source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
 
@@ -220,6 +221,25 @@ for (tract in tract_list) {
 }
 
 
+# switch for selecting node for each tract
+tract_node <- function(tract) {
+  # Match tract to node, for interaction investiagtion
+  #
+  # Arguments:
+  #   tract (str) = AFQ tract name
+  #
+  # Returns:
+  #   id_node (int) = nodeID number
+  id_node <- switch(tract,
+   "UNC_L" = 37,
+   "UNC_R" = 39,
+   "CGC_L" = 57,
+   "CGC_R" = 29
+  )
+  return(id_node)
+}
+
+
 # Interaction with LGI ----
 #
 # First, test for a group by valence interaction in LGI
@@ -311,9 +331,10 @@ for (tract in tract_list) {
   df_tract <- df_afq[which(df_afq$tractID == tract), ]
   df_tract <- df_tract %>% drop_na(dx)
 
-  # get distribution, get dxGS model
+  # get distribution, dxGS model, and node
   tract_dist <- tract_fam(tract)
   tract_GS <- readRDS(paste0(out_dir, "/Model_", tract, "_mGS.Rda"))
+  id_node <- tract_node(tract)
 
   # model intx w/e/behavior
   for (beh in beh_list) {
@@ -366,7 +387,7 @@ for (tract in tract_list) {
       df_tract, tract_GSintx, switch_names(beh), beh
     )
     plot_group_behs <- pred_group_behs(
-      df_tract, 37, tract_GSintx, switch_names(beh), beh, switch_names(tract)
+      df_tract, id_node, tract_GSintx, switch_names(beh), beh, switch_names(tract)
     )
     
 
@@ -392,19 +413,60 @@ for (tract in tract_list) {
     )
     
     # make tract-lgi plot
-    pOut <- grid.arrange(
-      plot_group_intx$con, plot_group_behs$con,
-      plot_group_intx$exp, plot_group_behs$exp,
-      plot_group_intx_diff$diff, plot_group_behs$diff,
-      nrow = 3,
-      ncol= 2
+    # pOut <- grid.arrange(
+    #   plot_group_behs$con, plot_group_intx$con,
+    #   plot_group_behs$exp, plot_group_intx$exp,
+    #   plot_group_behs$diff, plot_group_intx_diff$diff,
+    #     nrow = 3,
+    #     ncol= 2,
+    #     widths = c(0.5, 1)
+    # )
+
+    # make col titles, y axis, x axis, and row names
+    col1_name <- text_grob(
+      paste("Node", id_node, "FA-Memory Smooth"), 
+      size = 12, family = "Times New Roman"
     )
+    col2_name <- text_grob(
+      "Node-FA-Memory Smooth", size = 12, family = "Times New Roman"
+    )
+    bot1_name <- text_grob("Est. FA Fit", size = 10, family = "Times New Roman")
+    bot2_name <- text_grob("Tract Node", size = 10, family = "Times New Roman")
+    l1_name <- l2_name <- l3_name <- 
+      text_grob(
+        switch_names(beh), size = 10, family = "Times New Roman", rot = 90
+      )
+    r1_name <- text_grob(
+      "Control", size = 12, family = "Times New Roman", rot = 270
+      )
+    r2_name <- text_grob(
+      "Experimental", size = 12, family = "Times New Roman", rot = 270
+      )
+    r3_name <- text_grob(
+      "Difference", size = 12, family = "Times New Roman", rot = 270
+      )
+    
+    pOut <- grid.arrange(
+      arrangeGrob(plot_group_behs$con, top = col1_name, left = l1_name),
+      arrangeGrob(plot_group_intx$con, top = col2_name, right = r1_name),
+      arrangeGrob(plot_group_behs$exp, left = l2_name),
+      arrangeGrob(plot_group_intx$exp, right = r2_name),
+      arrangeGrob(plot_group_behs$diff, bottom = bot1_name, left = l3_name),
+      arrangeGrob(
+        plot_group_intx_diff$diff, bottom = bot2_name, right = r3_name
+      ),
+      nrow = 3,
+      ncol= 2,
+      widths = c(0.75, 1), 
+      heights = c(1, 1, 1)
+    )
+    
     ggsave(
-      paste0(out_dir, "/Plot_", tract, "_LGI.png"),
+      paste0(out_dir, "/Plot_", tract, "_LGI_", beh_short, ".png"),
       plot = pOut,
       units = "in",
       height = 6,
-      width = 9,
+      width = 6,
       dpi = 600,
       device = "png"
     )
@@ -413,6 +475,10 @@ for (tract in tract_list) {
     rm(tract_Gintx)
     rm(tract_GSintx)
     rm(tract_GSintxOF)
+    rm(plot_group_intx)
+    rm(plot_group_behs)
+    rm(plot_group_intx_diff)
+    rm(pOut)
   }
   rm(tract_GS)
 }
