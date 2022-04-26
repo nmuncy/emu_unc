@@ -209,11 +209,12 @@ draw_two_three <- function(plot_list, name_list, tract, beh_short){
   
   # make col titles, y axis, x axis, and row names
   col1_name <- text_grob(name_list$col1, size = 12, family = "Times New Roman")
-  col2_name <- text_grob(name_list$col1, size = 12, family = "Times New Roman")
+  col2_name <- text_grob(name_list$col2, size = 12, family = "Times New Roman")
   bot1_name <- text_grob(name_list$bot1, size = 10, family = "Times New Roman")
   bot2_name <- text_grob(name_list$bot2, size = 10, family = "Times New Roman")
   
-  l1_name <- l2_name <- l3_name <- 
+  l1_name <- l3_name <- ""
+  l2_name <-
     text_grob(name_list$rowL, size = 10, family = "Times New Roman", rot = 90)
   
   r1_name <- text_grob(
