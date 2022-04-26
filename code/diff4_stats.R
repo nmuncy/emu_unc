@@ -428,7 +428,7 @@ for (tract in tract_list) {
       "bot1" = "Est. FA Fit",
       "bot2" = "Tract Node"
     )
-    draw_two_three(plot_list, name_list, tract, beh_short)
+    draw_two_three(plot_list, name_list, tract, beh_short, "LGI")
 
     # clean up
     rm(tract_Gintx)
@@ -580,14 +580,14 @@ for (tract in tract_list) {
     name_list <- list(
       "col1" = paste("Node", id_node, "FA-ROI Smooth"),
       "col2" = "Node-FA-ROI Smooth",
-      "rowL" = switch_names(roi),
+      "rowL" = paste(switch_names(roi), switch_names(beh)),
       "rowR1" = "Control",
       "rowR2" = "Experimental",
       "rowR3" = "Difference",
       "bot1" = "Est. FA Fit",
       "bot2" = "Tract Node"
     )
-    draw_two_three(plot_list, name_list, tract, roi_beh_out)
+    draw_two_three(plot_list, name_list, tract, roi_beh_out, "ROI")
     
     # clean up
     rm(tract_Gintx)
@@ -650,6 +650,7 @@ for (tract in tract_list) {
   df_tract <- df_afq[which(df_afq$tractID == tract), ]
   df_tract <- df_tract %>% drop_na(dx)
   tract_dist <- tract_fam(tract)
+  id_node <- tract_node(tract)
 
   # get tract GS model for comparison
   tract_GS <- readRDS(paste0(out_dir, "/Model_", tract, "_mGS.Rda"))
@@ -766,7 +767,7 @@ for (tract in tract_list) {
         "bot1" = "Est. FA Fit",
         "bot2" = "Tract Node"
       )
-      draw_two_three(plot_list, name_list, tract, roi_beh_out)
+      draw_two_three(plot_list, name_list, tract, h_name, "PPI")
       
       # clean up
       rm(tract_Gintx)

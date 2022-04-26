@@ -194,7 +194,7 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
 }
 
 
-draw_two_three <- function(plot_list, name_list, tract, beh_short){
+draw_two_three <- function(plot_list, name_list, tract, beh_short, out_name){
   # Title
   #
   # Desc
@@ -242,7 +242,7 @@ draw_two_three <- function(plot_list, name_list, tract, beh_short){
   print(pOut)
   
   ggsave(
-    paste0(out_dir, "/Plot_", tract, "_LGI_", beh_short, ".png"),
+    paste0(out_dir, "/Plot_", tract, "_", out_name, "_", beh_short, ".png"),
     plot = pOut,
     units = "in",
     height = 6,
