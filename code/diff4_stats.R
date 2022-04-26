@@ -5,8 +5,10 @@ library("tidyr")
 library("ez")
 library("gridExtra")
 library("ggpubr")
+
 source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
+source("./diff4_pred_gams.R")
 
 
 # General Functions ----
@@ -383,12 +385,12 @@ for (tract in tract_list) {
       tract_GSintx, out_dir, paste0("mGSIntx_LGI_", beh_short), tract
     )
     
-    plot_group_behs <- pred_group_behs(df_tract, id_node, tract_GSintx, beh)
+    plot_group_behs <- pred_group_covs(df_tract, id_node, tract_GSintx, beh)
     plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, beh)
     
-    # sex
-    plot_group_behs_sex <- pred_groupSex_behs(df_tract, id_node, tract_GSintx, beh)
-    plot_group_intx_sex <- pred_groupSex_intx(df_tract, tract_GSintx, beh)
+    # # sex
+    # plot_group_behs_sex <- pred_group_sex_covs(df_tract, id_node, tract_GSintx, beh)
+    # plot_group_intx_sex <- pred_group_sex_intx(df_tract, tract_GSintx, beh)
     
 
     # test if exp group node-fa-lgi intx term differs from control
@@ -410,73 +412,23 @@ for (tract in tract_list) {
     )
     plot_group_intx_diff <- pred_group_intx_diff(df_tract, tract_GSintxOF, beh)
     
-    # make tract-lgi plot
-    # pOut <- grid.arrange(
-    #   plot_group_behs$con, plot_group_intx$con,
-    #   plot_group_behs$exp, plot_group_intx$exp,
-    #   plot_group_behs$diff, plot_group_intx_diff$diff,
-    #     nrow = 3,
-    #     ncol= 2,
-    #     widths = c(0.5, 1)
-    # )
-    
-    grid.arrange(
-      plot_group_behs_sex$con, plot_group_intx_sex$conF, plot_group_intx_sex$conM,
-      plot_group_behs_sex$exp, plot_group_intx_sex$expF, plot_group_intx_sex$expM,
-      nrow = 2,
-      ncol= 3,
-      widths = c(0.5, 1, 1)
-    )
-
-    # make col titles, y axis, x axis, and row names
-    col1_name <- text_grob(
-      paste("Node", id_node, "FA-Memory Smooth"), 
-      size = 12, family = "Times New Roman"
-    )
-    col2_name <- text_grob(
-      "Node-FA-Memory Smooth", size = 12, family = "Times New Roman"
-    )
-    bot1_name <- text_grob("Est. FA Fit", size = 10, family = "Times New Roman")
-    bot2_name <- text_grob("Tract Node", size = 10, family = "Times New Roman")
-    l1_name <- l2_name <- l3_name <- 
-      text_grob(
-        switch_names(beh), size = 10, family = "Times New Roman", rot = 90
+    # draw grid
+    plot_list <- list(
+      "beh" = plot_group_behs, 
+      "intx" = plot_group_intx, 
+      "intx_diff" = plot_group_intx_diff
       )
-    r1_name <- text_grob(
-      "Control", size = 12, family = "Times New Roman", rot = 270
-      )
-    r2_name <- text_grob(
-      "Experimental", size = 12, family = "Times New Roman", rot = 270
-      )
-    r3_name <- text_grob(
-      "Difference", size = 12, family = "Times New Roman", rot = 270
-      )
-    
-    pOut <- grid.arrange(
-      arrangeGrob(plot_group_behs$con, top = col1_name, left = l1_name),
-      arrangeGrob(plot_group_intx$con, top = col2_name, right = r1_name),
-      arrangeGrob(plot_group_behs$exp, left = l2_name),
-      arrangeGrob(plot_group_intx$exp, right = r2_name),
-      arrangeGrob(plot_group_behs$diff, bottom = bot1_name, left = l3_name),
-      arrangeGrob(
-        plot_group_intx_diff$diff, bottom = bot2_name, right = r3_name
-      ),
-      nrow = 3,
-      ncol= 2,
-      widths = c(0.75, 1), 
-      heights = c(1, 1, 1)
-    ) +
-      labs(title = "L. Uncinate")
-    
-    ggsave(
-      paste0(out_dir, "/Plot_", tract, "_LGI_", beh_short, ".png"),
-      plot = pOut,
-      units = "in",
-      height = 6,
-      width = 6,
-      dpi = 600,
-      device = "png"
+    name_list <- list(
+      "col1" = paste("Node", id_node, "FA-Memory Smooth"),
+      "col2" = "Node-FA-Memory Smooth",
+      "rowL" = switch_names(beh),
+      "rowR1" = "Control",
+      "rowR2" = "Experimental",
+      "rowR3" = "Difference",
+      "bot1" = "Est. FA Fit",
+      "bot2" = "Tract Node"
     )
+    draw_two_three(plot_list, name_list, tract, beh_short)
 
     # clean up
     rm(tract_Gintx)
@@ -485,7 +437,6 @@ for (tract in tract_list) {
     rm(plot_group_intx)
     rm(plot_group_behs)
     rm(plot_group_intx_diff)
-    rm(pOut)
   }
   rm(tract_GS)
 }
