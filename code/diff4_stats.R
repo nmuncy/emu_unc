@@ -383,12 +383,12 @@ for (tract in tract_list) {
       tract_GSintx, out_dir, paste0("mGSIntx_LGI_", beh_short), tract
     )
     
-    plot_group_intx <- pred_group_intx(
-      df_tract, tract_GSintx, switch_names(beh), beh
-    )
-    plot_group_behs <- pred_group_behs(
-      df_tract, id_node, tract_GSintx, switch_names(beh), beh, switch_names(tract)
-    )
+    plot_group_behs <- pred_group_behs(df_tract, id_node, tract_GSintx, beh)
+    plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, beh)
+    
+    # sex
+    plot_group_behs_sex <- pred_groupSex_behs(df_tract, id_node, tract_GSintx, beh)
+    plot_group_intx_sex <- pred_groupSex_intx(df_tract, tract_GSintx, beh)
     
 
     # test if exp group node-fa-lgi intx term differs from control
@@ -408,9 +408,7 @@ for (tract in tract_list) {
     write_gam_stats(
       tract_GSintxOF, out_dir, paste0("mGSOFIntx_LGI_", beh_short), tract
     )
-    plot_group_intx_diff <- pred_group_intx_diff(
-      df_tract, tract_GSintxOF, switch_names(beh), beh
-    )
+    plot_group_intx_diff <- pred_group_intx_diff(df_tract, tract_GSintxOF, beh)
     
     # make tract-lgi plot
     # pOut <- grid.arrange(
@@ -421,6 +419,14 @@ for (tract in tract_list) {
     #     ncol= 2,
     #     widths = c(0.5, 1)
     # )
+    
+    grid.arrange(
+      plot_group_behs_sex$con, plot_group_intx_sex$conF, plot_group_intx_sex$conM,
+      plot_group_behs_sex$exp, plot_group_intx_sex$expF, plot_group_intx_sex$expM,
+      nrow = 2,
+      ncol= 3,
+      widths = c(0.5, 1, 1)
+    )
 
     # make col titles, y axis, x axis, and row names
     col1_name <- text_grob(
@@ -459,7 +465,8 @@ for (tract in tract_list) {
       ncol= 2,
       widths = c(0.75, 1), 
       heights = c(1, 1, 1)
-    )
+    ) +
+      labs(title = "L. Uncinate")
     
     ggsave(
       paste0(out_dir, "/Plot_", tract, "_LGI_", beh_short, ".png"),
