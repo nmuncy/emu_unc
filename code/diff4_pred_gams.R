@@ -311,7 +311,7 @@ pred_group_intx <- function(df_tract, gam_obj, beh){
   return(list("con" = pC, "exp" = pE))
 }
 
-pred_group_intx_diff <- function(df_tract, gam_obj,  beh){
+pred_group_intx_diff <- function(df_tract, gam_obj,  beh, var_range){
   # Draw difference interaction smooth for node-fa-beh.
   #
   # Predict and plot how the Exp group differs in their interaction term
@@ -322,6 +322,9 @@ pred_group_intx_diff <- function(df_tract, gam_obj,  beh){
   #   gam_obj (gam) = GAM object returned by mgcv, specifically the
   #     function gam_GSintx
   #   beh (str) = column name for covariate of interest
+  #   var_range (list) = named list containing $min and $max covariate
+  #     values derived from plot_diff, for aligning covariate axes in
+  #     2D, 3D difference smooths
   #
   # Returns:
   #   named list of difference (diff) plot
@@ -335,11 +338,7 @@ pred_group_intx_diff <- function(df_tract, gam_obj,  beh){
   df_exp_cov <- df_exp[which(df_exp$nodeID == node_list[1]), ]
   subj_exp <- as.character(df_exp_cov$subjectID)
   num_exp <- length(subj_exp)
-  seq_exp_cov <- seq(
-    min(df_exp_cov[, beh]), 
-    max(df_exp_cov[, beh]), 
-    length = num_exp
-  )
+  seq_exp_cov <- seq(var_range$min, var_range$max, length = num_exp)
   
   df_pred_diff <- data.frame(
     subjectID = rep(subj_exp[1], each = num_node, num_exp),

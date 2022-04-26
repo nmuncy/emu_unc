@@ -186,30 +186,29 @@ for (tract in tract_list) {
 
   # draw plots for global, group smooths
   plot_tract_GS <- getViz(tract_GS)
-  draw_global_smooth(
-    plot_tract_GS,
-    2,
-    tract,
-    paste(switch_names(tract), "Tract Smooth"),
-    out_dir
-  )
-  draw_group_smooth(
-    plot_tract_GS,
-    3,
-    tract,
-    paste(switch_names(tract), "Group Smooths"),
-    out_dir
-  )
+  pGlobal <- draw_global_smooth(plot_tract_GS, 2, tract)
+  pGroup <- draw_group_smooth(plot_tract_GS, 3, tract)
 
   # draw diff smooth
   plot_tract_GSOF <- getViz(tract_GSOF)
-  draw_group_smooth_diff(
-    plot_tract_GSOF,
-    3,
-    tract,
-    paste(switch_names(tract), "Exp-Con Difference Smooth"),
-    out_dir
+  pDiff <- draw_group_smooth_diff(plot_tract_GSOF, 3, tract)
+  
+  # draw grid
+  plot_list <- list(
+    "global" = pGlobal, 
+    "group" = pGroup, 
+    "diff" = pDiff
   )
+  name_list <- list(
+    "col1" = paste(switch_names(tract), "Smooths"),
+    "rowL" = "Est. FA Fit",
+    "rowR1" = "Global",
+    "rowR2" = "Group",
+    "rowR3" = "Difference",
+    "bot1" = "Tract Node"
+  )
+  draw_one_three(plot_list, name_list, tract)
+  
 
   # clean env
   rm(tract_G)
@@ -410,7 +409,13 @@ for (tract in tract_list) {
     write_gam_stats(
       tract_GSintxOF, out_dir, paste0("mGSOFIntx_LGI_", beh_short), tract
     )
-    plot_group_intx_diff <- pred_group_intx_diff(df_tract, tract_GSintxOF, beh)
+    var_range <- list(
+      "min" = min(plot_group_behs$diff$data$h_var),
+      "max" = max(plot_group_behs$diff$data$h_var)
+    )
+    plot_group_intx_diff <- pred_group_intx_diff(
+      df_tract, tract_GSintxOF, beh, var_range
+    )
     
     # draw grid
     plot_list <- list(
@@ -419,8 +424,8 @@ for (tract in tract_list) {
       "intx_diff" = plot_group_intx_diff
       )
     name_list <- list(
-      "col1" = paste("Node", id_node, "FA-Memory Smooth"),
-      "col2" = "Node-FA-Memory Smooth",
+      "col1" = paste(switch_names(tract), "\nNode", id_node, "FA-Memory Smooth"),
+      "col2" = paste(switch_names(tract), "\nNode-FA-Memory Smooth"),
       "rowL" = switch_names(beh),
       "rowR1" = "Control",
       "rowR2" = "Experimental",
@@ -568,8 +573,12 @@ for (tract in tract_list) {
       tract_GSintxOF, out_dir, paste0("mGSOFIntx_ROI_", roi_beh_out), tract
     )
     
+    var_range <- list(
+      "min" = min(plot_group_behs$diff$data$h_var),
+      "max" = max(plot_group_behs$diff$data$h_var)
+    )
     plot_group_intx_diff <- 
-      pred_group_intx_diff(df_tract, tract_GSintxOF, roi_beh)
+      pred_group_intx_diff(df_tract, tract_GSintxOF, roi_beh, var_range)
     
     # draw grid
     plot_list <- list(
@@ -578,8 +587,8 @@ for (tract in tract_list) {
       "intx_diff" = plot_group_intx_diff
     )
     name_list <- list(
-      "col1" = paste("Node", id_node, "FA-ROI Smooth"),
-      "col2" = "Node-FA-ROI Smooth",
+      "col1" = paste(switch_names(tract), "\nNode", id_node, "FA-ROI Smooth"),
+      "col2" = paste(switch_names(tract), "\nNode-FA-ROI Smooth"),
       "rowL" = paste(switch_names(roi), switch_names(beh)),
       "rowR1" = "Control",
       "rowR2" = "Experimental",
@@ -747,9 +756,12 @@ for (tract in tract_list) {
       write_gam_stats(
         tract_GSintxOF, out_dir, paste0("mGSOFIntx_PPI_", h_name), tract
       )
-      
+      var_range <- list(
+        "min" = min(plot_group_behs$diff$data$h_var),
+        "max" = max(plot_group_behs$diff$data$h_var)
+      )
       plot_group_intx_diff <- 
-        pred_group_intx_diff(df_tract, tract_GSintxOF, h_seed_beh)
+        pred_group_intx_diff(df_tract, tract_GSintxOF, h_seed_beh, var_range)
       
       # draw grid
       plot_list <- list(
@@ -758,8 +770,8 @@ for (tract in tract_list) {
         "intx_diff" = plot_group_intx_diff
       )
       name_list <- list(
-        "col1" = paste("Node", id_node, "FA-PPI Smooth"),
-        "col2" = "Node-FA-PPI Smooth",
+        "col1" = paste(switch_names(tract), "\nNode", id_node, "FA-PPI Smooth"),
+        "col2" = paste(switch_names(tract), "\nNode-FA-PPI Smooth"),
         "rowL" = y_name,
         "rowR1" = "Control",
         "rowR2" = "Experimental",

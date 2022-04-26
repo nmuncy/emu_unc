@@ -4,7 +4,7 @@ library(viridis)
 library(itsadug)
 
 
-draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
+draw_global_smooth <- function(plot_obj, attr_num, tract) {
   # Draw global smooth of AFQ tract.
   #
   # Draw global smooth resulting from GS model. Use plot(sm(obj, int))
@@ -16,11 +16,6 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   #   attr_num (int) = List/attribute number of plot_obj that contains
   #     global smooth
   #   tract (str) = AFQ tract name
-  #   plot_title (str) = Plot title for ggplot
-  #   out_dir (str) = Path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_<tract>_mGS-Global.png
 
   # use plot to extract attribute of interest
   p <- plot(sm(plot_obj, attr_num))
@@ -34,25 +29,17 @@ draw_global_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
     geom_line() +
     geom_ribbon(aes(ymin = .data$lb, ymax = .data$ub), alpha = 0.2) +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(plot_title) +
-    ylab("Est. FA Fit") +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  print(pp)
-
-  ggsave(
-    paste0(out_dir, "/Plot_", tract, "_mGS-Global.png"),
-    plot = last_plot(),
-    units = "in",
-    width = 4,
-    height = 3,
-    dpi = 600,
-    device = "png"
-  )
+    theme(
+      text = element_text(family = "Times New Roman"),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
+      )
+  # print(pp)
+  return(list("global" = pp))
 }
 
 
-draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
+draw_group_smooth <- function(plot_obj, attr_num, tract) {
   # Draw group smooths of AFQ tract.
   #
   # Draw group smooths resulting from a GS model. Use plot(sm(obj, int))
@@ -63,11 +50,6 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
   #   attr_num (int) = List/attribute number of plot_obj that contains
   #     group smooths
   #   tract (str) = AFQ tract name
-  #   plot_title (str) = Title of plot
-  #   out_dir (str) = Path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_<tract>_mGS-Group.png
 
   # use plot to extract attribute of interest
   p <- plot(sm(plot_obj, attr_num))
@@ -82,25 +64,19 @@ draw_group_smooth <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
     geom_line(aes(color = .data$Group)) +
     scale_y_continuous(limits = c(-0.2, 0.2)) +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(plot_title) +
-    ylab("Est. FA Fit") +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  print(pp)
-
-  ggsave(
-    paste0(out_dir, "/Plot_", tract, "_mGS-Group.png"),
-    plot = last_plot(),
-    units = "in",
-    width = 4,
-    height = 3,
-    dpi = 600,
-    device = "png"
-  )
+    scale_color_discrete(name = "") +
+    theme(
+      text = element_text(family = "Times New Roman"),
+      legend.position = c(0.9, 0.9),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank()
+      )
+  # print(pp)
+  return(list("group" = pp))
 }
 
 
-draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_dir) {
+draw_group_smooth_diff <- function(plot_obj, attr_num, tract) {
   # Draw difference of group smooths of AFQ tract.
   #
   # Plot an A-B difference smooth from an GAM using an ordered factor for group,
@@ -111,11 +87,6 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
   #   attr_num (int) = List/attribute number of plot_obj that contains group
   #     difference smooth
   #   tract (str) = AFQ tract name
-  #   plot_title (str) = Title of plot
-  #   out_dir (str) = Path to output location
-  #
-  # Writes:
-  #   <out_dir>/Plot_<tract>_mGS-Diff.png
 
   # unpack difference smooth data
   p <- plot(sm(plot_obj, attr_num)) +
@@ -176,18 +147,66 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
       fill = "red"
     ) +
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
-    ggtitle(plot_title) +
-    ylab("Est. Difference") +
-    xlab("Tract Node") +
-    theme(text = element_text(family = "Times New Roman"))
-  print(pp)
+    theme(text = element_text(family = "Times New Roman"),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank()
+          )
+  # print(pp)
+  return(list("diff" = pp))
+}
 
+
+draw_one_three <- function(plot_list, name_list, tract){
+  # Assemble a 1x3 grid of plots.
+  #
+  # For plotting tract global, group, difference smooths.
+  #
+  # Arguments:
+  #   plot_list (list) = contains $global, $group, and $diff
+  #   name_list (list) = contains column, left, right, and bottom names
+  #   tract (str) = AFQ tract name
+  
+  # unpack, organize plots
+  r1A <- plot_list$global$global
+  r2A <- plot_list$group$group
+  r3A <- plot_list$diff$diff
+  
+  # make col titles, y axis, x axis, and row names
+  col1_name <- text_grob(name_list$col1, size = 12, family = "Times New Roman")
+  bot1_name <- text_grob(name_list$bot1, size = 10, family = "Times New Roman")
+  
+  l1_name <- l3_name <- 
+    text_grob("", size = 12, family = "Times New Roman", rot = 90)
+  l2_name <-
+    text_grob(name_list$rowL, size = 12, family = "Times New Roman", rot = 90)
+  
+  r1_name <- text_grob(
+    name_list$rowR1, size = 12, family = "Times New Roman", rot = 270
+  )
+  r2_name <- text_grob(
+    name_list$rowR2, size = 12, family = "Times New Roman", rot = 270
+  )
+  r3_name <- text_grob(
+    name_list$rowR3, size = 12, family = "Times New Roman", rot = 270
+  )
+  
+  pOut <- grid.arrange(
+    arrangeGrob(r1A, top = col1_name, left = l1_name, right = r1_name),
+    arrangeGrob(r2A, left = l2_name, right = r2_name),
+    arrangeGrob(r3A, bottom = bot1_name, left = l3_name, right = r3_name),
+    nrow = 3,
+    ncol= 1,
+    widths = 1,
+    heights = c(1, 1, 1)
+  )
+  print(pOut)
+  
   ggsave(
-    paste0(out_dir, "/Plot_", tract, "_mGSOF-Diff.png"),
-    plot = last_plot(),
+    paste0(out_dir, "/Plot_", tract, "_smooths.png"),
+    plot = pOut,
     units = "in",
-    width = 4,
-    height = 3,
+    height = 9,
+    width = 5,
     dpi = 600,
     device = "png"
   )
@@ -195,9 +214,17 @@ draw_group_smooth_diff <- function(plot_obj, attr_num, tract, plot_title, out_di
 
 
 draw_two_three <- function(plot_list, name_list, tract, beh_short, out_name){
-  # Title
+  # Assemble a 2x3 grid of plots.
   #
-  # Desc
+  # For plotting covariate and interaction smooths for control, experimental, 
+  # and difference.
+  #
+  # Arguments:
+  #   plot_list (list) = contains $global, $group, and $diff
+  #   name_list (list) = contains column, left, right, and bottom names
+  #   tract (str) = AFQ tract name
+  #   beh_short (str) =  identifier for specific covariate
+  #   out_name (str) = type of analysis (LGI/ROI/PPI)
   
   # unpack, organize plots
   r1A <- plot_list$beh$con
@@ -213,9 +240,10 @@ draw_two_three <- function(plot_list, name_list, tract, beh_short, out_name){
   bot1_name <- text_grob(name_list$bot1, size = 10, family = "Times New Roman")
   bot2_name <- text_grob(name_list$bot2, size = 10, family = "Times New Roman")
   
-  l1_name <- l3_name <- ""
+  l1_name <- l3_name <- 
+    text_grob("", size = 12, family = "Times New Roman", rot = 90)
   l2_name <-
-    text_grob(name_list$rowL, size = 10, family = "Times New Roman", rot = 90)
+    text_grob(name_list$rowL, size = 12, family = "Times New Roman", rot = 90)
   
   r1_name <- text_grob(
     name_list$rowR1, size = 12, family = "Times New Roman", rot = 270
@@ -237,7 +265,7 @@ draw_two_three <- function(plot_list, name_list, tract, beh_short, out_name){
     nrow = 3,
     ncol= 2,
     widths = c(0.75, 1), 
-    heights = c(1, 1, 1)
+    heights = c(1, 0.8, 1)
   )
   print(pOut)
   
