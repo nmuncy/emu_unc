@@ -67,7 +67,8 @@ draw_group_smooth <- function(plot_obj, attr_num, tract) {
     scale_color_discrete(name = "") +
     theme(
       text = element_text(family = "Times New Roman"),
-      legend.position = c(0.9, 0.9),
+      legend.position = c(0.88, 0.85),
+      legend.text = element_text(size=8),
       axis.title.y = element_blank(),
       axis.title.x = element_blank()
       )
@@ -205,8 +206,8 @@ draw_one_three <- function(plot_list, name_list, tract){
     paste0(out_dir, "/Plot_", tract, "_smooths.png"),
     plot = pOut,
     units = "in",
-    height = 9,
-    width = 5,
+    height = 6,
+    width = 3,
     dpi = 600,
     device = "png"
   )

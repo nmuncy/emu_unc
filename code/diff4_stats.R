@@ -148,6 +148,7 @@ rm(ind_exp)
 # in the distribution, we can loop through the tracts.
 #
 # The dxGS models are saved.
+
 for (tract in tract_list) {
 
   # subset df_afq, keep people w/dx for group modeling
