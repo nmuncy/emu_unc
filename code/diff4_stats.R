@@ -5,6 +5,7 @@ library("tidyr")
 library("ez")
 library("gridExtra")
 library("ggpubr")
+library("ggsignif")
 
 source("./diff4_calc_gams.R")
 source("./diff4_plot_gams.R")
@@ -109,10 +110,10 @@ data_dir <- paste0(proj_dir, "/data")
 out_dir <- paste0(proj_dir, "/stats")
 tract_list <- c("UNC_L", "UNC_R", "CGC_L", "CGC_R")
 
-# capture session
-capture.output(
-  sessionInfo(), file = paste0(proj_dir, "/env/R_session_info.txt")
-)
+# # capture session
+# capture.output(
+#   sessionInfo(), file = paste0(proj_dir, "/env/R_session_info.txt")
+# )
 
 # import data, setup factors
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
@@ -130,6 +131,31 @@ ind_keep <- which(
 df_afq <- df_afq[ind_keep, ]
 rm(ind_keep)
 rm(ind_exp)
+
+
+# Get Demographics ------
+df_subset <- df_afq[which(df_afq$tractID == "UNC_L" & df_afq$nodeID == 10), ]
+df_subset <- df_subset %>% drop_na(dx)
+
+# number, age of participants
+num_subj <- dim(df_subset)[1]
+num_female <- length(which(df_subset$sex == "F"))
+age_avg <- round(mean(df_subset$age), 2)
+age_sd <- round(sd(df_subset$age), 2)
+
+ind_male <- which(df_subset$sex == "M")
+ind_female <- which(df_subset$sex == "F")
+test_sex <- t.test(df_subset[ind_male, ]$age, df_subset[ind_female, ]$age)
+
+# number of dx, con
+ind_pat <- which(df_subset$dx_group == "Pat")
+ind_con <- which(df_subset$dx_group == "Con")
+test_dx <- t.test(df_subset[ind_pat, ]$age, df_subset[ind_con, ]$age)
+
+num_pat_f <- length(which(df_subset$dx_group == "Pat" & df_subset$sex == "F"))
+num_pat_m <- length(which(df_subset$dx_group == "Pat" & df_subset$sex == "M"))
+num_con_f <- length(which(df_subset$dx_group == "Con" & df_subset$sex == "F"))
+num_con_m <- length(which(df_subset$dx_group == "Con" & df_subset$sex == "M"))
 
 
 # Model Specification ----
@@ -307,12 +333,33 @@ df_long[ind_neu, ]$mem <- "Neutral"
 
 ggplot(df_long, aes(x = mem, y = value, fill = group)) +
   geom_boxplot() +
-  labs(x = "Stimulus Valence", y = "LGI") +
   scale_fill_discrete(name = "Group") +
-  ggtitle("Memory Metric by Valence and Group") +
+  annotate(
+    "segment", x = 1, xend = 2, y = 0.6, yend = 0.6, color = "black"
+  ) +
+  annotate(
+    "segment", x = 1, xend = 1, y = 0.6, yend = 0.57, color = "black"
+  ) +
+  annotate(
+    "segment", x = 2, xend = 2, y = 0.6, yend = 0.57, color = "black"
+  ) +
+  annotate("text", x = 1.5, y = 0.62, label = "***") +
+  annotate(
+    "segment", x = 2.45, xend = 2.45, y = 0.05, yend = 0.21, color = "black"
+    ) +
+  annotate(
+    "segment", x = 2.4, xend = 2.45, y = 0.21, yend = 0.21, color = "black"
+    ) +
+  annotate(
+    "segment", x = 2.4, xend = 2.45, y = 0.05, yend = 0.05, color = "black"
+    ) +
+  annotate("text", x = 2.53, y = 0.12, label = "*") +
+  labs(x = "Stimulus Valence", y = "LGI") +
+  ggtitle("Memory by Valence and Group") +
   theme(
     text = element_text(family = "Times New Roman")
   )
+
 # ggsave(
 #   "/Users/nmuncy/Desktop/group_lgi.png",
 #   plot = last_plot(),
@@ -450,16 +497,101 @@ for (tract in tract_list) {
 
 # Interaction with ROI coefs ----
 #
-# Incorporate beta-coefficients from left and right amygdala during
-# negative and neutral judgments into dataframe. Then test if a group x
+# First analyze proportion of valence judgments by group, and plot. Then
+# incorporate beta-coefficients from left and right amygdala during
+# negative and neutral judgments into dataframe. Finally, test if a group x
 # coefs x valence interaction exists for UNC_L-amgL and UNC_R-amgR.
 
-# set seed and behavior lists
-roi_list <- c("amgL", "amgR")
+# Determine prop of judgments by group - set up long-formatted df
 beh_list <- c("neg", "neu")
+subj_list <- as.character(unique(df_afq$subjectID))
+
+col_names <- c("subj", "group", "valence", "prop")
+df_count <- as.data.frame(matrix(
+  NA, nrow=length(subj_list) * length(beh_list), ncol = length(col_names)
+))
+colnames(df_count) <- col_names
+df_count$subj <- rep(subj_list, each = length(beh_list))
+df_count$valence <- rep(beh_list, length(subj_list))
+
+for(subj in subj_list){
+  
+  # get subj count data
+  subj_bids <- paste0("sub-", subj)
+  subj_count <- paste(
+    data_dir, "timing_files", subj_bids, "ses-S1", "beh_decon-rVal_counts.tsv", 
+    sep = "/"
+  )
+  if(!file.exists(subj_count)){
+    next
+  }
+  df_subj <- read.csv(subj_count, sep = "\t")
+  
+  # determine number of responses, account for potential NRs
+  col_NR <- grep("NaN", colnames(df_subj))
+  if(length(col_NR) > 0){
+    h_df <- df_subj[, -col_NR]
+    num_resp <- sum(h_df[1, ])
+    rm(h_df)
+  }else{
+    num_resp <- sum(df_subj[1, ])
+  }
+  
+  # fill valence counts
+  for(beh in beh_list){
+    ind_subj <- which(df_count$subj == subj & df_count$valence == beh)
+    df_count[ind_subj, ]$prop <- round(df_subj[1, beh] / num_resp, 3)
+  }
+  
+  # get group
+  ind_afq <- which(
+    df_afq$subjectID == subj & 
+      df_afq$tractID == tract_list[1] & 
+      df_afq$nodeID == 50
+  )
+  ind_subj <- which(df_count$subj == subj)
+  df_count[ind_subj, ]$group <- as.character(df_afq[ind_afq, ]$dx_group)
+}
+df_count$group <- factor(df_count$group)
+df_count <- df_count %>% drop_na(c(prop, group))
+
+# test for group differences in valence judgments
+fit_val <- ezANOVA(
+  data = df_count, prop, subj, within = valence, between = group
+)
+fit_val # ME valence, not of group, group:valence
+
+# rename vars for pretty plots
+ind_neg <- which(df_count$valence == "neg")
+ind_neu <- which(df_count$valence == "neu")
+df_count[ind_neg, ]$valence <- "Negative"
+df_count[ind_neu, ]$valence <- "Neutral"
+
+pVal <- ggplot(df_count, aes(x = valence, y = prop, fill = group)) +
+  geom_boxplot() +
+  labs(x = "Stimulus Valence", y = "Proportion") +
+  scale_fill_discrete(name = "Group") +
+  geom_signif(
+    comparisons = list(c("Negative", "Neutral")), 
+    map_signif_level = T,
+    y_position = 0.86
+    ) +
+  ggtitle("Scene Valence Ratings by Group") +
+  theme(
+    text = element_text(family = "Times New Roman")
+  )
+# ggsave(
+#   "/Users/nmuncy/Desktop/group_count.png",
+#   plot = last_plot(),
+#   units = "in",
+#   width = 4,
+#   height = 3,
+#   dpi = 600,
+#   device = "png"
+# )
 
 # incorporate ROI values of ses-S1 task-study decon-rVal in df_afq
-subj_list <- as.character(unique(df_afq$subjectID))
+roi_list <- c("amgL", "amgR")
 for (roi in roi_list) {
 
   # get data

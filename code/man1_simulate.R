@@ -8,41 +8,6 @@ library("viridis")
 library("gridExtra")
 
 
-# General Notes ----
-#
-# Simulate data for hypothesis visuals, demonstrate analyses. Also
-# conduct quick stats needed for manuscript.
-
-data_dir <- "/Users/nmuncy/Projects/emu_unc/data"
-out_dir <- "/Users/nmuncy/Desktop"
-
-
-# Get Demographics ------
-df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
-df_subset <- df_afq[which(df_afq$tractID == "UNC_L" & df_afq$nodeID == 10), ]
-df_subset <- df_subset %>% drop_na(dx)
-
-# number, age of participants
-num_subj <- dim(df_subset)[1]
-num_female <- length(which(df_subset$sex == "F"))
-age_avg <- round(mean(df_subset$age), 2)
-age_sd <- round(sd(df_subset$age), 2)
-
-ind_male <- which(df_subset$sex == "M")
-ind_female <- which(df_subset$sex == "F")
-test_sex <- t.test(df_subset[ind_male, ]$age, df_subset[ind_female, ]$age)
-
-# number of dx, con
-ind_pat <- which(df_subset$dx_group == "Pat")
-ind_con <- which(df_subset$dx_group == "Con")
-test_dx <- t.test(df_subset[ind_pat, ]$age, df_subset[ind_con, ]$age)
-
-num_pat_f <- length(which(df_subset$dx_group == "Pat" & df_subset$sex == "F"))
-num_pat_m <- length(which(df_subset$dx_group == "Pat" & df_subset$sex == "M"))
-num_con_f <- length(which(df_subset$dx_group == "Con" & df_subset$sex == "F"))
-num_con_m <- length(which(df_subset$dx_group == "Con" & df_subset$sex == "M"))
-
-
 # Simulate Data: Make tract and covariates ----
 #
 # Simulate data to demonstrate (a) groups smooths differing from the global,
@@ -74,6 +39,10 @@ gen_norm <- function(y_scale, n = 50, mean = 1, sd = 0.1) {
   dist_out <- y_scale * dnorm(h_seq, mean, sd) + rnorm(n, 0, (0.15 * y_scale))
   return(dist_out)
 }
+
+# set up
+data_dir <- "/Users/nmuncy/Projects/emu_unc/data"
+out_dir <- "/Users/nmuncy/Desktop"
 
 # set number of subjects, name subjects, and generate differing
 # scaling values for each group
