@@ -333,7 +333,6 @@ df_long[ind_neu, ]$mem <- "Neutral"
 
 ggplot(df_long, aes(x = mem, y = value, fill = group)) +
   geom_boxplot() +
-  scale_fill_discrete(name = "Group") +
   annotate(
     "segment", x = 1, xend = 2, y = 0.6, yend = 0.6, color = "black"
   ) +
@@ -344,17 +343,7 @@ ggplot(df_long, aes(x = mem, y = value, fill = group)) +
     "segment", x = 2, xend = 2, y = 0.6, yend = 0.57, color = "black"
   ) +
   annotate("text", x = 1.5, y = 0.62, label = "***") +
-  annotate(
-    "segment", x = 2.45, xend = 2.45, y = 0.05, yend = 0.21, color = "black"
-    ) +
-  annotate(
-    "segment", x = 2.4, xend = 2.45, y = 0.21, yend = 0.21, color = "black"
-    ) +
-  annotate(
-    "segment", x = 2.4, xend = 2.45, y = 0.05, yend = 0.05, color = "black"
-    ) +
-  annotate("text", x = 2.53, y = 0.12, label = "*") +
-  labs(x = "Stimulus Valence", y = "LGI") +
+  labs(x = "Stimulus Valence", y = "LGI", fill = "* Group") +
   ggtitle("Memory by Valence and Group") +
   theme(
     text = element_text(family = "Times New Roman")
@@ -567,28 +556,34 @@ ind_neu <- which(df_count$valence == "neu")
 df_count[ind_neg, ]$valence <- "Negative"
 df_count[ind_neu, ]$valence <- "Neutral"
 
-pVal <- ggplot(df_count, aes(x = valence, y = prop, fill = group)) +
+ggplot(df_count, aes(x = valence, y = prop, fill = group)) +
   geom_boxplot() +
+  annotate(
+    "segment", x = 1, xend = 2, y = 0.92, yend = 0.92, color = "black"
+  ) +
+  annotate(
+    "segment", x = 1, xend = 1, y = 0.92, yend = 0.89, color = "black"
+  ) +
+  annotate(
+    "segment", x = 2, xend = 2, y = 0.92, yend = 0.89, color = "black"
+  ) +
+  annotate("text", x = 1.5, y = 0.94, label = "***") +
   labs(x = "Stimulus Valence", y = "Proportion") +
   scale_fill_discrete(name = "Group") +
-  geom_signif(
-    comparisons = list(c("Negative", "Neutral")), 
-    map_signif_level = T,
-    y_position = 0.86
-    ) +
-  ggtitle("Scene Valence Ratings by Group") +
+  
+  ggtitle("Scene Valence Ratings") +
   theme(
     text = element_text(family = "Times New Roman")
   )
-# ggsave(
-#   "/Users/nmuncy/Desktop/group_count.png",
-#   plot = last_plot(),
-#   units = "in",
-#   width = 4,
-#   height = 3,
-#   dpi = 600,
-#   device = "png"
-# )
+ggsave(
+  "/Users/nmuncy/Desktop/group_count.png",
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  dpi = 600,
+  device = "png"
+)
 
 # incorporate ROI values of ses-S1 task-study decon-rVal in df_afq
 roi_list <- c("amgL", "amgR")

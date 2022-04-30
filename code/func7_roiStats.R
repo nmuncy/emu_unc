@@ -81,26 +81,32 @@ fit_omni <- ezANOVA(
 fit_omni # ME beh, roi only
 
 # rename vars for pretty plots
-ind_amgL <- which(df_long$roi == "amgL")
-ind_amgR <- which(df_long$roi == "amgR")
 ind_neg <- which(df_long$beh == "neg")
 ind_neu <- which(df_long$beh == "neu")
-
-df_long$roi <- as.character(df_long$roi)
 df_long$beh <- as.character(df_long$beh)
-
-df_long[ind_amgL, ]$roi <- "L. Amg"
-df_long[ind_amgR, ]$roi <- "R. Amg"
 df_long[ind_neg, ]$beh <- "Neg"
 df_long[ind_neu, ]$beh <- "Neu"
 
 # plot data, save
+new_labs <- c("** L. Amg", "** R. Amg")
+names(new_labs) <- c("amgL", "amgR")
+
 ggplot(df_long, aes(x = beh, y = coef, fill = group)) +
-  facet_wrap(~roi) +
+  facet_wrap(~roi, labeller = labeller(roi = new_labs)) +
   geom_boxplot() +
+  annotate(
+    "segment", x = 1, xend = 2, y = 0.25, yend = 0.25, color = "black"
+  ) +
+  annotate(
+    "segment", x = 1, xend = 1, y = 0.25, yend = 0.23, color = "black"
+  ) +
+  annotate(
+    "segment", x = 2, xend = 2, y = 0.25, yend = 0.23, color = "black"
+  ) +
+  annotate("text", x = 1.5, y = 0.27, label = "***") +
   labs(x = "Scene Rating", y = "Coefficient") +
   scale_fill_discrete(name = "Group") +
-  ggtitle("Scene Valence Rating Amygdaloid Signal") +
+  ggtitle("Scene Valence Ratings, Amygdaloid Signal") +
   theme(
     text = element_text(family = "Times New Roman"),
     plot.title = element_text(size=12)
