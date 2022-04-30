@@ -363,6 +363,7 @@ rm(df_sub)
 
 
 # conduct node-fa-lgi intx analyses via GAMs for e/tract
+tract_list <- c("UNC_L", "CGC_L")
 for (tract in tract_list) {
 
   # subset df_afq, keep people w/dx for group modeling
