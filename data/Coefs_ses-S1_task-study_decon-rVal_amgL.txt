@@ -1,310 +1,322 @@
 Mask	amgL
+sub-4001	File	Sub-brick	Mean_1  
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4001/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.048107
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4001/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.054768
 sub-4002	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.014433
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.000352
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.014433
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.000352
 sub-4005	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4005/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.003648
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4005/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.054411
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4005/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.003648
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4005/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.054411
 sub-4008	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4008/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.083338
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4008/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.046087
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4008/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.083338
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4008/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.046087
 sub-4009	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4009/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.118304
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4009/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.075835
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4009/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.118304
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4009/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.075835
 sub-4012	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4012/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.037153
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4012/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.034990
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4012/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.037153
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4012/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.034990
 sub-4019	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4019/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.041352
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4019/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.005547
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4019/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.041352
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4019/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.005547
 sub-4020	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4020/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.219849
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4020/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.078410
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4020/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.219849
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4020/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.078410
 sub-4021	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4021/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.023413
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4021/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.084886
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4021/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.023413
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4021/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.084886
 sub-4022	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4022/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.015482
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4022/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.036972
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4022/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.015482
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4022/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.036972
 sub-4024	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4024/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.030352
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4024/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.027131
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4024/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.030352
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4024/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.027131
 sub-4028	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4028/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.019201
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4028/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.091424
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4028/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.019201
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4028/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.091424
+sub-4030	File	Sub-brick	Mean_1  
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4030/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.020868
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4030/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.031609
 sub-4033	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4033/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.069259
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4033/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.163327
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4033/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.069259
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4033/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.163327
 sub-4034	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4034/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	-0.000068
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4034/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.070775
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4034/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	-0.000068
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4034/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.070775
 sub-4036	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4036/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.012451
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4036/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.022935
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4036/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.012451
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4036/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.022935
 sub-4037	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4037/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.067918
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4037/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.118018
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4037/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.067918
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4037/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.118018
 sub-4038	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4038/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.038212
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4038/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.025769
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4038/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.038212
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4038/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.025769
 sub-4042	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4042/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.151781
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4042/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.042011
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4042/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.151781
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4042/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.042011
 sub-4043	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4043/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.021203
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4043/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.023383
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4043/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.021203
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4043/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.023383
 sub-4044	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4044/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.033186
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4044/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.037953
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4044/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.033186
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4044/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.037953
 sub-4045	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4045/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.058814
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4045/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.079265
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4045/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.058814
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4045/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.079265
 sub-4046	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4046/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.003625
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4046/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.032678
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4046/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.003625
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4046/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.032678
 sub-4047	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4047/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.014812
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4047/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.089515
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4047/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.014812
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4047/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.089515
 sub-4049	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4049/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.077076
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4049/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.034484
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4049/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.077076
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4049/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.034484
 sub-4050	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4050/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.074136
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4050/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.006022
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4050/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.074136
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4050/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.006022
 sub-4051	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4051/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.019288
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4051/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.043606
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4051/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.019288
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4051/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.043606
 sub-4052	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4052/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.057057
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4052/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.107820
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4052/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.057057
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4052/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.107820
 sub-4057	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4057/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.063583
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4057/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.005315
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4057/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.063583
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4057/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.005315
 sub-4059	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4059/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.072787
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4059/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.028781
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4059/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.072787
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4059/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.028781
 sub-4062	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4062/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.018920
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4062/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.084486
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4062/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.018920
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4062/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.084486
 sub-4063	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4063/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.163578
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4063/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.032940
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4063/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.163578
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4063/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.032940
 sub-4064	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4064/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.028772
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4064/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.103105
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4064/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.028772
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4064/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.103105
 sub-4065	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4065/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.038716
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4065/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.002075
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4065/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.038716
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4065/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.002075
 sub-4066	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4066/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	-0.093345
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4066/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.105953
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4066/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	-0.093345
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4066/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.105953
 sub-4067	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4067/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.026285
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4067/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.048141
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4067/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.026285
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4067/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.048141
 sub-4070	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4070/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.002113
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4070/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.015120
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4070/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.002113
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4070/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.015120
 sub-4077	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4077/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.050827
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4077/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.018859
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4077/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.050827
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4077/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.018859
 sub-4080	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4080/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.062287
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4080/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.051866
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4080/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.062287
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4080/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.051866
 sub-4081	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4081/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.122467
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4081/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.043426
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4081/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.122467
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4081/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.043426
 sub-4082	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4082/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.041969
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4082/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.085766
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4082/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.041969
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4082/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.085766
 sub-4083	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4083/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	-0.108466
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4083/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.095295
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4083/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	-0.108466
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4083/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.095295
 sub-4084	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4084/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.003199
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4084/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.008522
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4084/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.003199
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4084/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.008522
 sub-4085	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4085/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.042574
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4085/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.010187
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4085/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.042574
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4085/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.010187
 sub-4086	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4086/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.027952
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4086/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.007068
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4086/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.027952
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4086/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.007068
 sub-4088	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4088/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.100387
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4088/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.143390
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4088/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.076433
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4088/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.148317
 sub-4090	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4090/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.107881
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4090/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.154027
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4090/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.107881
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4090/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.154027
 sub-4091	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4091/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.053643
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4091/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.010825
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4091/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.053643
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4091/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.010825
 sub-4096	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4096/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.073529
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4096/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.033165
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4096/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.073529
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4096/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.033165
 sub-4097	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4097/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.045499
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4097/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.027397
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4097/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.045499
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4097/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.027397
 sub-4101	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4101/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.072914
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4101/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.030139
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4101/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.072914
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4101/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.030139
 sub-4102	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4102/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.073513
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4102/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.026957
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4102/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.073513
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4102/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.026957
+sub-4104	File	Sub-brick	Mean_1  
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4104/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.050643
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4104/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.034669
 sub-4106	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4106/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.164513
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4106/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.039329
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4106/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.164513
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4106/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.039329
 sub-4108	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4108/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.019858
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4108/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.012154
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4108/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.019858
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4108/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.012154
 sub-4109	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4109/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.003300
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4109/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.040350
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4109/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.003300
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4109/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.040350
 sub-4110	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4110/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.020349
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4110/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.092723
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4110/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.020349
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4110/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.092723
 sub-4114	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4114/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.084481
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4114/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.014543
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4114/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.084481
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4114/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.014543
 sub-4115	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4115/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.005058
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4115/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.080887
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4115/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.005058
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4115/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.080887
 sub-4116	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4116/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.006175
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4116/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.079772
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4116/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.006175
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4116/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.079772
 sub-4118	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4118/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.035284
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4118/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.048534
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4118/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.035284
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4118/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.048534
 sub-4119	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4119/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.096878
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4119/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.015800
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4119/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.096878
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4119/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.015800
 sub-4121	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4121/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.026835
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4121/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.037723
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4121/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.026835
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4121/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.037723
 sub-4122	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4122/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.145270
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4122/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.058353
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4122/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.145270
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4122/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.058353
+sub-4123	File	Sub-brick	Mean_1  
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4123/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.103589
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4123/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.079732
 sub-4124	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4124/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.022095
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4124/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.012401
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4124/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.022095
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4124/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.012401
 sub-4125	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4125/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.102190
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4125/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.074519
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4125/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.102190
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4125/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.074519
 sub-4127	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4127/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.078829
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4127/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.072538
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4127/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.078829
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4127/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.072538
 sub-4129	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4129/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.011680
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4129/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.081411
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4129/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.011680
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4129/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.081411
 sub-4130	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4130/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.044053
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4130/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.014458
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4130/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.044053
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4130/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.014458
 sub-4131	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4131/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.037994
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4131/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.020375
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4131/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.037994
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4131/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.020375
 sub-4132	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4132/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.075032
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4132/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.012103
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4132/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.075032
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4132/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	-0.012103
 sub-4134	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4134/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.015096
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4134/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.040732
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4134/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.015096
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4134/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.040732
 sub-4138	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4138/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.024243
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4138/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.028819
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4138/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.024243
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4138/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.028819
 sub-4140	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4140/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.005642
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4140/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.008851
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4140/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.005642
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4140/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.008851
 sub-4142	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4142/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.012289
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4142/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.088543
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4142/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.012289
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4142/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.088543
 sub-4143	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4143/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.019809
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4143/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.023526
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4143/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.019809
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4143/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.023526
 sub-4144	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4144/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.010776
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4144/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.113912
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4144/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.010776
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4144/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.113912
 sub-4146	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4146/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.163595
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4146/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.085440
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4146/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.163595
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4146/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.085440
 sub-4149	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4149/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.018438
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4149/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.016640
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4149/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.018438
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4149/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.016640
 sub-4151	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4151/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.057150
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4151/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.016052
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4151/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.057150
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4151/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.016052
 sub-4152	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4152/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.394294
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4152/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.637812
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4152/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.394294
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4152/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.637812
 sub-4153	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4153/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.036646
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4153/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.032679
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4153/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.036646
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4153/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.032679
 sub-4154	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4154/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.184053
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4154/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.073044
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4154/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.184053
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4154/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.073044
 sub-4160	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4160/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.119171
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4160/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.032337
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4160/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.119171
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4160/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.032337
 sub-4164	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4164/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.042747
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4164/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.037452
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4164/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.042747
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4164/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.037452
 sub-4165	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4165/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.074671
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4165/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.030840
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4165/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.074671
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4165/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.030840
 sub-4167	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4167/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.065956
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4167/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.093270
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4167/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.065956
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4167/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.093270
 sub-4168	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4168/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.033260
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4168/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.019552
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4168/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.033260
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4168/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.019552
 sub-4169	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4169/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.193603
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4169/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.132372
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4169/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.193603
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4169/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.132372
 sub-4174	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4174/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.035008
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4174/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.042222
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4174/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.035008
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4174/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.042222
 sub-4175	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4175/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.056698
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4175/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.118656
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4175/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.056698
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4175/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.118656
 sub-4177	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4177/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.049844
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4177/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.004751
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4177/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.049844
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4177/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.004751
 sub-4184	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4184/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.047439
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4184/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.051698
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4184/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.047439
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4184/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.051698
 sub-4186	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4186/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.153015
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4186/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.120679
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4186/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.153015
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4186/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.120679
 sub-4188	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4188/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.092141
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4188/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.037048
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4188/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.092141
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4188/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.037048
 sub-4189	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4189/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.054891
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4189/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.019572
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4189/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.054891
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4189/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.019572
 sub-4191	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4191/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.032511
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4191/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.042179
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4191/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	-0.032511
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4191/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.042179
 sub-4192	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4192/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.092144
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4192/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.009782
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4192/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.092144
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4192/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.009782
 sub-4193	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4193/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.070753
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4193/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.059103
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4193/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.070753
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4193/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.059103
 sub-4198	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4198/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.024295
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4198/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.012275
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4198/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	0[neg#0_Coe]	0.024295
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4198/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[1,3]	1[neu#0_Coe]	0.012275
 sub-4201	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4201/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.044191
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4201/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.013042
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4201/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.044191
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4201/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.013042
 sub-4206	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4206/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.053451
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4206/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.008554
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4206/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.053451
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4206/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.008554
 sub-4207	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4207/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.061419
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4207/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.028464
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4207/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.061419
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4207/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.028464
 sub-4209	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4209/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.013856
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4209/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.015670
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4209/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.013856
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4209/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.015670
 sub-4212	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4212/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.083361
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4212/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.021874
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4212/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.083361
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4212/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	0.021874
 sub-4216	File	Sub-brick	Mean_1  
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4216/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.035151
-/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc/sub-4216/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.002500
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4216/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	0[neg#0_Coe]	0.035151
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4216/ses-S1/func/decon_task-study_rVal_stats_REML+tlrc[3,5]	1[neu#0_Coe]	-0.002500
