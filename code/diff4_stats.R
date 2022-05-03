@@ -613,13 +613,12 @@ for (roi in roi_list) {
   rm(df_roi)
 }
 
-# conduct node-fa-roi intx analyses via GAMs for e/tract
+# conduct node-fa-roi intx analyses via GAMs for e/tract, for 
+# uncinate tracts only
+tract_list <- c("UNC_L", "UNC_R")
 for (tract in tract_list) {
 
-  # only investigate UNC tracts, match hemisphere of tract to roi
-  if (tract == "CGC_L" || tract == "CGC_R") {
-    next
-  }
+  # match hemispheres
   roi <- switch(tract,
     "UNC_L" = "amgL",
     "UNC_R" = "amgR"
@@ -772,13 +771,12 @@ for (seed in seed_list) {
   rm(df_ppi)
 }
 
-# conduct node-fa-ppi intx analyses via GAMs for e/tract
+# conduct node-fa-ppi intx analyses via GAMs for e/tract, only
+# use left hem tracts
+tract_list <- c("UNC_L", "CGC_L")
 for (tract in tract_list) {
 
-  # match tract to PPI region, only use L hemi tracts
-  if (tract == "CGC_R" || tract == "UNC_R") {
-    next
-  }
+  # match tract to PPI region
   seed_list <- switch(tract,
     "UNC_L" = "NSlacc",
     "CGC_L" = c("NSlacc", "NSldmpfc", "NSlsfs")

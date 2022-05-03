@@ -1,115 +1,131 @@
 library("ggplot2")
-library("fitdistrplus")
 library("mgcv")
-library("itsadug")
-library("tidymv")
 library("dplyr")
-library("mgcViz")
-library("tools")
-library("viridis")
-library("cowplot")
+library("tidyr")
+library("gridExtra")
 
+source("./diff4_calc_gams.R")
+# source("./diff4_plot_gams.R")
+# source("./diff4_pred_gams.R")
 
 # Set Up ----
-data_dir <- file_path_as_absolute(paste0(getwd(), "/../data"))
-# capture.output(sessionInfo(), file = paste0(data_dir, "R_session_info.txt"))
+proj_dir <- "/Users/nmuncy/Projects/emu_unc"
+data_dir <- paste0(proj_dir, "/data")
+out_dir <- "/Users/nmuncy/Desktop"
+tract_list <- c("UNC_L", "UNC_R", "CGC_L", "CGC_R")
+
+# # capture session
+# capture.output(
+#   sessionInfo(), file = paste0(proj_dir, "/env/R_session_info.txt")
+# )
+
+# import data, setup factors
 df_afq <- read.csv(paste0(data_dir, "/AFQ_dataframe.csv"))
 df_afq$sex <- factor(df_afq$sex)
+ind_exp <- which(df_afq$dx_group == "Pat")
+df_afq[ind_exp, ]$dx_group <- "Exp"
 df_afq$dx_group <- factor(df_afq$dx_group)
 df_afq$subjectID <- factor(df_afq$subjectID)
+df_afq$dx_groupOF <- factor(df_afq$dx_group, ordered = T)
 
-
-# L. Unc ----
-#
-#
-
-# subset df_afq, take complete cases, make factors
-df_tract <- df_afq[which(df_afq$tractID == "UNC_L"), ]
-df_tract <- df_tract[complete.cases(df_tract), ]
-
-# determine distribution
-hist(df_tract$dti_fa)
-descdist(df_tract$dti_fa, discrete = F)
-
-ggplot(data = df_tract, aes(x = nodeID, y = dti_fa, color = dx_group)) +
-  geom_point()
-
-# build gam
-lunc_gaus <- bam(dti_fa ~ sex +
-                   s(subjectID, bs = "re") +
-                   s(nodeID, bs = "cr", k = 50),
-                 data = df_tract,
-                 family = gaussian(),
-                 method = "fREML"
+# clip tails
+ind_keep <- which(
+  df_afq$nodeID >= 10 & df_afq$nodeID <= 89
 )
-gam.check(lunc_gaus, rep = 1000)
-summary(lunc_gaus)
-plot(lunc_gaus)
-h_plot <- getViz(lunc_gaus)
-plot(sm(h_plot, 2)) + ggtitle("L. Unc G")
+df_afq <- df_afq[ind_keep, ]
+rm(ind_keep)
+rm(ind_exp)
 
-# bad k
-lunc_gaus <- bam(dti_fa ~ sex +
-                   s(subjectID, bs = "re") +
-                   s(nodeID, bs = "cr", k = 100),
-                 data = df_tract,
-                 family = gaussian(),
-                 method = "fREML"
-)
-plot(lunc_gaus)
-h_plot <- getViz(lunc_gaus)
-plot(sm(h_plot, 2)) + ggtitle("L. Unc G")
+# plot tract points
+tract <- tract_list[1]
+df_tract <- df_afq[which(df_afq$tractID == tract), ]
+df_tract <- df_tract %>% drop_na(dx)
 
-# L. Unc: GS
-lunc_dxGS <- bam(dti_fa ~ sex + 
-                   s(subjectID, bs = "re") +
-                   s(nodeID, bs = "cr", k = 50, m = 2) +
-                   s(nodeID, dx_group, bs = "fs", k = 50, m = 2),
-                 data = df_tract,
-                 family = gaussian(),
-                 method = "fREML"
+p1 <- ggplot(df_tract, aes(x = nodeID, y = dti_fa)) +
+  geom_point(size = 0.1) +
+  labs(x = "Node", y = "Fractional Anisotropy", title = "L. Uncinate - Data Points") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  theme(text = element_text(family = "Times New Roman"))
+ggsave(
+  paste0(out_dir, "/Plot_raw_tract.png"),
+  plot = p1,
+  units = "in",
+  height = 3,
+  width = 4,
+  dpi = 300,
+  device = "png"
 )
-gam.check(lunc_dxGS, rep = 1000)
-compareML(lunc_gaus, lunc_dxGS) # lunc_dxGS preferred
-summary(lunc_dxGS)
-plot(lunc_dxGS)
-h_plot <- getViz(lunc_dxGS)
-plot(sm(h_plot, 2)) + ggtitle("L. Unc GS")
-plot(sm(h_plot, 3)) + ggtitle("L. Unc GS")
 
-# L. Unc: GI
-# 
-lunc_dxGI <- bam(dti_fa ~ sex + 
-                   s(subjectID, bs = "re") +
-                   s(dx_group, bs = "re") +
-                   s(nodeID, bs = "cr", k = 50, m = 2) +
-                   s(nodeID, by = dx_group, bs = "cr", k = 50, m = 1),
-                 data = df_tract,
-                 family = gaussian(),
-                 method = "fREML"
-)
-gam.check(lunc_dxGI, rep = 1000)
-summary(lunc_dxGI)
-plot(lunc_dxGI)
-compareML(lunc_dxGI, lunc_dxGS) # lunc_dxGS preferred
-h_plot <- getViz(lunc_dxGI)
-plot(sm(h_plot, 3)) + ggtitle("L. Unc GI")
-plot(sm(h_plot, 4)) + ggtitle("L. Unc GI")
+p2 <- ggplot(df_tract, aes(x = nodeID, y = dti_fa)) +
+  geom_point(size = 0.1) +
+  geom_smooth(method = "lm", formula = y~x, color = "blue") +
+  labs(x = "Node", y = "Fractional Anisotropy", title = "L. Uncinate - Linear Model") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  theme(text = element_text(family = "Times New Roman"))
 
-# L. Unc: GS difference via ordered factors
-df_tract$dx_groupOF <- factor(df_tract$dx_group, ordered = T)
-lunc_dxGS_OF <- bam(dti_fa ~ sex + dx_groupOF +
-                      s(subjectID, bs = "re") +
-                      s(nodeID, bs = "cr", k = 50, m = 2) +
-                      s(nodeID, by = dx_groupOF, bs = "cr", k = 50, m = 2),
-                    data = df_tract,
-                    family = gaussian(),
-                    method = "fREML"
+p3 <- ggplot(df_tract, aes(x = nodeID, y = dti_fa)) +
+  geom_point(size = 0.1) +
+  geom_smooth(method = "gam", formula = y~s(x), color = "blue") +
+  labs(x = "Node", y = "Fractional Anisotropy", title = "L. Uncinate - GAM") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  theme(text = element_text(family = "Times New Roman"))
+
+p4 <- ggplot(df_tract, aes(x = nodeID, y = dti_fa, color = dx_group)) +
+  geom_point(size = 0.1, color = "black") +
+  geom_smooth(method = "gam", formula = y~s(x)) +
+  labs(x = "Node", y = "Fractional Anisotropy", title = "L. Uncinate - GAM by Group", color = "Group") +
+  scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
+  scale_color_manual(values = c("red", "blue")) +
+  theme(text = element_text(family = "Times New Roman"), legend.position = c(0.9, 0.8))
+  
+pOut <- grid.arrange(
+  p1, p2,
+  p3, p4,
+  nrow = 2,
+  ncol = 2
 )
-gam.check(lunc_dxGS_OF, rep = 1000)
-plot(lunc_dxGS_OF)
-summary(lunc_dxGS_OF)
-plot_lunc_dxGS_OF <- getViz(lunc_dxGS_OF)
-plot(sm(plot_lunc_dxGS_OF, 2))
-plot(sm(plot_lunc_dxGS_OF, 3)) +
-  geom_hline(yintercept = 0)
+ggsave(
+  paste0(out_dir, "/Plot_raw_data.png"),
+  plot = pOut,
+  units = "in",
+  height = 6,
+  width = 9,
+  dpi = 300,
+  device = "png"
+)
+
+
+set.seed(1)
+x <- seq(0, pi * 2, 0.1)
+sin_x <- sin(x)
+y <- sin_x + rnorm(n = length(x), mean = 0, sd = sd(sin_x / 2))
+df_sim <- data.frame(y,x) 
+
+# gam fit for thin plates, cubic splines
+gam_tp <- gam(y ~ s(x, bs = "tp", k = 5), method = "REML")
+gam_pred <- predict(gam_tp, newdata = data.frame(x = df_sim[,2]))
+basis_tp <- predict(gam_tp, type = "lpmatrix")
+
+gam_cr <- gam(y ~ s(x, bs = "cr", k = 5), method = "REML")
+gam_pred <- predict(gam_cr, newdata = data.frame(x = df_sim[,2]))
+basis_cr <- predict(gam_cr, type = "lpmatrix")
+
+# thin plates
+png(file = paste0(out_dir, "/Plot_sim_data.png"), 
+    width = 12, height = 4, units = "in", res = 300)
+par(family = "Times New Roman", mfrow = c(1, 4))
+plot(y~x, main = "Distribution of Points")
+
+plot(y~x, main = "GAM Fit")
+lines(x, gam_pred, col="blue", lwd=2)
+
+plot(y~x, main = "GAM Fit & Basis Functions, Thin Plate")
+lines(x, gam_pred, col="blue", lwd=2)
+matplot(x, basis_tp[,-1], type = "l", lty = 1, add = T)
+
+# cubic splines
+plot(y~x, main = "GAM Fit & Basis Functions, Cubic")
+lines(x, gam_pred, col="blue", lwd=2)
+matplot(x, basis_cr[,-1], type = "l", lty = 1, add = T)
+dev.off()
+
