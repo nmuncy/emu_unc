@@ -423,7 +423,7 @@ for (tract in tract_list) {
     )
     
     plot_group_behs <- pred_group_covs(df_tract, id_node, tract_GSintx, beh)
-    plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, beh)
+    plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, beh, id_node)
     
     # # sex
     # plot_group_behs_sex <- pred_group_sex_covs(df_tract, id_node, tract_GSintx, beh)
@@ -452,7 +452,7 @@ for (tract in tract_list) {
       "max" = max(plot_group_behs$diff$data$h_var)
     )
     plot_group_intx_diff <- pred_group_intx_diff(
-      df_tract, tract_GSintxOF, beh, var_range
+      df_tract, tract_GSintxOF, beh, var_range, id_node
     )
     
     # draw grid

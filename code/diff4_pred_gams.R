@@ -189,7 +189,7 @@ pred_group_covs <- function(df_tract, id_node, gam_obj, beh){
   return(list("con" = pC, "exp" = pE, "diff" = pD))
 }
 
-pred_group_intx <- function(df_tract, gam_obj, beh){
+pred_group_intx <- function(df_tract, gam_obj, beh, id_node){
   # Predict Node-FA-Behavior interactions.
   #
   # Make predicted interaction plots for Exp and Con groups. Excludes
@@ -200,6 +200,7 @@ pred_group_intx <- function(df_tract, gam_obj, beh){
   #   gam_obj (gam) = GAM object returned by mgcv, specifically the
   #     function gam_GSintx
   #   beh (str) = column name for covariate of interest
+  #   id_node (int) = number number of interest, about which to draw a box
   #
   # Returns:
   #   named list of control (con) and experimental (exp) plots
@@ -267,7 +268,7 @@ pred_group_intx <- function(df_tract, gam_obj, beh){
   pred_exp_fit[ind_excl] <- NA
   df_pred_exp_intx <- cbind(df_pred_exp_intx, fit = pred_exp_fit)
   
-  # get min/max fit values, for consistint plot scales
+  # get min/max fit values, for consistent plot scales
   z_min <- min(c(df_pred_con_intx$fit, df_pred_exp_intx$fit), na.rm = T)
   z_max <- max(c(df_pred_con_intx$fit, df_pred_exp_intx$fit), na.rm = T)
   
@@ -281,6 +282,17 @@ pred_group_intx <- function(df_tract, gam_obj, beh){
       name = "Est. FA Fit",
       limits = c(z_min, z_max)
     ) +
+    geom_rect(
+      aes(
+        xmin = id_node - 2, 
+        xmax = id_node + 2, 
+        ymin = min(h_var), 
+        ymax = max(h_var), 
+        ), 
+      color = "red",
+      fill = "transparent",
+      size = 0.75
+      ) +
     theme(
       text = element_text(family = "Times New Roman"),
       plot.title = element_text(size = 12),
@@ -300,6 +312,17 @@ pred_group_intx <- function(df_tract, gam_obj, beh){
       limits = c(z_min, z_max)
     ) +
     labs(x = "Tract Node") +
+    geom_rect(
+      aes(
+        xmin = id_node - 2, 
+        xmax = id_node + 2, 
+        ymin = min(h_var), 
+        ymax = max(h_var), 
+      ), 
+      color = "red",
+      fill = "transparent",
+      size = 0.75
+    ) +
     theme(
       text = element_text(family = "Times New Roman"),
       plot.title = element_text(size = 12),
@@ -311,7 +334,7 @@ pred_group_intx <- function(df_tract, gam_obj, beh){
   return(list("con" = pC, "exp" = pE))
 }
 
-pred_group_intx_diff <- function(df_tract, gam_obj,  beh, var_range){
+pred_group_intx_diff <- function(df_tract, gam_obj,  beh, var_range, id_node){
   # Draw difference interaction smooth for node-fa-beh.
   #
   # Predict and plot how the Exp group differs in their interaction term
@@ -325,6 +348,7 @@ pred_group_intx_diff <- function(df_tract, gam_obj,  beh, var_range){
   #   var_range (list) = named list containing $min and $max covariate
   #     values derived from plot_diff, for aligning covariate axes in
   #     2D, 3D difference smooths
+  #   id_node (int) = number number of interest, about which to draw a box
   #
   # Returns:
   #   named list of difference (diff) plot
@@ -363,6 +387,17 @@ pred_group_intx_diff <- function(df_tract, gam_obj,  beh, var_range){
     scale_x_continuous(breaks = c(seq(10, 89, by = 10), 89)) +
     scale_fill_viridis(option = "D", name = "Est. FA Fit") +
     labs(x = "Tract Node") +
+    geom_rect(
+      aes(
+        xmin = id_node - 2, 
+        xmax = id_node + 2, 
+        ymin = min(h_var), 
+        ymax = max(h_var), 
+      ), 
+      color = "red",
+      fill = "transparent",
+      size = 0.75
+    ) +
     theme(
       text = element_text(family = "Times New Roman"),
       plot.title = element_text(size = 12),
