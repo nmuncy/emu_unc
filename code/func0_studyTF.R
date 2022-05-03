@@ -35,9 +35,9 @@ write_dir <- args[3]
 study_list[1] <- args[4]
 study_list[2] <- args[5]
 
-# test_list[1] <- args[6]
-# test_list[2] <- args[7]
-# test_list[3] <- args[8]
+test_list[1] <- args[6]
+test_list[2] <- args[7]
+test_list[3] <- args[8]
 
 # # For testing
 # proj_dir <- "/Volumes/homes/MaDLab/projects/McMakin_EMUR01/dset"
@@ -98,15 +98,15 @@ for (run in 2:length(study_list)) {
   rm(df)
 }
 
-# # make master test df
-# df_test <- read.delim(test_list[1], sep = "\t", header = T)
-# df_test$run <- 1
-# for (run in 2:length(test_list)) {
-#   df <- read.delim(test_list[run], sep = "\t", header = T)
-#   df$run <- run
-#   df_test <- rbind(df_test, df)
-#   rm(df)
-# }
+# make master test df
+df_test <- read.delim(test_list[1], sep = "\t", header = T)
+df_test$run <- 1
+for (run in 2:length(test_list)) {
+  df <- read.delim(test_list[run], sep = "\t", header = T)
+  df$run <- run
+  df_test <- rbind(df_test, df)
+  rm(df)
+}
 
 
 # Study judgment timing files ----
@@ -152,16 +152,6 @@ write.table(
   sep = "\t",
   row.names = F
 )
-
-tf_list <- list.files(write_dir, pattern = "\\.txt$", full.names = T)
-for (h_tf in tf_list) {
-  h_check <- read.delim(h_tf, header = F)
-  if (length(unique(h_check$V1)) == 1) {
-    file.remove(h_tf)
-  }
-}
-
-quit(save = "no", status = 0, runLast = F)
 
 
 # Find test response to study stimulus ----
@@ -240,11 +230,15 @@ write.table(
 # I actually check to make sure there is more than
 # one unique value in the first column. Surely this
 # will always work.
+#
+# It didn't ... SMH.
 
 tf_list <- list.files(write_dir, pattern = "\\.txt$", full.names = T)
 for (h_tf in tf_list) {
   h_check <- read.delim(h_tf, header = F)
-  if (length(unique(h_check$V1)) == 1) {
+  row1_check <- unique(h_check[1,])
+  col1_check <- unique(h_check[,1])
+  if (length(row1_check) == 1 & length(col1_check) == 1) {
     file.remove(h_tf)
   }
 }

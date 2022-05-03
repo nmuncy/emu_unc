@@ -69,15 +69,11 @@ for subj in ${subj_list[@]}; do
     subj_study=${proj_dir}/${subj}/ses-S1/func
     study_list=($(ls ${subj_study}/*_task-study_*events.tsv))
 
-    # subj_test=${proj_dir}/${subj}/ses-S2/func
-    # test_list=($(ls ${subj_test}/*_task-test_*events.tsv))
+    subj_test=${proj_dir}/${subj}/ses-S2/func
+    test_list=($(ls ${subj_test}/*_task-test_*events.tsv))
 
-    # # require 2 study and 3 test run files
-    # if [ ${#study_list[@]} != 2 ] || [ ${#test_list[@]} != 3 ]; then
-    #     continue
-    # fi
-
-    if [ ${#study_list[@]} != 2 ]; then
+    # require 2 study and 3 test run files
+    if [ ${#study_list[@]} != 2 ] || [ ${#test_list[@]} != 3 ]; then
         continue
     fi
 
@@ -88,6 +84,6 @@ for subj in ${subj_list[@]}; do
         $proj_dir \
         $subj \
         $subj_out \
-        "${study_list[@]}" 
-        #"${test_list[@]}"
+        "${study_list[@]}" \
+        "${test_list[@]}"
 done
