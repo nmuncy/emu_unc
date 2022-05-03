@@ -186,17 +186,17 @@ for subj in ${subj_all[@]}; do
     fi
 done
 
-# patch - remove subjs w/missing data, redeclare array
-# problem_list=(sub-4{011,020,021,055,056,063,090,172,197})  # for test
-problem_list=(sub-4001) # for study
-ind_problem=()
-for ind in ${!subj_list[@]}; do
-    for prob in ${problem_list[@]}; do
-        if [[ "${subj_list[$ind]}" == "${prob}" ]]; then
-            ind_problem+=($ind)
-        fi
-    done
-done
+# # patch - remove subjs w/missing data, redeclare array
+# # problem_list=(sub-4{011,020,021,055,056,063,090,172,197})  # for test
+# problem_list=() # for study
+# ind_problem=()
+# for ind in ${!subj_list[@]}; do
+#     for prob in ${problem_list[@]}; do
+#         if [[ "${subj_list[$ind]}" == "${prob}" ]]; then
+#             ind_problem+=($ind)
+#         fi
+#     done
+# done
 
 for ind in "${ind_problem[@]}"; do
     unset "subj_list[$ind]"
