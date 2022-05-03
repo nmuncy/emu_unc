@@ -111,15 +111,15 @@ ggplot(df_long, aes(x = beh, y = coef, fill = group)) +
     text = element_text(family = "Times New Roman"),
     plot.title = element_text(size=12)
     )
-ggsave(
-  "/Users/nmuncy/Desktop/roi_amg.png",
-  plot = last_plot(),
-  units = "in",
-  width = 4,
-  height = 3,
-  dpi = 600,
-  device = "png"
-)
+# ggsave(
+#   "/Users/nmuncy/Desktop/roi_amg.png",
+#   plot = last_plot(),
+#   units = "in",
+#   width = 4,
+#   height = 3,
+#   dpi = 600,
+#   device = "png"
+# )
 
 
 # PPI Coefs Analysis ----

@@ -683,7 +683,7 @@ for (tract in tract_list) {
     )
     
     plot_group_behs <- pred_group_covs(df_tract, id_node, tract_GSintx, roi_beh)
-    plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, roi_beh)
+    plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, roi_beh, id_node)
 
     # test if exp group node-fa-roi coef intx term differs from control
     gam_file <- paste0(
@@ -705,8 +705,9 @@ for (tract in tract_list) {
       "min" = min(plot_group_behs$diff$data$h_var),
       "max" = max(plot_group_behs$diff$data$h_var)
     )
-    plot_group_intx_diff <- 
-      pred_group_intx_diff(df_tract, tract_GSintxOF, roi_beh, var_range)
+    plot_group_intx_diff <- pred_group_intx_diff(
+      df_tract, tract_GSintxOF, roi_beh, var_range, id_node
+    )
     
     # draw grid
     plot_list <- list(
@@ -866,7 +867,8 @@ for (tract in tract_list) {
       
       plot_group_behs <- 
         pred_group_covs(df_tract, id_node, tract_GSintx, h_seed_beh)
-      plot_group_intx <- pred_group_intx(df_tract, tract_GSintx, h_seed_beh)
+      plot_group_intx <- 
+        pred_group_intx(df_tract, tract_GSintx, h_seed_beh, id_node)
 
       # test if exp group node-fa-ppi intx term differs from control
       gam_file <- paste0(
@@ -887,8 +889,9 @@ for (tract in tract_list) {
         "min" = min(plot_group_behs$diff$data$h_var),
         "max" = max(plot_group_behs$diff$data$h_var)
       )
-      plot_group_intx_diff <- 
-        pred_group_intx_diff(df_tract, tract_GSintxOF, h_seed_beh, var_range)
+      plot_group_intx_diff <- pred_group_intx_diff(
+        df_tract, tract_GSintxOF, h_seed_beh, var_range, id_node
+      )
       
       # draw grid
       plot_list <- list(
