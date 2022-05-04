@@ -344,20 +344,20 @@ ggplot(df_long, aes(x = mem, y = value, fill = group)) +
   ) +
   annotate("text", x = 1.5, y = 0.62, label = "***") +
   labs(x = "Stimulus Valence", y = "LGI", fill = "* Group") +
-  ggtitle("Memory by Valence and Group") +
+  ggtitle("Scene Valence Memory Metric") +
   theme(
     text = element_text(family = "Times New Roman")
   )
 
-# ggsave(
-#   "/Users/nmuncy/Desktop/group_lgi.png",
-#   plot = last_plot(),
-#   units = "in",
-#   width = 4,
-#   height = 3,
-#   dpi = 600,
-#   device = "png"
-# )
+ggsave(
+  "/Users/nmuncy/Desktop/group_lgi.png",
+  plot = last_plot(),
+  units = "in",
+  width = 4,
+  height = 3,
+  dpi = 600,
+  device = "png"
+)
 rm(df_long)
 rm(df_sub)
 
@@ -772,16 +772,11 @@ for (seed in seed_list) {
   rm(df_ppi)
 }
 
-# conduct node-fa-ppi intx analyses via GAMs for e/tract, only
-# use left hem tracts
-tract_list <- c("UNC_L", "CGC_L")
-for (tract in tract_list) {
+# conduct node-fa-ppi intx analyses via GAMs for e/tract
+tract_list <- c("CGC_L")
+seed_list <- c("NSlacc", "NSldmpfc", "NSlsfs")
 
-  # match tract to PPI region
-  seed_list <- switch(tract,
-    "UNC_L" = "NSlacc",
-    "CGC_L" = c("NSlacc", "NSldmpfc", "NSlsfs")
-  )
+for (tract in tract_list) {
 
   # subset df_afq, keep people w/dx for group modeling, get dist
   df_tract <- df_afq[which(df_afq$tractID == tract), ]

@@ -217,9 +217,9 @@ df_long[ind_neu, ]$beh <- "Neu"
 ggplot(df_long, aes(x = beh, y = coef, fill = group)) +
   facet_wrap(~roi) +
   geom_boxplot() +
-  labs(x = "Scene Rating", y = "PPI Coefficient") +
+  labs(x = "Scene Rating", y = "Coefficient") +
   scale_fill_discrete(name = "Group") +
-  ggtitle("Scene Valence Rating L. Amg PPI") +
+  ggtitle("Scene Valence Rating, L. Amg PPI") +
   theme(
     text = element_text(family = "Times New Roman"),
     plot.title = element_text(size=12)
