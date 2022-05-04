@@ -204,7 +204,7 @@ for (tract in tract_list) {
 
   # test if group wiggliness increases fit
   tract_GI <- gam_GI(df_tract, tract_dist, "dx_group")
-  write_gam_stats(tract_GS, out_dir, "mGI", tract)
+  write_gam_stats(tract_GI, out_dir, "mGI", tract)
   write_compare_stats(tract_GS, tract_GI, tract, out_dir, "mGS-mGI")
 
   # test if group smooths differ
