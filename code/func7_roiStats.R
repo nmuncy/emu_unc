@@ -207,9 +207,9 @@ ind_neu <- which(df_long$beh == "neu")
 df_long$roi <- as.character(df_long$roi)
 df_long$beh <- as.character(df_long$beh)
 
-df_long[ind_lacc, ]$roi <- "L. ACC"
-df_long[ind_ldmpfc, ]$roi <- "L. dmPFC"
-df_long[ind_lsfs, ]$roi <- "L. SFS"
+df_long[ind_lacc, ]$roi <- "* L. ACC"
+df_long[ind_ldmpfc, ]$roi <- "* L. dmPFC"
+df_long[ind_lsfs, ]$roi <- "* L. SFS"
 df_long[ind_neg, ]$beh <- "Neg"
 df_long[ind_neu, ]$beh <- "Neu"
 

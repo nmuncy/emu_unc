@@ -1,4 +1,7 @@
 Mask	NSlacc
+sub-4001	File	Sub-brick	Mean_1  
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4001/ses-S1/func/decon_task-study_rVal_PPI-amgL_stats_REML+tlrc[13,15]	0[Sneg#0_Co]	-0.326821
+/Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4001/ses-S1/func/decon_task-study_rVal_PPI-amgL_stats_REML+tlrc[13,15]	1[Sneu#0_Co]	0.379831
 sub-4002	File	Sub-brick	Mean_1  
 /Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_rVal_PPI-amgL_stats_REML+tlrc[13,15]	0[Sneg#0_Co]	0.786284
 /Volumes/homes/MaDLab/projects/McMakin_EMUR01/derivatives/emu_unc/sub-4002/ses-S1/func/decon_task-study_rVal_PPI-amgL_stats_REML+tlrc[13,15]	1[Sneu#0_Co]	-0.477917
