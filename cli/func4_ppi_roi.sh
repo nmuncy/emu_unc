@@ -18,7 +18,7 @@ function Usage {
     cat <<USAGE
     Extract PPI coefficient for supplied behaviors.
 
-    Find subjects who have PPI output (ref func4_ppi.py). Then multiply ROI <mask_name>
+    Find subjects who have PPI output (ref func3_ppi.py). Then multiply ROI <mask_name>
     by intersection mask (-g) to make clean mask. Finally, use clean mask to extract
     coefs for each subject.
 
@@ -39,7 +39,7 @@ function Usage {
         deriv_dir=/home/data/madlab/McMakin_EMUR01/derivatives/emu_unc
         sess=ses-S1
         task=task-study
-        sbatch func5_ppi_roiAnalysis.sh \\
+        sbatch func4_ppi_roi.sh \\
             -d \$deriv_dir \\
             -g \${deriv_dir}/template/tpl-MNIPediatricAsym_cohort-5_res-2_\${sess}_\${task}_desc-grpIntx_mask.nii.gz \\
             -m NSlacc \\

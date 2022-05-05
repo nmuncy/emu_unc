@@ -32,13 +32,13 @@ function Usage {
     Example Usage:
         code_dir="\$(dirname "\$(pwd)")"
         $0 \\
-            -c \$code_dir
+            -c \$code_dir \\
             -d /home/data/madlab/McMakin_EMUR01 \\
             -j /home/data/madlab/McMakin_EMUR01/dset/dataset_description.json \\
             -p /scratch/madlab/emu_unc \\
             -r run-1 \\
             -s ses-S2 \\
-            -t /home/nmuncy/compute/emu_unc/docs/config.toml \\
+            -t /home/nmuncy/compute/emu_unc/env/config.toml \\
             -x dwi_preproc
 
     Notes:
@@ -156,6 +156,13 @@ for opt in data_dir proc_dir sess run diff_dir json_file; do
     fi
 done
 
+# check for conda env
+which python | grep "emuR01_unc" >/dev/null 2>&1
+if [ $? != 0 ]; then
+    echo "ERROR: Please conda activate emuR01_unc_env and try again." >&2
+    exit 1
+fi
+
 # check for derivatives dir
 if [ ! -d ${data_dir}/derivatives/$diff_dir ]; then
     echo -e "\n\t ERROR: $diff_dir not found or is not a directory." >&2
@@ -210,6 +217,7 @@ for subj in ${subj_list[@]}; do
 done
 
 # submit afq
+echo -e "\nStarting afq_cli."
 time=$(date '+%Y-%m-%d_%H:%M')
 out_dir=${work_dir}/slurm_out/pyafq_${time}
 mkdir -p $out_dir
