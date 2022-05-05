@@ -3,8 +3,8 @@
 function Usage {
     cat <<USAGE
 
-    Wrapper for resources.afni.amg_priors.sh, which uses FreeSurfer posteriors
-    to create template priors via Joint Label Fusion.
+    Make amygdaloid and intersection priors, pull ROI coefficients from
+    deconvolved files.
 
     Required Arguments:
         -c <code_dir> = path to clone of github.com/nmuncy/emu_unc.git
@@ -13,7 +13,6 @@ function Usage {
         -r <template> = path to template
         -s <session> = BIDS session string
         -t <task> = BIDS task string
-
 
     Example Usage:
         code_dir="\$(dirname "\$(pwd)")"
@@ -156,7 +155,7 @@ mkdir -p $slurm_dir
 sbatch \
     -e ${slurm_dir}/err_amgJLF.txt \
     -o ${slurm_dir}/out_amgJLF.txt \
-    "${cmd_amg[@]}"
+    ${cmd_amg[@]}
 
 # get job ID for waiting
 wait_amg=$(squeue -u $(whoami) | grep "amgJLF" | awk '{print $1}')
@@ -169,4 +168,32 @@ sbatch \
     --dependency=afterany:$wait_amg \
     -e ${slurm_dir}/err_intx.txt \
     -o ${slurm_dir}/out_intx.txt \
-    "${cmd_intx[@]}"
+    ${cmd_intx[@]}
+
+wait_intx=$(squeue -u $(whoami) | grep "ppiINTX" | awk '{print $1}')
+
+# make, submit roi script
+slurm_dir=${out_dir}/Slurm_out/roiBeta_$time
+mkdir -p $slurm_dir
+
+mask_list=(NSlacc NSlsfs NSldmpfc)
+for mask in ${mask_list[@]}; do
+    unset cmd_roi
+    cmd_roi=(
+        ${code_dir}/resources/func/roi_betas.sh
+        -d $deriv_dir
+        -g ${out_dir}/tpl-MNIPediatricAsym_cohort-5_res-2_${sess}_${task}_desc-grpIntx_mask.nii.gz
+        -m $mask
+        -n rVal
+        -s $sess
+        -t $task
+        neg neu
+    )
+
+    echo -e "Pulling $mask betas:\n\t${cmd_roi[@]}"
+    sbatch \
+        --dependency=afterany:$wait_intx \
+        -e ${slurm_dir}/err_${mask}.txt \
+        -o ${slurm_dir}/out_${mask}.txt \
+        ${cmd_roi[@]}
+done

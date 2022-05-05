@@ -15,24 +15,32 @@ function Usage {
         <data_dir>/derivatives/<deriv_dir> to
         <proc_dir>/derivatives/<deriv_dir>.
 
+    Then, submit pyAFQ.
+
     Required Arguments:
-        -d </path/to/data_dir> = location of BIDS-structured stored project data
-        -p </path/to/proc_dir> = location to where data will be copied,
+        -c <code_dir> = path to clone of github.com/nmuncy/emu_unc.git
+        -d <data_dir> = location of BIDS-structured stored project data
+        -j <json-file> = BIDS dataset_description.json sidecar
+        -p <proc_dir> = location to where data will be copied,
             and processed. Will be created if it does not exist
-        -s <ses-str> = BIDS session string, for data structure and naming
         -r <run-str> = BIDS run string, for naming
+        -s <ses-str> = BIDS session string, for data structure and naming
+        -t <config_file> = path to config.toml
         -x <deriv_dir> = directory within derivatives containing pre-processed
             diffusion weighted data
-        -j <json-file> = BIDS dataset_description.json sidecar
 
     Example Usage:
+        code_dir="\$(dirname "\$(pwd)")"
         $0 \\
+            -c \$code_dir
             -d /home/data/madlab/McMakin_EMUR01 \\
+            -j /home/data/madlab/McMakin_EMUR01/dset/dataset_description.json \\
             -p /scratch/madlab/emu_unc \\
-            -s ses-S2 \\
             -r run-1 \\
-            -x dwi_preproc \\
-            -j /home/data/madlab/McMakin_EMUR01/dset/dataset_description.json
+            -s ses-S2 \\
+            -t /home/nmuncy/compute/emu_unc/docs/config.toml \\
+            -x dwi_preproc
+
     Notes:
         In our file structure, bval exists in dset, while
         bvec and nii exist in derivatives/<deriv_dir>.
@@ -41,8 +49,16 @@ USAGE
 }
 
 # capture arguments
-while getopts ":d:p:s:r:x:j:h" OPT; do
+while getopts ":c:d:j:p:r:s:t:x:h" OPT; do
     case $OPT in
+    c)
+        code_dir=${OPTARG}
+        if [ ! -d $code_dir ]; then
+            echo -e "\n\t ERROR: $code_dir not detected." >&2
+            Usage
+            exit 1
+        fi
+        ;;
     d)
         data_dir=${OPTARG}
         if [ ! -d $data_dir ]; then
@@ -50,18 +66,6 @@ while getopts ":d:p:s:r:x:j:h" OPT; do
             Usage
             exit 1
         fi
-        ;;
-    p)
-        proc_dir=${OPTARG}
-        ;;
-    s)
-        sess=${OPTARG}
-        ;;
-    r)
-        run=${OPTARG}
-        ;;
-    x)
-        diff_dir=${OPTARG}
         ;;
     j)
         json_file=${OPTARG}
@@ -71,6 +75,27 @@ while getopts ":d:p:s:r:x:j:h" OPT; do
             exit 1
         fi
         ;;
+    p)
+        proc_dir=${OPTARG}
+        ;;
+    r)
+        run=${OPTARG}
+        ;;
+    s)
+        sess=${OPTARG}
+        ;;
+    t)
+        config_file=${OPTARG}
+        if [ ! -f $config_file ] || [ -z $config_file ]; then
+            echo -e "\n\t ERROR: $config_file file not found or is empty." >&2
+            Usage
+            exit 1
+        fi
+        ;;
+    x)
+        diff_dir=${OPTARG}
+        ;;
+
     h)
         Usage
         exit 0
@@ -183,3 +208,13 @@ for subj in ${subj_list[@]}; do
 
     fi
 done
+
+# submit afq
+time=$(date '+%Y-%m-%d_%H:%M')
+out_dir=${work_dir}/slurm_out/pyafq_${time}
+mkdir -p $out_dir
+
+sbatch \
+    -e ${out_dir}/err.txt \
+    -o ${out_dir}/out.txt \
+    ${code_dir}/resources/diff/afq_cli.sh $config_file
