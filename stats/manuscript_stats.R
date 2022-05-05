@@ -11,92 +11,15 @@ code_dir <- dirname(getwd())
 source(paste0(code_dir, "/resources/gams/calc.R"))
 source(paste0(code_dir, "/resources/gams/pred.R"))
 source(paste0(code_dir, "/resources/gams/plot.R"))
+source(paste0(code_dir, "/resources/gams/helper.R"))
 
 
-# General Functions ----
+# General Notes ----
 #
-# Helper functions for organizing strings and writing files.
-# Used by numerous sections below.
-
-tract_fam <- function(tract) {
-  # Set family for each tract.
-  #
-  # These were determined through comparing various models
-  # via hist(), fitdistrplus::descdist, and itsadug::compareML.
-  #
-  # Arguments:
-  #   tract (str) = AFQ tract name
-  #
-  # Returns:
-  #   family (str) for use in DiffGamm::switch_family
-  h_fam <- switch(tract,
-    "UNC_L" = "gamma",
-    "UNC_R" = "gaus",
-    "CGC_L" = "gaus",
-    "CGC_R" = "gaus",
-  )
-  return(h_fam)
-}
-
-switch_names <- function(name) {
-  # Switch tract, Y-axis title names
-  #
-  # Convert tract names to long form for titles,
-  # convert memory, ppi names to long forms for
-  # y-axis titles.
-  #
-  # Arguments:
-  #   name (str) = AFQ tract name, behavior name, PPI seed
-  #
-  # Returns:
-  #   name_long (str) = converted name
-  x_name <- switch(name,
-    "UNC_L" = "L. Uncinate",
-    "UNC_R" = "R. Uncinate",
-    "CGC_L" = "L. Cingulum",
-    "CGC_R" = "R. Cingulum",
-    "lgi_neg" = "Negative LGI",
-    "lgi_neu" = "Neutral LGI",
-    "amgL" = "L. Amygdala",
-    "amgR" = "R. Amygdala",
-    "neg" = "Negative Scenes",
-    "neu" = "Neutral Scenes",
-  )
-  return(x_name)
-}
-
-write_gam_stats <- function(gam_obj, out_dir, gam_type, tract) {
-  # Write summary stats of GAM object.
-  #
-  # Arguments:
-  #   gam_obj (obj) = GAM object returned by mgcv
-  #   out_dir (str) = path to output dir
-  #   gam_type (str) = diffentiate type of model used
-  #   tract (str) = AFQ tract name
-  capture.output(
-    summary(gam_obj),
-    file = paste0(
-      out_dir, "/Stats_GAM_", tract, "_", gam_type, ".txt"
-    )
-  )
-}
-
-write_compare_stats <- function(model_a, model_b, tract, out_dir, out_str) {
-  # Write model comparison stats of two GAMs
-  #
-  # Arguments:
-  #   model_a (obj) = GAM object returned by mgcv
-  #   model_b (obj) = another GAM object returned by mgcv
-  #   tract (str) = AFQ tract name
-  #   out_dir (str) = path to output dir
-  #   out_str (str) = extra string for specifying name of out file
-  capture.output(
-    compareML(model_a, model_b),
-    file = paste0(
-      out_dir, "/Stats_GAM_", tract, "_compare_", out_str, ".txt"
-    )
-  )
-}
+# Conduct analyses on behavioral, EPI, and diffusion data.
+# Investigate interaction of tracts and behavior, EPI data.
+# Product of merging a number of stats scripts, so some
+# syntax will be a bit repetitive (mostly in the Foo - Group sections).
 
 
 # Set Up ----
@@ -108,7 +31,7 @@ write_compare_stats <- function(model_a, model_b, tract, out_dir, out_str) {
 # set paths
 proj_dir <- "/Users/nmuncy/Projects/emu_unc"
 data_dir <- paste0(proj_dir, "/data")
-out_dir <- paste0(proj_dir, "/stats")
+out_dir <- paste0(proj_dir, "/stats_output")
 tract_list <- c("UNC_L", "UNC_R", "CGC_L", "CGC_R")
 
 # # capture session
@@ -134,7 +57,10 @@ rm(ind_keep)
 rm(ind_exp)
 
 
-# Get Demographics ------
+# Get Demographics ----
+#
+# Quick syntax for reporting demographic info
+
 df_subset <- df_afq[which(df_afq$tractID == "UNC_L" & df_afq$nodeID == 10), ]
 df_subset <- df_subset %>% drop_na(dx)
 
@@ -149,17 +75,21 @@ ind_female <- which(df_subset$sex == "F")
 test_sex <- t.test(df_subset[ind_male, ]$age, df_subset[ind_female, ]$age)
 
 # number of dx, con
-ind_pat <- which(df_subset$dx_group == "Pat")
+ind_pat <- which(df_subset$dx_group == "Exp")
 ind_con <- which(df_subset$dx_group == "Con")
 test_dx <- t.test(df_subset[ind_pat, ]$age, df_subset[ind_con, ]$age)
 
-num_pat_f <- length(which(df_subset$dx_group == "Pat" & df_subset$sex == "F"))
-num_pat_m <- length(which(df_subset$dx_group == "Pat" & df_subset$sex == "M"))
+num_pat_f <- length(which(df_subset$dx_group == "Exp" & df_subset$sex == "F"))
+num_pat_m <- length(which(df_subset$dx_group == "Exp" & df_subset$sex == "M"))
 num_con_f <- length(which(df_subset$dx_group == "Con" & df_subset$sex == "F"))
 num_con_m <- length(which(df_subset$dx_group == "Con" & df_subset$sex == "M"))
 
+rm(test_dx)
+rm(df_subset)
+rm(test_sex)
 
-# Model Specification ----
+
+# GAM - Model Tracts ----
 #
 # Determine the model that best fits the various tracts. Modeling individual
 # tracts determined that:
@@ -250,38 +180,10 @@ for (tract in tract_list) {
 }
 
 
-# switch for selecting node for each tract
-tract_node <- function(tract) {
-  # Match tract to node, for interaction investiagtion
-  #
-  # Arguments:
-  #   tract (str) = AFQ tract name
-  #
-  # Returns:
-  #   id_node (int) = nodeID number
-  id_node <- switch(tract,
-    "UNC_L" = 37,
-    "UNC_R" = 39,
-    "CGC_L" = 57,
-    "CGC_R" = 29
-  )
-  return(id_node)
-}
-
-
-# Interaction with LGI ----
+# LGI - Group Stats ----
 #
-# First, test for a group by valence interaction in LGI
+# Test for a group by valence interaction in LGI
 # scores.
-#
-# Next, model the interaction of group, tract node, and
-# a memory metric (negative/neutral LGI) in predicting
-# tract FA values. Compare with tract_GS model to determine
-# if including LGI improves model fit.
-#
-# Then, conduct interaction with ordered factors for group
-# (ref = Con) to see if experimental group differs in
-# interaction from reference group.
 
 # set list of lgi behaviors
 beh_list <- c("lgi_neg", "lgi_neu")
@@ -332,7 +234,7 @@ ind_neu <- which(df_long$mem == "lgi_neu")
 df_long[ind_neg, ]$mem <- "Negative"
 df_long[ind_neu, ]$mem <- "Neutral"
 
-ggplot(df_long, aes(x = mem, y = value, fill = group)) +
+pLGI <- ggplot(df_long, aes(x = mem, y = value, fill = group)) +
   geom_boxplot() +
   annotate(
     "segment",
@@ -353,20 +255,22 @@ ggplot(df_long, aes(x = mem, y = value, fill = group)) +
     text = element_text(family = "Times New Roman")
   )
 
-ggsave(
-  "/Users/nmuncy/Desktop/group_lgi.png",
-  plot = last_plot(),
-  units = "in",
-  width = 4,
-  height = 3,
-  dpi = 600,
-  device = "png"
-)
 rm(df_long)
 rm(df_sub)
+rm(fit_anov)
 
 
-# conduct node-fa-lgi intx analyses via GAMs for e/tract
+# LGI - GAM Interaction----
+#
+# Model the interaction of group, tract node, and
+# a memory metric (negative/neutral LGI) in predicting
+# tract FA values. Compare with tract_GS model to determine
+# if including LGI improves model fit.
+#
+# Then, conduct interaction with ordered factors for group
+# (ref = Con) to see if experimental group differs in
+# interaction from reference group.
+
 tract_list <- c("UNC_L", "CGC_L")
 for (tract in tract_list) {
 
@@ -433,7 +337,6 @@ for (tract in tract_list) {
     # plot_group_behs_sex <- pred_group_sex_covs(df_tract, id_node, tract_GSintx, beh)
     # plot_group_intx_sex <- pred_group_sex_intx(df_tract, tract_GSintx, beh)
 
-
     # test if exp group node-fa-lgi intx term differs from control
     gam_file <- paste0(
       out_dir, "/Model_", tract, "_mGSOFIntx_LGI_", beh_short, ".Rda"
@@ -489,12 +392,10 @@ for (tract in tract_list) {
 }
 
 
-# Interaction with ROI coefs ----
+# ROI - Group Stats ----
 #
 # First analyze proportion of valence judgments by group, and plot. Then
-# incorporate beta-coefficients from left and right amygdala during
-# negative and neutral judgments into dataframe. Finally, test if a group x
-# coefs x valence interaction exists for UNC_L-amgL and UNC_R-amgR.
+# check for group differences in ROI beta estimates
 
 # Determine prop of judgments by group - set up long-formatted df
 beh_list <- c("neg", "neu")
@@ -562,7 +463,7 @@ ind_neu <- which(df_count$valence == "neu")
 df_count[ind_neg, ]$valence <- "Negative"
 df_count[ind_neu, ]$valence <- "Neutral"
 
-ggplot(df_count, aes(x = valence, y = prop, fill = group)) +
+pROIp <- ggplot(df_count, aes(x = valence, y = prop, fill = group)) +
   geom_boxplot() +
   annotate(
     "segment",
@@ -583,15 +484,130 @@ ggplot(df_count, aes(x = valence, y = prop, fill = group)) +
   theme(
     text = element_text(family = "Times New Roman")
   )
-ggsave(
-  "/Users/nmuncy/Desktop/group_count.png",
-  plot = last_plot(),
-  units = "in",
-  width = 4,
-  height = 3,
-  dpi = 600,
-  device = "png"
+# ggsave(
+#   "/Users/nmuncy/Desktop/group_count.png",
+#   plot = last_plot(),
+#   units = "in",
+#   width = 4,
+#   height = 3,
+#   dpi = 600,
+#   device = "png"
+# )
+
+rm(df_count)
+rm(df_subj)
+rm(fit_val)
+
+
+# Test for an interaction between ROI (L, R Amg), scene rating (neg, neu),
+# and Group (con, exp) in beta-coefficient.
+subj_list <- unique(df_afq$subjectID)
+subj_list <- paste0("sub-", subj_list)
+num_subj <- length(subj_list)
+
+# get L/R amg data
+df_amgL <- read.csv(
+  paste0(data_dir, "/df_ses-S1_task-study_decon-rVal_amgL.csv")
 )
+df_amgR <- read.csv(
+  paste0(data_dir, "/df_ses-S1_task-study_decon-rVal_amgR.csv")
+)
+
+# construct long df
+beh_list <- c("neg", "neu")
+roi_list <- c("amgL", "amgR")
+num_beh <- length(beh_list)
+num_roi <- length(roi_list)
+
+df_long <- as.data.frame(
+  matrix(NA, nrow = num_subj * num_beh * num_roi, ncol = 5)
+)
+colnames(df_long) <- c("subj", "group", "roi", "beh", "coef")
+df_long$subj <- rep(subj_list, each = num_beh * num_roi)
+df_long$roi <- rep(rep(roi_list, each = num_beh), num_subj)
+df_long$beh <- rep(beh_list, num_subj * num_roi)
+
+#  mine data for e/subj
+for(subj in subj_list){
+  
+  # get group
+  ind_long_subj <- which(df_long$subj == subj)
+  ind_amgL_subj <- which(df_amgL$subj == subj)
+  if(length(ind_amgL_subj) == 0){
+    next
+  }
+  df_long[ind_long_subj, ]$group <- df_amgL[ind_amgL_subj, ]$dx_group
+  
+  # get roi beh coefs
+  for(roi in roi_list){
+    h_df <- get(paste0("df_", roi))
+    for(beh in beh_list){
+      ind_long <- which(df_long$roi == roi & df_long$beh == beh & df_long$subj == subj)
+      ind_beh <- which(h_df$subj == subj)
+      df_long[ind_long, ]$coef <- h_df[ind_beh, beh]
+    }
+    rm(h_df)
+  }
+}
+
+# clean up df
+df_long <- df_long[complete.cases(df_long), ]
+df_long$group <- factor(df_long$group)
+df_long$roi <- factor(df_long$roi)
+df_long$beh <- factor(df_long$beh)
+
+# get final subj num
+final_subj_num <- length(unique(df_long$subj))
+
+# omnibus test
+fit_omni <- ezANOVA(
+  df_long, coef, wid=subj, within = c(beh, roi), between = group
+)
+fit_omni # ME beh, roi only
+
+# rename vars for pretty plots
+ind_neg <- which(df_long$beh == "neg")
+ind_neu <- which(df_long$beh == "neu")
+df_long$beh <- as.character(df_long$beh)
+df_long[ind_neg, ]$beh <- "Neg"
+df_long[ind_neu, ]$beh <- "Neu"
+
+# plot data, save
+new_labs <- c("** L. Amg", "** R. Amg")
+names(new_labs) <- c("amgL", "amgR")
+
+pROIamg <- ggplot(df_long, aes(x = beh, y = coef, fill = group)) +
+  facet_wrap(~roi, labeller = labeller(roi = new_labs)) +
+  geom_boxplot() +
+  annotate(
+    "segment", x = 1, xend = 2, y = 0.25, yend = 0.25, color = "black"
+  ) +
+  annotate(
+    "segment", x = 1, xend = 1, y = 0.25, yend = 0.23, color = "black"
+  ) +
+  annotate(
+    "segment", x = 2, xend = 2, y = 0.25, yend = 0.23, color = "black"
+  ) +
+  annotate("text", x = 1.5, y = 0.27, label = "***") +
+  labs(x = "Scene Rating", y = "Coefficient") +
+  scale_fill_discrete(name = "Group") +
+  ggtitle("Scene Valence Ratings, Amygdaloid Signal") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size=12)
+  )
+
+rm(df_amgL)
+rm(df_amgR)
+rm(df_long)
+rm(fit_omni)
+
+
+# ROI - GAM Interaction ----
+#
+# Incorporate beta-coefficients from left and right amygdala during
+# negative and neutral judgments into dataframe. Then test if a group x
+# coefs x valence interaction exists for UNC_L-amgL and UNC_R-amgR.
 
 # incorporate ROI values of ses-S1 task-study decon-rVal in df_afq
 roi_list <- c("amgL", "amgR")
@@ -746,8 +762,139 @@ for (tract in tract_list) {
 }
 
 
+# PPI - Group Stats ----
+#
+# Test for an interaction between ROI (acc, dmpfc, sfs), scene
+# rating (neg, neu), and Group (con, exp) in PPI correlation term.
+#
+# Essentially the same as ROI-Group analysis.
 
-# Interaction with PPI coefs ----
+subj_list <- unique(df_afq$subjectID)
+subj_list <- paste0("sub-", subj_list)
+num_subj <- length(subj_list)
+
+# get lacc, ldmpfc, lsfs data
+df_lacc <- read.csv(
+  paste0(data_dir, "/df_ses-S1_task-study_decon-rVal_amgL-NSlacc.csv")
+)
+df_ldmpfc <- read.csv(
+  paste0(data_dir, "/df_ses-S1_task-study_decon-rVal_amgL-NSldmpfc.csv")
+)
+df_lsfs <- read.csv(
+  paste0(data_dir, "/df_ses-S1_task-study_decon-rVal_amgL-NSlsfs.csv")
+)
+
+# construct long df
+beh_list <- c("neg", "neu")
+roi_list <- c("lacc", "ldmpfc", "lsfs")
+num_beh <- length(beh_list)
+num_roi <- length(roi_list)
+
+df_long <- as.data.frame(
+  matrix(NA, nrow = num_subj * num_beh * num_roi, ncol = 5)
+)
+colnames(df_long) <- c("subj", "group", "roi", "beh", "coef")
+df_long$subj <- rep(subj_list, each = num_beh * num_roi)
+df_long$roi <- rep(rep(roi_list, each = num_beh), num_subj)
+df_long$beh <- rep(beh_list, num_subj * num_roi)
+
+for(subj in subj_list){
+  
+  # get group
+  ind_long_subj <- which(df_long$subj == subj)
+  ind_lacc_subj <- which(df_lacc$subj == subj)
+  if(length(ind_lacc_subj) == 0){
+    next
+  }
+  df_long[ind_long_subj, ]$group <- df_lacc[ind_lacc_subj, ]$dx_group
+  
+  # get roi beh coefs
+  for(roi in roi_list){
+    h_df <- get(paste0("df_", roi))
+    for(beh in beh_list){
+      ind_long <- which(
+        df_long$roi == roi & df_long$beh == beh & df_long$subj == subj
+      )
+      ind_beh <- which(h_df$subj == subj)
+      df_long[ind_long, ]$coef <- h_df[ind_beh, beh]
+    }
+    rm(h_df)
+  }
+}
+
+# clean up df, get final count
+df_long <- df_long[complete.cases(df_long), ]
+df_long$group <- factor(df_long$group)
+df_long$roi <- factor(df_long$roi)
+df_long$beh <- factor(df_long$beh)
+final_subj_num <- length(unique(df_long$subj))
+
+# omnibus test
+fit_omni <- ezANOVA(
+  df_long, coef, wid=subj, within = c(beh, roi), between = group
+)
+fit_omni # ME of roi only
+
+# rename vars for pretty plots
+ind_lacc <- which(df_long$roi == "lacc")
+ind_ldmpfc <- which(df_long$roi == "ldmpfc")
+ind_lsfs <- which(df_long$roi == "lsfs")
+ind_neg <- which(df_long$beh == "neg")
+ind_neu <- which(df_long$beh == "neu")
+
+df_long$roi <- as.character(df_long$roi)
+df_long$beh <- as.character(df_long$beh)
+
+df_long[ind_lacc, ]$roi <- "* L. ACC"
+df_long[ind_ldmpfc, ]$roi <- "* L. dmPFC"
+df_long[ind_lsfs, ]$roi <- "* L. SFS"
+df_long[ind_neg, ]$beh <- "Neg"
+df_long[ind_neu, ]$beh <- "Neu"
+
+# plot data, save
+pPPI <- ggplot(df_long, aes(x = beh, y = coef, fill = group)) +
+  facet_wrap(~roi) +
+  geom_boxplot() +
+  labs(x = "Scene Rating", y = "Coefficient") +
+  scale_fill_discrete(name = "Group") +
+  ggtitle("Scene Valence Rating, L. Amg PPI") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(size=12)
+  )
+
+rm(df_lacc)
+rm(df_ldmpfc)
+rm(df_long)
+rm(df_lsfs)
+rm(fit_omni)
+
+# Assemble Avengers, I mean plots
+pOut <- grid.arrange(
+  pLGI, pROIp,
+  pROIamg, pPPI,
+  nrow = 2,
+  ncol = 2
+)
+
+ggsave(
+  paste0(out_dir, "/plot_behs.png"),
+  plot = pOut,
+  units = "in",
+  height = 6,
+  width = 9,
+  dpi = 600,
+  device = "png"
+)
+
+rm(pOut)
+rm(pLGI)
+rm(pPPI)
+rm(pROIamg)
+rm(pROIp)
+
+
+# PPI - GAM Interaction ----
 #
 # Test for an interaction between group differences in the various tracts
 # and the PPI term of the LAmg-ROI for Study trials preceding Test negative
