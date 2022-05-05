@@ -1,11 +1,11 @@
 .Rhistory
 *.DS_Store
-code/*.log
-code/*.err
+cli/*.log
+cli/*.err
 __pycache__
-code/slurm*
+cli/slurm*
 *_cens.txt
 *_vec.txt
 *Cens_events.txt
-stats/*
+stats_output/*
 .Rproj.user
