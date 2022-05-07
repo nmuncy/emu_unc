@@ -9,15 +9,15 @@
 #   ./func1_preproc.sh
 
 proj_dir="$(dirname "$(pwd)")"
-code_dir=/home/nmuncy/compute/func_processing/cli
+code_dir=/home/nmuncy/compute/func_processing
 sbatch \
     --job-name=runAfniTask \
-    --output=${code_dir}/logs/runAfniTask_log \
+    --output=./runAfniTask_log \
     --mem-per-cpu=4000 \
     --partition=IB_44C_512G \
     --account=iacc_madlab \
     --qos=pq_madlab \
-    ${code_dir}/afni_task_subj.py \
+    ${code_dir}/cli/afni_task_subj.py \
     --batch-num 15 \
     --json-dir ${proj_dir}/data/timing_files \
     --out-dir /home/data/madlab/McMakin_EMUR01/derivatives/emu_unc \
