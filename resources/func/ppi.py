@@ -768,11 +768,7 @@ def get_args():
 
     required_args = parser.add_argument_group("Required Arguments")
     required_args.add_argument(
-        "-p",
-        "--subj",
-        help="BIDS subject str (sub-1234)",
-        type=str,
-        required=True,
+        "-p", "--subj", help="BIDS subject str (sub-1234)", type=str, required=True,
     )
     required_args.add_argument(
         "-s", "--sess", type=str, help="BIDS-formatted session string", required=True

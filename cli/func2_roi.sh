@@ -170,13 +170,13 @@ sbatch \
     -o ${slurm_dir}/out_intx.txt \
     ${cmd_intx[@]}
 
-wait_intx=$(squeue -u $(whoami) | grep "ppiINTX" | awk '{print $1}')
+wait_intx=$(squeue -u $(whoami) | grep "maskIx" | awk '{print $1}')
 
 # make, submit roi script
 slurm_dir=${out_dir}/Slurm_out/roiBeta_$time
 mkdir -p $slurm_dir
 
-mask_list=(NSlacc NSlsfs NSldmpfc)
+mask_list=(amgL amgR)
 for mask in ${mask_list[@]}; do
     unset cmd_roi
     cmd_roi=(
