@@ -7,7 +7,7 @@
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 2
 #SBATCH --mem 16000
-#SBATCH --job-name ppiINTX
+#SBATCH --job-name maskIx
 
 # load relevant modules
 module load afni-20.2.06

@@ -1,7 +1,7 @@
 .Rhistory
 *.DS_Store
-cli/*.log
-cli/*.err
+cli/*log
+cli/*err
 __pycache__
 cli/slurm*
 *_cens.txt
